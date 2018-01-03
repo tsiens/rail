@@ -30,16 +30,16 @@
         };
         $('title').text(title[type] + ' | ' + data);
         $.each(th[type], function () {
-            $('#main thead tr').append($('<td>').text(this));
+            $('#main').find('thead').find('tr').append($('<td>').text(this));
         });
         $.get("{% url 'data'%}", {'type': type, 'data': data}, function (get) {
-            $('#main .modal-title').text(data);
+            $('#main').find('.modal-title').text(data);
             $.each(get, function (n, line) {
                 var tr = $('<tr>').attr('id', line[0]);
                 $.each(line, function (n, td) {
                     tr.append(tr.append($('<td>').text(td)))
                 });
-                $('#main tbody').append(tr);
+                $('#main').find('tbody').append(tr);
             });
         });
     </script>
