@@ -25,10 +25,10 @@ class Line(models.Model):
         verbose_name_plural = '车次'
     line = models.CharField('车次',max_length=20)
     code = models.CharField('代码',max_length=20)
-    start = models.CharField('发站',max_length=20)
-    start_en = models.CharField('发站代码',max_length=20)
-    arrive = models.CharField('达站',max_length=20)
-    arrive_en = models.CharField('达站代码',max_length=20)
+    start = models.CharField('始发', max_length=20)
+    start_en = models.CharField('始发代码', max_length=20)
+    arrive = models.CharField('终到', max_length=20)
+    arrive_en = models.CharField('终到代码', max_length=20)
     runtime = models.IntegerField('运行时长')
     date = models.DateField('更新')
     def __str__(self):

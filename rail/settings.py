@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '708ns9@b75q%!(o^y!ynxkczk-qfz3t#!0=)fz_lrjynin2e1*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -136,6 +136,4 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
-STATICFILES_DIRS =(
-    BASE_DIR+'/static',
-)
+STATIC_ROOT = BASE_DIR + '/static'

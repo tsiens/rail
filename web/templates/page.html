@@ -1,0 +1,46 @@
+{% extends 'template.html' %}
+{% block content %}
+    <div id='main' tabindex='-1' role='dialog'>
+        <div class='modal-dialog' style="width:95%" role='document'>
+            <div class='modal-content'>
+                <div class='modal-header'>
+                    <h4 class='modal-title'></h4>
+                </div>
+                <div class='modal-body'>
+                    <table class='table table-hover'>
+                        <thead>
+                        <tr>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var type = '{{ type }}';
+        var data = '{{ data }}';
+        var title = {'station': '车站', 'line': '车次', 'ticket': '车票'};
+        var th = {
+            'line': ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
+            'station': ['车次', '到达', '离开', '停留'],
+            'ticket': ['车次', '到达', '离开', '停留', '商务座', '一等座', '二等座', '高级软卧', '软卧', '动卧', '硬卧', '软座', '硬座', '无座']
+        };
+        $('title').text(title[type] + ' | ' + data);
+        $.each(th[type], function () {
+            $('#main thead tr').append($('<td>').text(this));
+        });
+        $.get("{% url 'data'%}", {'type': type, 'data': data}, function (get) {
+            $('#main .modal-title').text(data);
+            $.each(get, function (n, line) {
+                var tr = $('<tr>').attr('id', line[0]);
+                $.each(line, function (n, td) {
+                    tr.append(tr.append($('<td>').text(td)))
+                });
+                $('#main tbody').append(tr);
+            });
+        });
+    </script>
+{% endblock %}

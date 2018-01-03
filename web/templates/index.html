@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>12308</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<table id="station_line" class="table table-hover">
+    <thead>
+    <tr>
+        <th>车次</th>
+        <th>到达</th>
+        <th>离开</th>
+        <th>停留</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<div id="line_station" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="line_station">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="line_station">车次</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>站序</th>
+                        <th>车站</th>
+                        <th>到日</th>
+                        <th>到时</th>
+                        <th>发日</th>
+                        <th>发时</th>
+                        <th>停留</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    cn = '缙云';
+    $.get("{% url 'data'%}", {'type': 'station', 'data': cn}, function (data) {
+        $.each(data, function (n, line) {
+            var tr = $('<tr>').attr('id', line[0]);
+            $.each(line, function (n, td) {
+                tr.append(tr.append($('<td>').text(td)))
+            });
+            $('#station_line tbody').append(tr);
+        });
+        $('#station_line tbody tr').click(function () {
+            line = this.id;
+            $.get("{% url 'data'%}", {'type': 'line', 'data': line}, function (data) {
+                $('#line_station tbody').empty();
+                $.each(data, function (n, station) {
+                    var tr = $('<tr>');
+                    $.each(station, function (n, td) {
+                        tr.append(tr.append($('<td>').text(td)))
+                    });
+                    $('#line_station tbody').append(tr);
+                });
+                $("#line_station .modal-title").text(line);
+                $('#line_station').modal();
+            })
+        })
+    });
+</script>
+</body>
+</html>
