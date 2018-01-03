@@ -41,11 +41,16 @@ def ticket(ticket):
     if not get:
         return []
     data = []
+    en = {}
     for line in get.get('data', {}).get('result', []):
         line = line.split('|')
-        code, name, start_en, arrive_en = line[2:6]
-        cf, dd, ls = line[8:11]
+        code, name, sf, zd, cf, dd = line[2:8]
+        cftime, ddtime, ls = line[8:11]
+        if cf not in en:
+            en[cf] = Station.objects.get(en=cf).cn
+        if dd not in en:
+            en[dd] = Station.objects.get(en=dd).cn
         sw, yd, ed, gr, rw, dw, yw, rz, yz, wz = line[32], line[31], line[30], line[21], line[23], line[33], line[28], \
                                                  line[24], line[29], line[26]
-        data.append([name, cf, dd, ls, sw, yd, ed, gr, rw, dw, yw, rz, yz, wz])
+        data.append([name, en[cf], en[dd], cftime, ddtime, ls, sw, yd, ed, gr, rw, dw, yw, rz, yz, wz])
     return data

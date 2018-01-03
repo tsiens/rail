@@ -6,8 +6,8 @@
                 <div class='modal-header'>
                     <h4 class='modal-title'></h4>
                 </div>
-                <div class='modal-body'>
-                    <table class='table table-hover'>
+                <div class='modal-body '>
+                    <table class='table table-hover table-bordered'>
                         <thead>
                         <tr>
                         </tr>
@@ -26,7 +26,7 @@
         var th = {
             'line': ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
             'station': ['车次', '到达', '离开', '停留'],
-            'ticket': ['车次', '到达', '离开', '停留', '商务座', '一等座', '二等座', '高级软卧', '软卧', '动卧', '硬卧', '软座', '硬座', '无座']
+            'ticket': ['车次', '发站', '到站', '发时', '到时', '历时', '商务座', '一等座', '二等座', '高级软卧', '软卧', '动卧', '硬卧', '软座', '硬座', '无座']
         };
         $('title').text(title[type] + ' | ' + data);
         $.each(th[type], function () {
