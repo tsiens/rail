@@ -44,8 +44,8 @@ def wx(request):
                     'url': 'http://rail.qiangs.tech/page/line/%s' % txt
                 })
             else:
-                reply = create_reply('小人不才，无法识别 ' + txt, msg)
+                reply = create_reply('小的不才，无法识别 %s \n发送车站如“杭州东”\n发送车次如“D1”' % txt, msg)
         else:
-            reply = create_reply('小人不才，无法识别 ' + msg.type, msg)
+            reply = create_reply('小的不才，无法识别 ' + msg.type, msg)
         response = HttpResponse(reply.render(), content_type="application/xml")
     return response
