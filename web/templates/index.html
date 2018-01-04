@@ -1,13 +1,6 @@
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='UTF-8'>
-    <title>12308</title>
-    <script src='https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js'></script>
-    <script src='https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
-    <link href='https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet'>
-</head>
-<body>
-index
-</body>
-</html>
+{% extends 'template.html' %}
+{% load staticfiles %}
+{% block title %}主页{% endblock %}
+{% block content %}
+    <img src="{% static 'hzn.jpg' %}" alt="img">
+{% endblock %}
