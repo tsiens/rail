@@ -134,7 +134,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 import platform
 
-DEBUG = True if platform.system() == 'Windows'else False
+DEBUG = True  # if platform.system() == 'Windows'else False
 ALLOWED_HOSTS = ['*']
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'

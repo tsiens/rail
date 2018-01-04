@@ -2,8 +2,8 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.http import HttpResponse
+from data import *
 import json
-
 
 def index(request):
     return render(request, 'index.html')
@@ -11,9 +11,6 @@ def index(request):
 
 def page(request, type, data):
     return render(request, 'page.html', {'type': type, 'data': data})
-
-
-from data import *
 
 
 def data(requests):

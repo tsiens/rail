@@ -16,10 +16,12 @@ Including another URLconf
 from django.urls import path
 
 from web.views import *
+from wx import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
     path('page/<type>/<data>', page, name='page'),
     path('data', data, name='data'),
+    path('wx', wx),
 ]
