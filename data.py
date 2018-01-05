@@ -1,6 +1,6 @@
 import sys, os
 
-sys.path.append('/home/rail/get_data')
+sys.path += ['get_data', '/home/rail/get_data']
 from get_station import *
 from get_line import *
 from get_timetable import *

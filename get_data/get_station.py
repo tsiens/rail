@@ -87,7 +87,7 @@ def get_img():
         "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and (image_url is null or image_url='None' or date<'%s')" % (
             station_table, timetable_table, today - timedelta(days=100)))
     sqls = []
-    for station in stations:
+    for station in stations[:100]:
         station = station[0]
         src = get_station_img(station)
         sqls.append("UPDATE %s SET image_url='%s',date='%s' WHERE cn='%s'" % (
@@ -106,13 +106,12 @@ def get_station_img(station):
         src = re.findall(r'src=(.+)', src)[0]
     except:
         src = None
-    if src:
-        return src
-    try:
-        html = requests.get(image_url % station, headers=headers).text
-        src = re.findall(r'"thumburl":"(.+?\.jpg)"', html)[0].replace('\\', '')
-    except:
-        src = None
+    if not src:
+        try:
+            html = requests.get(image_url % station, headers=headers).text
+            src = re.findall(r'"thumburl":"(.+?\.jpg)"', html)[0].replace('\\', '')
+        except:
+            src = None
     return src
 
 if __name__ == '__main__':
