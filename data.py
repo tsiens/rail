@@ -27,32 +27,6 @@ def line(line):
         data.append([order, station, arrivedate, arrivetime, leavedate, leavetime, staytime])
     return data
 
-
-def ticket(ticket):
-    start, arrive, date = ticket.split('|')
-    start = Station.objects.get(cn=start).en
-    arrive = Station.objects.get(cn=arrive).en
-    ticket_url = 'https://kyfw.12306.cn/otn/leftTicket/queryA?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT'
-    print(ticket_url % (date, start, arrive))
-    get = requests.get(ticket_url % (date, start, arrive), verify=False).json()
-    if not get:
-        return []
-    data = []
-    en = {}
-    for line in get.get('data', {}).get('result', []):
-        line = line.split('|')
-        code, name, sf, zd, cf, dd = line[2:8]
-        cftime, ddtime, ls = line[8:11]
-        if cf not in en:
-            en[cf] = Station.objects.get(en=cf).cn
-        if dd not in en:
-            en[dd] = Station.objects.get(en=dd).cn
-        sw, yd, ed, gr, rw, dw, yw, rz, yz, wz = line[32], line[31], line[30], line[21], line[23], line[33], line[28], \
-                                                 line[24], line[29], line[26]
-        data.append([name, en[cf], en[dd], cftime, ddtime, ls, sw, yd, ed, gr, rw, dw, yw, rz, yz, wz])
-    return data
-
-
 def station_src(station):
     url = 'https://wapbaike.baidu.com/item/%s站'
     headers = {
