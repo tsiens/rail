@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -139,3 +140,6 @@ ALLOWED_HOSTS = ['*']
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# CRONJOBS = [
+#     ('43 12 * * *', 'django.core.management.call_command', ['aizhan_5domain_visits']),
+# ]
