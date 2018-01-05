@@ -1,7 +1,7 @@
-from get_data.config import *
-from get_data.get_ticket import *
-from get_data.get_station import *
-from get_data.get_timetable import *
+from config import *
+from get_ticket import *
+from get_station import *
+from get_timetable import *
 
 get_lines_url = 'https://kyfw.12306.cn/otn/resources/js/query/train_list.js'
 lines = mysql_db.execute("SELECT code,date FROM %s" % line_table)

@@ -1,9 +1,11 @@
-import threading, threadpool
-import requests, re, pymysql
-from prettytable import PrettyTable  # 表格输出
+import sys
+
+sys.path.append('.')
+sys.path.append('get_data')
+import threading, threadpool, requests
 from datetime import *
-from get_data.mysql import *
-from key import *
+from mysql import Mysql
+from key import mysql_host, mysql_user, mysql_pwd
 
 basename = 'rail'
 tables = {}

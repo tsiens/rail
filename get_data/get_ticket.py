@@ -1,4 +1,5 @@
-from get_data.get_station import *
+from prettytable import PrettyTable  # 表格输出
+from get_station import *
 
 get_ticket_url = 'https://kyfw.12306.cn/otn/leftTicket/queryA?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT'
 

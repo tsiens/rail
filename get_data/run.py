@@ -1,6 +1,6 @@
-from get_data.get_station import *
-from get_data.get_line import *
-from get_data.get_timetable import *
+from get_station import *
+from get_line import *
+from get_timetable import *
 
 
 def main():

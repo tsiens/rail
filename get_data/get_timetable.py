@@ -1,4 +1,4 @@
-from get_data.config import *
+from config import *
 
 get_timetable_url = 'https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no=%s&from_station_telecode=%s&to_station_telecode=%s&depart_date=%s'
 

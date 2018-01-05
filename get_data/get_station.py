@@ -1,4 +1,5 @@
-from get_data.config import *
+from config import *
+import re
 get_station_url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js'
 amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s站&city=%s&output=json&offset=20&page=1&key=%s'
 amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&ak=%s'
