@@ -1,8 +1,7 @@
 import sys
-
 sys.path.append('.')
-sys.path.append('get_data')
 import threading, threadpool, requests
+from pyquery import PyQuery as pq
 from datetime import *
 from mysql import Mysql
 from key import mysql_host, mysql_user, mysql_pwd

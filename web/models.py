@@ -14,6 +14,7 @@ class Station(models.Model):
     province = models.CharField('省', max_length=20)
     city = models.CharField('市', max_length=20)
     county = models.IntegerField('县')
+    image_url = models.CharField('图片', max_length=255)
     date = models.DateField('更新')
 
     def __str__(self):

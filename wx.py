@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from data import *
+from web.models import *
 from key import wx_token
 
 from wechatpy import *
@@ -29,8 +29,8 @@ def wx(request):
             if Station.objects.filter(cn=txt):
                 reply = ArticlesReply(message=msg)
                 reply.add_article({
-                    'title': txt + '站',
-                    'image': station_src(txt),
+                    'title': '车站: %s站' % txt,
+                    'image': Station.objects.get(cn=txt).image_url,
                     'url': 'https://wapbaike.baidu.com/item/%s站' % txt
                 })
                 reply.add_article({
@@ -39,12 +39,26 @@ def wx(request):
                 })
             elif Line.objects.filter(line=txt):
                 reply = ArticlesReply(message=msg)
+                start = Line.objects.get(line=txt).start
+                arrive = Line.objects.get(line=txt).arrive
                 reply.add_article({
-                    'title': txt + '次',
+                    'title': '车次: %s次 %s-%s' % (txt, start, arrive),
+                    'image': Station.objects.get(cn=start).image_url,
                     'url': 'http://rail.qiangs.tech/page/line/%s' % txt
                 })
+            elif len(txt.split(' ')) == 3:
+                start, arrive, date = txt.split(' ')
+                reply = ArticlesReply(message=msg)
+                reply.add_article({
+                    'title': '余票: %s号 %s-%s' % (date, start, arrive),
+                    'image': Station.objects.get(cn=start).image_url,
+                    'url': 'http://rail.qiangs.tech/page/ticket/%s|%s|%s' % (start, arrive, date)
+                })
             else:
-                reply = create_reply('小的不才，无法识别 %s \n发送车站如“杭州东”\n发送车次如“D1”' % txt, msg)
+                reply = create_reply('小的不才，无法识别 “%s” ' % txt +
+                                     '\n查车站 如发送 “杭州东”' +
+                                     '\n查车次 如发送 “D1”' +
+                                     '\n查余票 如发送 “杭州 上海 6”（6号）', msg)
         else:
             reply = create_reply('小的不才，无法识别 ' + msg.type, msg)
         response = HttpResponse(reply.render(), content_type="application/xml")

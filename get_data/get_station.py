@@ -5,6 +5,11 @@ amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s�
 amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&ak=%s'
 geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-over'
 geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
+baike_url = 'https://wapbaike.baidu.com/item/%s站'
+image_url = 'https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&word=%s火车站'
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Linux; U; Android 7.0; zh-CN; SM-G9300 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.2214.89 UCBrowser/11.5.6.946 Mobile Safari/537.36'}
+
 stations = mysql_db.execute("SELECT cn,en FROM %s" % station_table)
 stations_cn = dict(zip([station[0] for station in stations], [station[1] for station in stations])) if stations != [
     ()] else {}
@@ -18,11 +23,11 @@ def get_station():
     for station in get:
         cn, en = station.split('|')[1:3]
         if cn not in stations_cn:
-            data.append((cn, en, 125, 30, None, None, None, '1970-01-01'))
+            data.append((cn, en, 125, 30, None, None, None, None, '1970-01-01'))
             stations_cn[cn] = en
             stations_cn[en] = cn
             print('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), cn))
-    mysql_db.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data))
+    mysql_db.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data))
 
 
 def get_location():
@@ -77,7 +82,41 @@ def get_station_location(station):
     return [station, 125, 30, None, None, None]
 
 
+def get_img():
+    stations = mysql_db.execute(
+        "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and (image_url is null or image_url='None' or date<'%s')" % (
+            station_table, timetable_table, today - timedelta(days=100)))
+    sqls = []
+    for station in stations:
+        station = station[0]
+        src = get_station_img(station)
+        sqls.append("UPDATE %s SET image_url='%s',date='%s' WHERE cn='%s'" % (
+            station_table, src, today, station))
+        print('%s 图片 %s 站 %s' % (datetime.now().strftime('%H:%M:%S'), station, src))
+        if len(sqls) == 10:
+            mysql_db.execute(*sqls)
+            sqls = []
+    if len(sqls) > 0:
+        mysql_db.execute(*sqls)
+
+
+def get_station_img(station):
+    try:
+        src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
+        src = re.findall(r'src=(.+)', src)[0]
+    except:
+        src = None
+    if src:
+        return src
+    try:
+        html = requests.get(image_url % station, headers=headers).text
+        src = re.findall(r'"thumburl":"(.+?\.jpg)"', html)[0].replace('\\', '')
+    except:
+        src = None
+    return src
+
 if __name__ == '__main__':
     # get_station()
     # get_location()
-    print(get_station_location('绥阳'))
+    # print(get_station_location('绥阳'))
+    get_img()
