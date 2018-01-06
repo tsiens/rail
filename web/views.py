@@ -6,7 +6,6 @@ from get_data.get_ticket import *
 import json
 from web.models import *
 
-
 def index(request):
     return render(request, 'index.html')
 

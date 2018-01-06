@@ -1,4 +1,4 @@
-from config import *
+from get_data.config import *
 
 get_timetable_url = 'https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no=%s&from_station_telecode=%s&to_station_telecode=%s&depart_date=%s'
 
@@ -10,8 +10,8 @@ def get_timetable_thread(info):
     order, day, runtime = 1, 1, 0
     if not get:
         return None
-    print('%s 检索 %s 次  %s - %s  %s%%' % (datetime.now().strftime('%H:%M:%S'), line, start, arrive,
-                                         int(lines_list.index(info) / len(lines_list) * 100)))
+    log('检索 %s 次  %s - %s  %s%%' % (line, start, arrive,
+                                    int(lines_list.index(info) / len(lines_list) * 100)))
     for row in get.get('data', {}).get('data', []):
         station, arrivetime, leavetime = row['station_name'], row['arrive_time'], row['start_time']
         if arrivetime == '----': arrivetime = leavetime
@@ -49,10 +49,13 @@ def get_timetable(old=[]):
             line_table, today))
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
-        print('%s 检索 列车 %s 次' % (datetime.now().strftime('%H:%M:%S'), len(lines_list)))
-        rs = threadpool.makeRequests(get_timetable_thread, lines_list)
-        [pool.putRequest(r) for r in rs]
-        pool.wait()
+        log('检索 列车 %s 次' % (len(lines_list)))
+        ##uwsgi定时任务无法使用多线程
+        # rs = threadpool.makeRequests(get_timetable_thread, lines_list)
+        # [pool.putRequest(r) for r in rs]
+        # pool.wait()
+        for info in lines_list:
+            get_timetable_thread(info)
         return get_timetable(lines_list)
     delet_line = mysql_db.execute(
         "SELECT code FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
@@ -60,7 +63,7 @@ def get_timetable(old=[]):
         delet_line = [line[0] for line in delet_line]
         mysql_db.execute("DELETE FROM %s WHERE code ='%s'" % (timetable_table, "' or code ='".join(delet_line)),
                          "DELETE FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
-        print('%s 删除 车次 %s' % (datetime.now().strftime('%H:%M:%S'), len(delet_line)))
+        log('删除 车次 %s' % (len(delet_line)))
 
 
 if __name__ == '__main__':

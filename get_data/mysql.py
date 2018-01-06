@@ -40,7 +40,7 @@ class Mysql():
                         select = cursor.fetchall()
                         back.append(select)
             except Exception as err:
-                print('MYSQL 错误', err, sql)
+                log('MYSQL 错误', err, sql)
         db.commit()
         db.close()
         back = back[0] if len(back) == 1 else back

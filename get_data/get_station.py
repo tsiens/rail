@@ -1,4 +1,4 @@
-from config import *
+from get_data.config import *
 import re
 get_station_url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js'
 amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s站&city=%s&output=json&offset=20&page=1&key=%s'
@@ -26,7 +26,7 @@ def get_station():
             data.append((cn, en, 125, 30, None, None, None, None, '1970-01-01'))
             stations_cn[cn] = en
             stations_cn[en] = cn
-            print('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), cn))
+            log('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), cn))
     mysql_db.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data))
 
 
@@ -37,10 +37,10 @@ def get_location():
     sqls = []
     for station in stations:
         station = station[0]
-        data = get_station_location(station)
-        print('%s 查询 %s 站 [%s,%s] %s %s %s' % (datetime.now().strftime('%H:%M:%S'), *data))
+        station, x, y, p, c, co = get_station_location(station)
+        log('查询 %s 站 [%s,%s] %s %s %s' % (station, x, y, p, c, co))
         sqls.append("UPDATE %s SET x='%s',y='%s',province='%s',city='%s',county='%s',date='%s' WHERE cn='%s'" % (
-            station_table, *data[1:], today, station))
+            station_table, x, y, p, c, co, today, station))
         if len(sqls) == 10:
             mysql_db.execute(*sqls)
             sqls = []
@@ -92,7 +92,7 @@ def get_img():
         src = get_station_img(station)
         sqls.append("UPDATE %s SET image_url='%s',date='%s' WHERE cn='%s'" % (
             station_table, src, today, station))
-        print('%s 图片 %s 站 %s' % (datetime.now().strftime('%H:%M:%S'), station, src))
+        log('%s 图片 %s 站 %s' % (station, src))
         if len(sqls) == 10:
             mysql_db.execute(*sqls)
             sqls = []

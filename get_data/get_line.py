@@ -1,7 +1,7 @@
-from config import *
-from get_ticket import *
-from get_station import *
-from get_timetable import *
+from get_data.config import *
+from get_data.get_ticket import *
+from get_data.get_station import *
+from get_data.get_timetable import *
 
 get_lines_url = 'https://kyfw.12306.cn/otn/resources/js/query/train_list.js'
 lines = mysql_db.execute("SELECT code,date FROM %s" % line_table)
@@ -15,7 +15,7 @@ def insert_station(name, code, start_en, arrive_en):
         if cn not in stations_cn:
             stations_cn[cn] = en
             stations_en[en] = cn
-            print('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), cn))
+            log('插入 %s 站' % cn)
             mysql_db.execute("INSERT INTO %s VALUE (null,'%s','%s','%s','%s','%s','%s','%s','%s')" % (
                 station_table, cn, en, 125, 30, None, None, None, today))
 
@@ -40,8 +40,8 @@ def get_city_line_thread(city):
     sqls.append(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data))
     sqls.append("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
     if data + update_line != []:
-        print('%s 检索 %s - %s  %s%%' % (datetime.now().strftime('%H:%M:%S'), start, arrive,
-                                       int(citys_list.index(city) / len(citys_list) * 100)))
+        log('检索 %s - %s  %s%%' % (start, arrive,
+                                  int(citys_list.index(city) / len(citys_list) * 100)))
     lock.acquire()
     mysql_db.execute(*sqls)
     lock.release()
@@ -53,7 +53,7 @@ def get_city(citys):
     rs = threadpool.makeRequests(get_city_line_thread, citys_list)
     [pool.putRequest(r) for r in rs]
     pool.wait()
-    print('%s 检索 城市 %s 对' % (datetime.now().strftime('%H:%M:%S'), len(citys_list)))
+    log('检索 城市 %s 对' % len(citys_list))
 
 
 def get_line():
@@ -81,8 +81,8 @@ def get_line():
         mysql_db.execute(
             ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data),
             "UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
-        print('%s 插入 车次 %s ' % (datetime.now().strftime('%H:%M:%S'), len(data)))
-        print('%s 更新 车次 %s ' % (datetime.now().strftime('%H:%M:%S'), len(update_line)))
+        log('插入 车次 %s ' % len(data))
+        log('更新 车次 %s ' % len(update_line))
 
 
 if __name__ == '__main__':

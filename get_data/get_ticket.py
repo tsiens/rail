@@ -1,9 +1,9 @@
 import sys
 
 sys.path += ['.', 'get_data']  # django调用以rail为根，python1以目录为根
-from config import *
+from get_data.config import *
 from prettytable import PrettyTable  # 表格输出
-from get_station import *
+from get_data.get_station import *
 import re
 
 get_ticket_url = 'https://kyfw.12306.cn/otn/leftTicket/queryA?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT'

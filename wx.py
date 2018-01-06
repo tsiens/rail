@@ -26,7 +26,18 @@ def wx(request):
         msg = parse_message(request.body)
         if msg.type == 'text':
             txt = msg.content.upper()
-            if Station.objects.filter(cn=txt):
+            if txt == '巡检':
+                with open('data.log') as f:
+                    logs = f.read()
+                data = []
+                for log in logs.split('|'):
+                    if 'ERROR' in log:
+                        data = [log]
+                        break
+                    else:
+                        data.append(log)
+                reply = create_reply(data[-1], msg)
+            elif Station.objects.filter(cn=txt):
                 reply = ArticlesReply(message=msg)
                 reply.add_article({
                     'title': '车站: %s站' % txt,
