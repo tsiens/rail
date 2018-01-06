@@ -3,15 +3,25 @@ from get_data.get_line import *
 from get_data.get_timetable import *
 
 
-def cron(signum):
+def clock_get(signum):
     get()
 
 
-jobs = [{'name': cron, 'time': [1, 0, -1, -1, -1]},  # 分,时，日，月，周几
+def clock_log(signum):
+    delete_log()
+
+
+jobs = [{'name': clock_get, 'time': [1, 0, -1, -1, -1]},  # 分,时，日，月，周几
+        {'name': clock_log, 'time': [1, 0, -1, -1, 1]}
         # {'name': cron,'time': [5]},#每隔2秒
         ]
 
 
+def delete_log():
+    for path in ['/home/service/rail/access.log', '/home/service/rail/error.log',
+                 '/home/service/rail/uwsgi.log', '/home/rail/get_data/data.log']:
+        with open(path, 'w') as f:
+            f.write('')
 def get():
     try:
         get_station()

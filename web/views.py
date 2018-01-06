@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.http import HttpResponse
-from get_data.get_ticket import *
+from get_data.get_ticket import get_ticket
 import json
 from web.models import *
 

@@ -8,15 +8,15 @@ from key import *
 # 第一步，创建一个logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler(os.path.dirname(os.path.abspath(__file__)) + '/data.log', mode='w')  # 文件
+fh = logging.FileHandler(os.path.dirname(os.path.abspath(__file__)) + '/data.log', mode='a+')  # 文件
 fh.setLevel(logging.INFO)
 ch = logging.StreamHandler()  # 控制台
-ch.setLevel(logging.WARNING)
-fh.setFormatter(logging.Formatter('|%(levelname)s: %(asctime)s %(message)s', datefmt='%Y/%m/%d %H:%M:%S'))
-ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%Y/%m/%d %H:%M:%S'))
+ch.setLevel(logging.ERROR)
+fh.setFormatter(logging.Formatter('|%(levelname)s: %(asctime)s %(message)s', datefmt='%H:%M:%S'))
+ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%H:%M:%S'))
 logger.addHandler(fh)
 logger.addHandler(ch)
-log = logging.warning
+log = logging.error
 
 basename = 'rail'
 tables = {}

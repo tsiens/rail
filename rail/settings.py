@@ -31,7 +31,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django_crontab',
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -133,13 +132,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-import platform
 
-DEBUG = True  # if platform.system() == 'Windows'else False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# CRONJOBS = [
-#     ('43 12 * * *', 'django.core.management.call_command', ['aizhan_5domain_visits']),
-# ]

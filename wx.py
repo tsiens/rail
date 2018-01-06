@@ -35,11 +35,10 @@ def wx(request):
             if re.match('巡检\d*', txt):
                 with open('get_data/data.log', 'r') as f:
                     logs = f.read()
-                    print(logs)
                 if logs == '':
                     data = 'None'
                 else:
-                    data = [log for log in logs.split('|')]
+                    data = [log[7:] for log in logs.split('|') if 'ERROR' in log]
                     n = 1 if txt == '巡检' else int(re.findall('巡检(\d+)', txt)[0])
                     if n > len(data): n = len(data)
                     data = ''.join(data[0 - n:])
