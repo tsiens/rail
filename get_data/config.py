@@ -1,15 +1,14 @@
-import sys, traceback, threading, threadpool, requests
+import sys, traceback, threading, threadpool, requests, os, logging
 sys.path.append('.')
 from pyquery import PyQuery as pq
 from datetime import *
 from get_data.mysql import Mysql
 from key import *
-import logging
 
 # 第一步，创建一个logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('data.log', mode='w')  # 文件
+fh = logging.FileHandler(os.path.dirname(os.path.abspath(__file__)) + '/data.log', mode='w')  # 文件
 fh.setLevel(logging.INFO)
 ch = logging.StreamHandler()  # 控制台
 ch.setLevel(logging.WARNING)
