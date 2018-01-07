@@ -1,23 +1,8 @@
 from get_data.config import *
-import re
-get_station_url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js'
-amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s站&city=%s&output=json&offset=20&page=1&key=%s'
-amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&ak=%s'
-geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-over'
-geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
-baike_url = 'https://wapbaike.baidu.com/item/%s站'
-image_url = 'https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&word=%s火车站'
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Linux; U; Android 7.0; zh-CN; SM-G9300 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.2214.89 UCBrowser/11.5.6.946 Mobile Safari/537.36'}
-
-stations = mysql_db.execute("SELECT cn,en FROM %s" % station_table)
-stations_cn = dict(zip([station[0] for station in stations], [station[1] for station in stations])) if stations != [
-    ()] else {}
-stations_en = dict(zip([station[1] for station in stations], [station[0] for station in stations])) if stations != [
-    ()] else {}
-
 
 def get_station():
+    global stations_cn, stations_en, lines
+    stations_cn, stations_en, lines = stations_lines()
     get = re.findall('@[^@]+', requests.get(get_station_url, verify=False).text)
     data = []
     for station in get:
@@ -92,7 +77,7 @@ def get_img():
         src = get_station_img(station)
         sqls.append("UPDATE %s SET image_url='%s',date='%s' WHERE cn='%s'" % (
             station_table, src, today, station))
-        log('%s 图片 %s 站 %s' % (station, src))
+        log('图片 %s 站 %s' % (station, src))
         if len(sqls) == 10:
             mysql_db.execute(*sqls)
             sqls = []

@@ -41,6 +41,10 @@ def data(requests):
     elif type == 'ticket':
         start, arrive, date = requests.GET.get('data').split('|')
         data = get_ticket(start, arrive, date)
+    elif type == 'monitor':
+        with open('get_data/data.log', 'r') as f:
+            logs = f.read()
+        data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
     else:
         data = []
     return HttpResponse(json.dumps(data), content_type='application/json')

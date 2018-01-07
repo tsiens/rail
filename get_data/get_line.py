@@ -1,12 +1,6 @@
 from get_data.config import *
 from get_data.get_ticket import *
-from get_data.get_station import *
 from get_data.get_timetable import *
-
-get_lines_url = 'https://kyfw.12306.cn/otn/resources/js/query/train_list.js'
-lines = mysql_db.execute("SELECT code,date FROM %s" % line_table)
-lines = dict(zip([line[0] for line in lines], [line[1] for line in lines])) if lines != [()] else []
-
 
 def insert_station(name, code, start_en, arrive_en):
     get = getjson(get_timetable_url % (code, start_en, arrive_en, tomorrow))
@@ -57,6 +51,8 @@ def get_city(citys):
 
 
 def get_line():
+    global stations_cn, stations_en, lines
+    stations_cn, stations_en, lines = stations_lines()
     html = requests.get(get_lines_url, verify=False).text
     get = re.findall('"%s":.+?}]}' % tomorrow, html)
     if get == []:

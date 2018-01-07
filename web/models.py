@@ -18,7 +18,7 @@ class Station(models.Model):
     date = models.DateField('更新')
 
     def __str__(self):
-        return self.cn
+        return '%s %s-%s-%s' % (self.cn, self.province, self.city, self.county)
 
 
 class StationAdmin(admin.ModelAdmin):
@@ -41,7 +41,7 @@ class Line(models.Model):
     date = models.DateField('更新')
 
     def __str__(self):
-        return self.line
+        return '%s %s-%s' % (self.line, self.start, self.arrive)
 
 
 class LineAdmin(admin.ModelAdmin):
@@ -65,7 +65,7 @@ class Timetable(models.Model):
     staytime = models.IntegerField('停时')
 
     def __str__(self):
-        return self.line
+        return '%s %s %s' % (self.line, self.order, self.station)
 
 
 class TimetableAdmin(admin.ModelAdmin):

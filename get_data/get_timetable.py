@@ -1,8 +1,5 @@
 from get_data.config import *
 
-get_timetable_url = 'https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no=%s&from_station_telecode=%s&to_station_telecode=%s&depart_date=%s'
-
-
 def get_timetable_thread(info):
     line, start, arrive, code, start_en, arrive_en = info.split('-|-')
     get = getjson(get_timetable_url % (code, start_en, arrive_en, tomorrow))
@@ -43,13 +40,14 @@ def get_timetable_thread(info):
 
 
 def get_timetable(old=[]):
+    global stations_cn, stations_en, lines
+    stations_cn, stations_en, lines = stations_lines()
     global lines_list
     lines_list = mysql_db.execute(
         "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE runtime='0' and date='%s'" % (
             line_table, today))
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
-        log('检索 列车 %s 次' % (len(lines_list)))
         ##uwsgi定时任务无法使用多线程
         # rs = threadpool.makeRequests(get_timetable_thread, lines_list)
         # [pool.putRequest(r) for r in rs]
@@ -61,7 +59,7 @@ def get_timetable(old=[]):
         "SELECT code FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
     if delet_line != []:
         delet_line = [line[0] for line in delet_line]
-        mysql_db.execute("DELETE FROM %s WHERE code ='%s'" % (timetable_table, "' or code ='".join(delet_line)),
+        mysql_db.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, ','.join(delet_line)),
                          "DELETE FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
         log('删除 车次 %s' % (len(delet_line)))
 
