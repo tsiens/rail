@@ -45,5 +45,3 @@ class Mysql():
         db.close()
         back = back[0] if len(back) == 1 else back
         return back
-
-        # mysql_db = Mysql(mysql_host, mysql_user, mysql_pwd, basename, tables)

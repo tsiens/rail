@@ -6,7 +6,6 @@ from get_data.mysql import Mysql
 from prettytable import PrettyTable  # 表格输出
 from key import *
 
-# 第一步，创建一个logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler(os.path.dirname(os.path.abspath(__file__)) + '/data.log', mode='a+')  # 文件

@@ -44,9 +44,11 @@ def get_city_line_thread(city):
 def get_city(citys):
     global citys_list
     citys_list = sorted([city for city in citys], key=lambda city: citys[city], reverse=True)
-    rs = threadpool.makeRequests(get_city_line_thread, citys_list)
-    [pool.putRequest(r) for r in rs]
-    pool.wait()
+    # rs = threadpool.makeRequests(get_city_line_thread, citys_list)
+    # [pool.putRequest(r) for r in rs]
+    # pool.wait()
+    for citys in citys_list:
+        get_city_line_thread(citys)
     log('检索 城市 %s 对' % len(citys_list))
 
 

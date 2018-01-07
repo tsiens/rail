@@ -25,24 +25,15 @@ def wx(request):
         response = HttpResponse(echo_str, content_type="text/plain")
     else:
         msg = parse_message(request.body)
-        if msg.type == 'event':
-            if msg.event == 'subscribe':
-                reply = create_reply('日出东方,唯我不败\n东方教主,文成武德\n千秋万载,一统江湖\n12308,咔咔就是发\n扣“神功”可得武林秘籍', msg)
-            else:
-                reply = create_reply('撒有娜拉', msg)
+        if msg.type == 'event' and msg.event == 'subscribe':
+            reply = create_reply('日出东方,唯我不败\n东方教主,文成武德\n千秋万载,一统江湖\n12308,咔咔就是发\n扣“神功”可得武林秘籍', msg)
         elif msg.type == 'text':
             txt = msg.content.upper()
-            if re.match('巡检\d*', txt):
-                with open('get_data/data.log', 'r') as f:
-                    logs = f.read()
-                if logs == '':
-                    data = 'None'
-                else:
-                    data = [log[7:] for log in logs.split('|') if 'ERROR' in log]
-                    n = 1 if txt == '巡检' else int(re.findall('巡检(\d+)', txt)[0])
-                    if n > len(data): n = len(data)
-                    data = ''.join(data[0 - n:])
-                reply = create_reply(data, msg)
+            if txt == '巡检':
+                reply = ArticlesReply(message=msg, articles=[{
+                    'title': '巡检',
+                    'url': 'http://rail.qiangs.tech/page/monitor/monitor'
+                }])
             elif txt == '神功':
                 reply = create_reply('吸尘大法：\n车站 扣“杭州东”\n车次 敲“D1”\n余票 打“杭州 上海 6”（6号）', msg)
             elif Station.objects.filter(cn=txt):

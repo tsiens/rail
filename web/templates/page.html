@@ -1,24 +1,17 @@
 {% extends 'template.html' %}
 {% load staticfiles %}
 {% block content %}
-    <div id='main' tabindex='-1' role='dialog'>
-        <div class='modal-dialog' style="width:95%" role='document'>
-            <div class='modal-content'>
-                <div class='modal-header'>
-                    <h4 class='modal-title'></h4>
-                </div>
-                <div class='modal-body '>
-                    <table class='table table-hover table-bordered'>
-                        <thead>
-                        <tr>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="container">
+        <h2></h2>
+        <p></p>
+        <table id='main' class='table table-hover table-bordered'>
+            <thead>
+            <tr>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
 {% endblock %}
 {% block script %}
@@ -37,7 +30,7 @@
             $('#main').find('thead').find('tr').append($('<td>').text(this));
         });
         $.get("{% url 'data'%}", {'type': type, 'data': data}, function (get) {
-            $('#main').find('.modal-title').text(data);
+            $('h2').text(data);
             $.each(get, function (n, line) {
                 var tr = $('<tr>').attr('id', line[0]);
                 $.each(line, function (n, txt) {
