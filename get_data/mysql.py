@@ -1,5 +1,4 @@
-import pymysql, warnings
-
+import pymysql, warnings, logging
 warnings.filterwarnings("ignore")
 
 
@@ -40,7 +39,7 @@ class Mysql():
                         select = cursor.fetchall()
                         back.append(select)
             except Exception as err:
-                log('MYSQL 错误', err, sql)
+                logging.error('MYSQL 错误', err, sql)
         db.commit()
         db.close()
         back = back[0] if len(back) == 1 else back

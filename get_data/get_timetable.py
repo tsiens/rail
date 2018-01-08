@@ -55,13 +55,14 @@ def get_timetable(old=[]):
         for info in lines_list:
             get_timetable_thread(info)
         return get_timetable(lines_list)
-    delet_line = mysql_db.execute(
-        "SELECT code FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
-    if delet_line != []:
-        delet_line = [line[0] for line in delet_line]
-        mysql_db.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, ','.join(delet_line)),
-                         "DELETE FROM %s WHERE runtime='0' or date<'%s'" % (line_table, today))
-        log('删除 车次 %s' % (len(delet_line)))
+    lines_yes, lines_all = mysql_db.execute(
+        "SELECT code FROM %s WHERE runtime>0 and date='%s'" % (line_table, today),
+        "SELECT code FROM %s GROUP BY code" % timetable_table)
+    if len(lines_yes) < len(lines_all):
+        lines_yes = [line[0] for line in lines_yes]
+        mysql_db.execute("DELETE FROM %s WHERE code not in('%s')" % (timetable_table, "','".join(lines_yes)),
+                         "DELETE FROM %s WHERE code not in('%s')" % (line_table, "','".join(lines_yes)))
+        log('删除 车次 %s' % (len(lines_all) - len(lines_yes)))
 
 
 if __name__ == '__main__':

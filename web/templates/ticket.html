@@ -1,0 +1,35 @@
+{% extends 'station.html' %}
+{% load staticfiles %}
+{% block script %}
+    <script>
+        var th = ['车次', '发站', '到站', '发时', '到时', '历时', '商务座', '一等座', '二等座', '高级软卧', '软卧', '动卧', '硬卧', '软座', '硬座', '无座'];
+        $('title,#title').text('{{ start }} - {{ arrive }}');
+        $('#info').text('{{ date }}');
+        $.each(th, function () {
+            $('#main').find('thead').find('tr').append($('<td>').text(this));
+        });
+        $.each({{ tickettable|safe }}, function (n, line) {
+            var tr = $('<tr>').attr('id', line[0]);
+            $.each(line, function (n, txt) {
+                td = $('<td>').text(txt);
+                if (txt == '无') {
+                    td.attr('style', 'color:LightGrey')
+                }
+                else if (txt < 10) {
+                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text(txt))
+                }
+                else if (txt >= 10) {
+                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-info').text(txt))
+                }
+                else if (txt == '有') {
+                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text(txt))
+                }
+                else if (n < 3) {
+                    td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
+                }
+                tr.append(td)
+            });
+            $('#main').find('tbody').append(tr);
+        });
+    </script>
+{% endblock %}

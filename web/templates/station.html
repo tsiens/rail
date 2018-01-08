@@ -1,0 +1,46 @@
+{% extends 'template.html' %}
+{% load staticfiles %}
+{% block content %}
+    <div class="container">
+        <h1 id="title"></h1>
+        <p id="info"></p>
+        <table id='main' class='table table-hover table-bordered'>
+            <thead>
+            <tr>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        var station = '{{ station }}';
+        var th = ['车次', '始发', '终到', '到达', '离开', '停留'];
+        $('title,#title').text(station + '站');
+        $('#info').text('{{province}} {{city}} {{county}}');
+        $.each(th, function () {
+            $('#main').find('thead').find('tr').append($('<td>').text(this));
+        });
+        $.each({{ timetable|safe }}, function (n, line) {
+            var tr = $('<tr>');
+            $.each(line, function (n, txt) {
+                if (n < 3) {
+                    td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
+                }
+                else if ($.inArray(txt, ['始', '终']) > -1) {
+                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
+                        '始': 'success',
+                        '终': 'warning'
+                    }[txt]).text(txt))
+                }
+                else {
+                    td = $('<td>').text(txt);
+                }
+                tr.append(td)
+            });
+            $('#main').find('tbody').append(tr);
+        });
+    </script>
+{% endblock %}

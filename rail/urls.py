@@ -21,7 +21,9 @@ from wx import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
-    path('page/<type>/<data>', page, name='page'),
-    path('data', data, name='data'),
+    path('log', log, name='log'),
+    path('ticket/<start>/<arrive>/<date>', ticket, name='ticket'),
+    path('station/<cn>', station, name='station'),
+    path('line/<line>', line, name='line'),
     path('wx', wx),
 ]

@@ -29,10 +29,10 @@ def wx(request):
             reply = create_reply('日出东方,唯我不败\n东方教主,文成武德\n千秋万载,一统江湖\n12308,咔咔就是发\n扣“神功”可得武林秘籍', msg)
         elif msg.type == 'text':
             txt = msg.content.upper()
-            if txt == '巡检':
+            if txt == '日志':
                 reply = ArticlesReply(message=msg, articles=[{
-                    'title': '巡检',
-                    'url': 'http://rail.qiangs.tech/page/monitor/monitor'
+                    'title': '日志',
+                    'url': 'http://rail.qiangs.tech/log'
                 }])
             elif txt == '神功':
                 reply = create_reply('吸尘大法：\n车站 扣“杭州东”\n车次 敲“D1”\n余票 打“杭州 上海 6”（6号）', msg)
@@ -40,10 +40,10 @@ def wx(request):
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车站: %s站' % txt,
                     'image': Station.objects.get(cn=txt).image_url,
-                    'url': 'https://wapbaike.baidu.com/item/%s站' % txt
+                    'url': 'http://rail.qiangs.tech/station/%s' % txt
                 }, {
-                    'title': '途经车次',
-                    'url': 'http://rail.qiangs.tech/page/station/%s' % txt
+                    'title': '百度百科',
+                    'url': 'https://wapbaike.baidu.com/item/%s站' % txt
                 }])
             elif Line.objects.filter(line=txt):
                 start = Line.objects.get(line=txt).start
@@ -51,14 +51,14 @@ def wx(request):
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车次: %s次 %s-%s' % (txt, start, arrive),
                     'image': Station.objects.get(cn=start).image_url,
-                    'url': 'http://rail.qiangs.tech/page/line/%s' % txt
+                    'url': 'http://rail.qiangs.tech/line/%s' % txt
                 }])
             elif len(txt.split(' ')) == 3:
                 start, arrive, date = txt.split(' ')
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '余票: %s号 %s-%s' % (date, start, arrive),
                     'image': Station.objects.get(cn=start).image_url,
-                    'url': 'http://rail.qiangs.tech/page/ticket/%s|%s|%s' % (start, arrive, date)
+                    'url': 'http://rail.qiangs.tech/ticket/%s/%s/%s' % (start, arrive, date)
                 }])
             else:
                 reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % txt, msg)

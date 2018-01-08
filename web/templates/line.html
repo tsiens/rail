@@ -1,0 +1,26 @@
+{% extends 'station.html' %}
+{% load staticfiles %}
+{% block script %}
+    <script>
+        var line = '{{ line }}';
+        var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
+        $('title,#title').text(line + '次');
+        $('#info').text('{{start}} - {{arrive}}');
+        $.each(th, function () {
+            $('#main').find('thead').find('tr').append($('<td>').text(this));
+        });
+        $.each({{ timetable|safe}}, function (n, station) {
+            var tr = $('<tr>');
+            $.each(station, function (n, txt) {
+                if (n == 1) {
+                    td = $('<td>').append($('<a>').attr('href', '/station/' + txt).text(txt))
+                }
+                else {
+                    td = $('<td>').text(txt);
+                }
+                tr.append(td)
+            });
+            $('#main').find('tbody').append(tr);
+        });
+    </script>
+{% endblock %}
