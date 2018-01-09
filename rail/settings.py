@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
+from key import *
+import pymysql
 
+pymysql.install_as_MySQLdb()
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -81,9 +84,6 @@ WSGI_APPLICATION = 'rail.wsgi.application'
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
-from key import mysql_user, mysql_pwd, mysql_host
-import pymysql
-pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

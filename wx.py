@@ -10,7 +10,7 @@ from wechatpy.exceptions import *
 from wechatpy.utils import *
 from wechatpy.replies import *
 
-
+img_url = 'http://railstatic.qiangs.tech/station_img/%s.jpg'
 @csrf_exempt  # 去除csrf认证
 def wx(request):
     if request.method == 'GET':
@@ -39,7 +39,7 @@ def wx(request):
             elif Station.objects.filter(cn=txt):
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车站: %s站' % txt,
-                    'image': Station.objects.get(cn=txt).image_url,
+                    'image': img_url % txt,
                     'url': 'http://rail.qiangs.tech/station/%s' % txt
                 }, {
                     'title': '百度百科',
@@ -50,14 +50,14 @@ def wx(request):
                 arrive = Line.objects.get(line=txt).arrive
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车次: %s次 %s-%s' % (txt, start, arrive),
-                    'image': Station.objects.get(cn=start).image_url,
+                    'image': img_url % txt,
                     'url': 'http://rail.qiangs.tech/line/%s' % txt
                 }])
             elif len(txt.split(' ')) == 3:
                 start, arrive, date = txt.split(' ')
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '余票: %s号 %s-%s' % (date, start, arrive),
-                    'image': Station.objects.get(cn=start).image_url,
+                    'image': img_url % txt,
                     'url': 'http://rail.qiangs.tech/ticket/%s/%s/%s' % (start, arrive, date)
                 }])
             else:
@@ -65,6 +65,6 @@ def wx(request):
         else:
             types = {'image': '图片', 'voice': '语音', 'video': '视频', 'music': '音乐', 'shortvideo': '小视频', 'location': '位置',
                      'link': '链接'}
-            reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % types[msg.type], msg)
+            reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % types.get(msg.type, '消息'), msg)
         response = HttpResponse(reply.render(), content_type="application/xml")
     return response

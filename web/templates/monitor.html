@@ -5,14 +5,14 @@
         var th = ['时间', '日志'];
         $('title,#title').text('日志巡检');
         $.each(th, function () {
-            $('#main').find('thead').find('tr').append($('<td>').text(this));
+            $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
         $.each({{ logs|safe }}, function (n, station) {
             var tr = $('<tr>');
             $.each(station, function (n, txt) {
                 tr.append($('<td>').text(txt))
             });
-            $('#main').find('tbody').append(tr);
+            $('#table').find('tbody').append(tr);
         });
     </script>
 {% endblock %}

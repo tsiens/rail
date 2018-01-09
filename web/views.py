@@ -3,13 +3,17 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse
 from get_data.get_ticket import get_ticket
-import json
+import json, random
 from datetime import datetime
 from web.models import *
 
 def index(request):
-    return render(request, 'index.html')
-
+    last = Station.objects.count()
+    station = Station.objects.all()[random.randint(0, last)]
+    if station.image_date and Timetable.objects.filter(station=station.cn):
+        return render(request, 'index.html', {'cn': station.cn})
+    else:
+        return index(request)
 
 def log(request):
     with open('get_data/data.log', 'r') as f:

@@ -2,12 +2,13 @@
 {% load staticfiles %}
 {% block script %}
     <script>
+        $("a:contains('车次')").addClass('active');
         var line = '{{ line }}';
         var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
         $('title,#title').text(line + '次');
         $('#info').text('{{start}} - {{arrive}}');
         $.each(th, function () {
-            $('#main').find('thead').find('tr').append($('<td>').text(this));
+            $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
         $.each({{ timetable|safe}}, function (n, station) {
             var tr = $('<tr>');
@@ -20,7 +21,7 @@
                 }
                 tr.append(td)
             });
-            $('#main').find('tbody').append(tr);
+            $('#table').find('tbody').append(tr);
         });
     </script>
 {% endblock %}

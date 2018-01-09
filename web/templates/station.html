@@ -1,10 +1,10 @@
 {% extends 'template.html' %}
 {% load staticfiles %}
 {% block content %}
-    <div class="container">
+    <div class="container" style="overflow-y: auto">
         <h1 id="title"></h1>
         <p id="info"></p>
-        <table id='main' class='table table-hover table-bordered'>
+        <table id='table' class='table table-hover table-bordered'>
             <thead>
             <tr>
             </tr>
@@ -16,12 +16,13 @@
 {% endblock %}
 {% block script %}
     <script>
+        $("a:contains('车站')").addClass('active');
         var station = '{{ station }}';
         var th = ['车次', '始发', '终到', '到达', '离开', '停留'];
         $('title,#title').text(station + '站');
         $('#info').text('{{province}} {{city}} {{county}}');
         $.each(th, function () {
-            $('#main').find('thead').find('tr').append($('<td>').text(this));
+            $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
         $.each({{ timetable|safe }}, function (n, line) {
             var tr = $('<tr>');
@@ -40,7 +41,7 @@
                 }
                 tr.append(td)
             });
-            $('#main').find('tbody').append(tr);
+            $('#table').find('tbody').append(tr);
         });
     </script>
 {% endblock %}

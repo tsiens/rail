@@ -10,7 +10,7 @@ def insert_station(name, code, start_en, arrive_en):
             stations_cn[cn] = en
             stations_en[en] = cn
             log('插入 %s 站' % cn)
-            mysql_db.execute("INSERT INTO %s VALUE (null,'%s','%s','%s','%s','%s','%s','%s','%s')" % (
+            mysql.execute("INSERT INTO %s VALUE (null,'%s','%s','%s','%s','%s','%s','%s','%s')" % (
                 station_table, cn, en, 125, 30, None, None, None, today))
 
 
@@ -37,7 +37,7 @@ def get_city_line_thread(city):
         log('检索 %s - %s  %s%%' % (start, arrive,
                                   int(citys_list.index(city) / len(citys_list) * 100)))
     lock.acquire()
-    mysql_db.execute(*sqls)
+    mysql.execute(*sqls)
     lock.release()
 
 
@@ -56,7 +56,7 @@ def get_line():
     global stations_cn, stations_en, lines
     stations_cn, stations_en, lines = stations_lines()
     html = requests.get(get_lines_url, verify=False).text
-    get = re.findall('"%s":.+?}]}' % tomorrow, html)
+    get = re.findall('"%s":.+?}]}' % today, html)
     if get == []:
         data = re.findall(r'([\u4e00-\u9fa5\s]+-[\u4e00-\u9fa5\s]+)', html)
         citys = {}
@@ -76,7 +76,7 @@ def get_line():
             else:
                 data.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive], 0, today))
                 lines[code] = today
-        mysql_db.execute(
+        mysql.execute(
             ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data),
             "UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
         log('插入 车次 %s ' % len(data))

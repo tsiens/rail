@@ -3,6 +3,7 @@ sys.path.append('.')
 from pyquery import PyQuery as pq
 from datetime import *
 from get_data.mysql import Mysql
+from get_data.qiniuyun import Qiniuyun
 from prettytable import PrettyTable  # 表格输出
 from key import *
 
@@ -21,8 +22,9 @@ log = logging.error
 basename = 'rail'
 tables = {}
 station_table, line_table, timetable_table = 'web_station', 'web_line', 'web_timetable'
-
-mysql_db = Mysql(mysql_host, mysql_user, mysql_pwd, basename, tables)
+mysql = Mysql(mysql_host, mysql_user, mysql_pwd, basename, tables)
+bucket_name = 'rail'
+qiniuyun = Qiniuyun(qiniu_ak, qiniu_sk, bucket_name)
 
 pool = threadpool.ThreadPool(10)
 lock = threading.Lock()
@@ -42,12 +44,13 @@ amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s�
 amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&ak=%s'
 geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-over'
 geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
+wiki_url = 'https://zh.wikipedia.org/wiki/%s站'
 baike_url = 'https://wapbaike.baidu.com/item/%s站'
-image_url = 'https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&word=%s火车站'
+image_url = 'https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&word=%s站 火车'
 
 
 def stations_lines():
-    stations, lines = mysql_db.execute("SELECT cn,en FROM %s" % station_table, "SELECT code,date FROM %s" % line_table)
+    stations, lines = mysql.execute("SELECT cn,en FROM %s" % station_table, "SELECT code,date FROM %s" % line_table)
     stations_cn = dict(zip([station[0] for station in stations], [station[1] for station in stations])) if stations != [
         ()] else {}
     stations_en = dict(zip([station[1] for station in stations], [station[0] for station in stations])) if stations != [

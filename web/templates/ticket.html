@@ -2,11 +2,12 @@
 {% load staticfiles %}
 {% block script %}
     <script>
+        $("a:contains('余票')").addClass('active');
         var th = ['车次', '发站', '到站', '发时', '到时', '历时', '商务座', '一等座', '二等座', '高级软卧', '软卧', '动卧', '硬卧', '软座', '硬座', '无座'];
         $('title,#title').text('{{ start }} - {{ arrive }}');
         $('#info').text('{{ date }}');
         $.each(th, function () {
-            $('#main').find('thead').find('tr').append($('<td>').text(this));
+            $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
         $.each({{ tickettable|safe }}, function (n, line) {
             var tr = $('<tr>').attr('id', line[0]);
@@ -29,7 +30,7 @@
                 }
                 tr.append(td)
             });
-            $('#main').find('tbody').append(tr);
+            $('#table').find('tbody').append(tr);
         });
     </script>
 {% endblock %}

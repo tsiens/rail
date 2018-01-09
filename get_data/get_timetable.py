@@ -34,7 +34,7 @@ def get_timetable_thread(info):
         data[0][-1] = -1
         data[-1][-1] = -2
         lock.acquire()
-        mysql_db.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
+        mysql.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
                          "UPDATE %s SET runtime='%s' WHERE code='%s'" % (line_table, runtime, code))
         lock.release()
 
@@ -43,7 +43,7 @@ def get_timetable(old=[]):
     global stations_cn, stations_en, lines
     stations_cn, stations_en, lines = stations_lines()
     global lines_list
-    lines_list = mysql_db.execute(
+    lines_list = mysql.execute(
         "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE runtime='0' and date='%s'" % (
             line_table, today))
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
@@ -55,15 +55,16 @@ def get_timetable(old=[]):
         for info in lines_list:
             get_timetable_thread(info)
         return get_timetable(lines_list)
-    lines_yes, lines_all = mysql_db.execute(
+    lines_yes, lines_all = mysql.execute(
         "SELECT code FROM %s WHERE runtime>0 and date='%s'" % (line_table, today),
         "SELECT code FROM %s GROUP BY code" % timetable_table)
     if len(lines_yes) < len(lines_all):
         lines_yes = [line[0] for line in lines_yes]
-        mysql_db.execute("DELETE FROM %s WHERE code not in('%s')" % (timetable_table, "','".join(lines_yes)),
+        mysql.execute("DELETE FROM %s WHERE code not in('%s')" % (timetable_table, "','".join(lines_yes)),
                          "DELETE FROM %s WHERE code not in('%s')" % (line_table, "','".join(lines_yes)))
         log('删除 车次 %s' % (len(lines_all) - len(lines_yes)))
 
 
 if __name__ == '__main__':
     get_timetable()
+
