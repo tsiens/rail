@@ -1,5 +1,4 @@
 {% extends 'station.html' %}
-{% load staticfiles %}
 {% block script %}
     <script>
         $("a:contains('车次')").addClass('active');
@@ -10,18 +9,20 @@
         $.each(th, function () {
             $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
-        $.each({{ timetable|safe}}, function (n, station) {
-            var tr = $('<tr>');
-            $.each(station, function (n, txt) {
-                if (n == 1) {
-                    td = $('<td>').append($('<a>').attr('href', '/station/' + txt).text(txt))
-                }
-                else {
-                    td = $('<td>').text(txt);
-                }
-                tr.append(td)
+        $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
+            $.each(data, function (n, station) {
+                var tr = $('<tr>');
+                $.each(station, function (n, txt) {
+                    if (n == 1) {
+                        td = $('<td>').append($('<a>').attr('href', '/station/' + txt).text(txt))
+                    }
+                    else {
+                        td = $('<td>').text(txt);
+                    }
+                    tr.append(td)
+                });
+                $('#table').find('tbody').append(tr);
             });
-            $('#table').find('tbody').append(tr);
-        });
+        })
     </script>
 {% endblock %}

@@ -1,5 +1,4 @@
 {% extends 'station.html' %}
-{% load staticfiles %}
 {% block script %}
     <script>
         $("a:contains('余票')").addClass('active');
@@ -9,28 +8,30 @@
         $.each(th, function () {
             $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
-        $.each({{ tickettable|safe }}, function (n, line) {
-            var tr = $('<tr>').attr('id', line[0]);
-            $.each(line, function (n, txt) {
-                td = $('<td>').text(txt);
-                if (txt == '无') {
-                    td.attr('style', 'color:LightGrey')
-                }
-                else if (txt < 10) {
-                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text(txt))
-                }
-                else if (txt >= 10) {
-                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-info').text(txt))
-                }
-                else if (txt == '有') {
-                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text(txt))
-                }
-                else if (n < 3) {
-                    td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
-                }
-                tr.append(td)
+        $.post('{% url 'data' %}', {'type': 'ticket', 'info': '{{ start }}|{{ arrive }}|{{ date }}'}, function (data) {
+            $.each(data, function (n, line) {
+                var tr = $('<tr>').attr('id', line[0]);
+                $.each(line, function (n, txt) {
+                    td = $('<td>').text(txt);
+                    if (txt == '无') {
+                        td.attr('style', 'color:LightGrey')
+                    }
+                    else if (txt < 10) {
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text(txt))
+                    }
+                    else if (txt >= 10) {
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-info').text(txt))
+                    }
+                    else if (txt == '有') {
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text(txt))
+                    }
+                    else if (n < 3) {
+                        td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
+                    }
+                    tr.append(td)
+                });
+                $('#table').find('tbody').append(tr);
             });
-            $('#table').find('tbody').append(tr);
-        });
+        })
     </script>
 {% endblock %}

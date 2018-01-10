@@ -1,5 +1,4 @@
 {% extends 'station.html' %}
-{% load staticfiles %}
 {% block head %}
 {% endblock %}
 {% block script %}
@@ -9,14 +8,20 @@
         $.each(th, function () {
             $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
-        $.post('{% url 'data' %}', {'type': 'log', 'data': '{{log}}'}, function (data) {
-            $.each(data, function (n, station) {
-                var tr = $('<tr>');
-                $.each(station, function (n, txt) {
-                    tr.append($('<td>').text(txt))
+        log();
+        setInterval(log, 10 * 1000);
+
+        function log() {
+            $.post('{% url 'data' %}', {'type': 'log'}, function (data) {
+                $('#table').find('tbody').empty();
+                $.each(data, function (n, station) {
+                    var tr = $('<tr>');
+                    $.each(station, function (n, txt) {
+                        tr.append($('<td>').text(txt))
+                    });
+                    $('#table').find('tbody').append(tr);
                 });
-                $('#table').find('tbody').append(tr);
-            });
-        })
+            })
+        }
     </script>
 {% endblock %}

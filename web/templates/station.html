@@ -1,5 +1,4 @@
 {% extends 'template.html' %}
-{% load staticfiles %}
 {% block content %}
     <h1 id="title"></h1>
     <p id="info"></p>
@@ -22,24 +21,26 @@
         $.each(th, function () {
             $('#table').find('thead').find('tr').append($('<td>').text(this));
         });
-        $.each({{ timetable|safe }}, function (n, line) {
-            var tr = $('<tr>');
-            $.each(line, function (n, txt) {
-                if (n < 3) {
-                    td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
-                }
-                else if ($.inArray(txt, ['始', '终']) > -1) {
-                    td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
-                        '始': 'success',
-                        '终': 'warning'
-                    }[txt]).text(txt))
-                }
-                else {
-                    td = $('<td>').text(txt);
-                }
-                tr.append(td)
+        $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, function (data) {
+            $.each(data, function (n, line) {
+                var tr = $('<tr>');
+                $.each(line, function (n, txt) {
+                    if (n < 3) {
+                        td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
+                    }
+                    else if ($.inArray(txt, ['始', '终']) > -1) {
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
+                            '始': 'success',
+                            '终': 'warning'
+                        }[txt]).text(txt))
+                    }
+                    else {
+                        td = $('<td>').text(txt);
+                    }
+                    tr.append(td)
+                });
+                $('#table').find('tbody').append(tr);
             });
-            $('#table').find('tbody').append(tr);
-        });
+        })
     </script>
 {% endblock %}
