@@ -7,12 +7,13 @@ import json, random
 from datetime import datetime
 from web.models import *
 
-qiniu = 'http://qiniu.rail.qiangs.tech'
+qiniu = 'http://qiniu.rail.qiangs.tech/'
+img = '.jpg?imageMogr2/thumbnail/x480/format/webp/blur/1x0/quality/75|imageslim'
 def index(request):
     last = Station.objects.count()
     station = Station.objects.all()[random.randint(0, last)]
     if station.image_date and Timetable.objects.filter(station=station.cn):
-        return render(request, 'index.html', {'cn': station.cn, 'qiniu': qiniu})
+        return render(request, 'index.html', {'cn': station.cn, 'qiniu': qiniu, 'img': img})
     else:
         return index(request)
 
