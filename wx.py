@@ -10,7 +10,7 @@ from wechatpy.exceptions import *
 from wechatpy.utils import *
 from wechatpy.replies import *
 
-img_url = 'http://railstatic.qiangs.tech/station_img/%s.jpg'
+qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim'
 @csrf_exempt  # 去除csrf认证
 def wx(request):
     if request.method == 'GET':
@@ -39,7 +39,7 @@ def wx(request):
             elif Station.objects.filter(cn=txt):
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车站: %s站' % txt,
-                    'image': img_url % txt,
+                    'image': qiniu_img_url % txt,
                     'url': 'http://rail.qiangs.tech/station/%s' % txt
                 }, {
                     'title': '百度百科',
@@ -50,14 +50,14 @@ def wx(request):
                 arrive = Line.objects.get(line=txt).arrive
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车次: %s次 %s-%s' % (txt, start, arrive),
-                    'image': img_url % txt,
+                    'image': qiniu_img_url % txt,
                     'url': 'http://rail.qiangs.tech/line/%s' % txt
                 }])
             elif len(txt.split(' ')) == 3:
                 start, arrive, date = txt.split(' ')
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '余票: %s号 %s-%s' % (date, start, arrive),
-                    'image': img_url % txt,
+                    'image': qiniu_img_url % txt,
                     'url': 'http://rail.qiangs.tech/ticket/%s/%s/%s' % (start, arrive, date)
                 }])
             else:
