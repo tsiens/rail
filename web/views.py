@@ -16,11 +16,27 @@ def index(request):
         return index(request)
 
 def log(request):
-    with open('get_data/data.log', 'r') as f:
-        logs = f.read()
-    logs = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
-    return render(request, 'monitor.html', {'logs': logs})
+    return render(request, 'log.html', {'log': 'log'})
 
+
+def logs(request):
+    return render(request, 'log.html', {'log': 'logs'})
+
+
+def data(request):
+    def log():
+        if request.POST.get('data') == 'log':
+            with open('get_data/data.log', 'r') as f:
+                logs = f.read()
+            logs = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
+        else:
+            with open('/home/service/rail/uwsgi.log', 'r') as f:
+                logs = f.read().split('\n')[::-1][100]
+        return logs
+
+    type = request.POST.get('type', 'error')
+    object = {'error': 'ERROR', 'log': log()}
+    return HttpResponse(json.dumps(object[type]), content_type='application/json')
 
 def station(request, cn):
     data = Station.objects.get(cn=cn)

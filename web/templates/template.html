@@ -29,6 +29,8 @@
         }
     </style>
 </head>
+{% block head %}
+{% endblock %}
 <body>
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" href="/">Rail</a>
@@ -48,8 +50,10 @@
         </ul>
     </div>
 </nav>
+<div class="container" style="overflow-y: auto">
 {% block content %}
 {% endblock %}
+</div>
 <div class="modal fade" id="wechat">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
@@ -80,18 +84,15 @@
         </ul>
     </div>
 </nav>
-{% block script %}
-{% endblock %}
 <script>
+    $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
     $("#wechat").on('hidden.bs.modal', function () {
         setTimeout(function () {
             $('a:contains("公众号")').blur()
         }, 1)
     });
-    if ($(window).height() > $('body').height()) {
-        $('body').height($(window).height());
-        $('#footer').css({position: 'absolute', bottom: 0, width: '100%'})
-    }
 </script>
+{% block script %}
+{% endblock %}
 </body>
 </html>

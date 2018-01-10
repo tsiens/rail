@@ -22,8 +22,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
     path('log', log, name='log'),
+    path('logs', logs, name='log'),
     path('ticket/<start>/<arrive>/<date>', ticket, name='ticket'),
     path('station/<cn>', station, name='station'),
     path('line/<line>', line, name='line'),
+    path('data', data, name='data'),
     path('wx', wx),
 ]

@@ -1,0 +1,22 @@
+{% extends 'station.html' %}
+{% load staticfiles %}
+{% block head %}
+{% endblock %}
+{% block script %}
+    <script>
+        var th = ['时间', '日志'];
+        $('title,#title').text('日志巡检');
+        $.each(th, function () {
+            $('#table').find('thead').find('tr').append($('<td>').text(this));
+        });
+        $.post('{% url 'data' %}', {'type': 'log', 'data': '{{log}}'}, function (data) {
+            $.each(data, function (n, station) {
+                var tr = $('<tr>');
+                $.each(station, function (n, txt) {
+                    tr.append($('<td>').text(txt))
+                });
+                $('#table').find('tbody').append(tr);
+            });
+        })
+    </script>
+{% endblock %}

@@ -58,10 +58,12 @@ def get_station_location(station):
         return location
     try:
         code = getjson(geogv_url1 % station)['data'][0][0]
-        city = getjson(geogv_url2 % code)['location'].split(' ')[-1]
+        province, city, county = getjson(geogv_url2 % code)['location'].split(' ')
         location = get_amap(city)
         if location:
             return location
+        else:
+            return [station, 125, 30, province, city, county]
     except:
         pass
     return [station, 125, 30, None, None, None]
