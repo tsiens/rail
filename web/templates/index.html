@@ -1,15 +1,40 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="index" class="container">
-        <a href="/station/{{ cn }}"><img src="{{ qiniu }}station_img/{{ cn }}{{ img }}"
-                                         class="img-fluid rounded" style="max-height: 80%" title="{{ cn }}"
-                                         alt="{{ cn }}"></a>
+    <h1>站图</h1>
+    <div id="index" class="carousel slide" data-ride="carousel">
+        <!-- 指示符 -->
+        <ul class="carousel-indicators"></ul>
+        <!-- 轮播图片 -->
+        <div class="carousel-inner"></div>
+        <!-- 左右切换按钮 -->
+        <a class="carousel-control-prev" href="#index" data-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </a>
+        <a class="carousel-control-next" href="#index" data-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </a>
     </div>
 {% endblock %}
 {% block script %}
     <script>
         $('img').tooltip();
         $("a:contains('首页')").addClass('active');
-        $('#index').height($(window).height() - $('#header').height() - $('#footer').height() - 32)
+        $('.container').height($(window).height() - $('#header').height() - $('#footer').height() - 32);
+        var images ={{ images|safe }};
+        var n = 0;
+        while (n < images.length) {
+            var li = $('<li>').attr({'data-target': '#index', 'data-slide-to': n});
+            var div = $('<div class="carousel-item" style="overflow:auto">' +
+                '<a href="/station/' + images[n] + '"><img src="{{ qiniu }}station_img/' + images[n] + '{{ img }}"class="rounded"</a>' +
+                '<div class="carousel-caption"><strong>' + images[n] + '</strong></div>' +
+                '</div>');
+            if (n == 0) {
+                li.addClass('active');
+                div.addClass('active')
+            }
+            $('#index ul').append(li);
+            $('#index .carousel-inner').append(div);
+            n++
+        }
     </script>
 {% endblock %}

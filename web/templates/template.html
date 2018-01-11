@@ -38,7 +38,7 @@
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a></li>
-    <a class="navbar-brand" rel="nofollow" target="_blank" href="https://kyfw.12306.cn/otn/index/init">12306</a>
+    <a class="navbar-brand" href="/">Rail</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#header_ul">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -53,11 +53,12 @@
                     class="fa fa-wechat"></i>公众号</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#contact"><i
                     class="fa fa-user"></i>交流</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="fa fa-search"></i>search</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#search"><i
+                    class="fa fa-search"></i>search</a></li>
         </ul>
     </div>
 </nav>
-<div class="container" style="overflow-y:auto">
+<div class="container" style="overflow:auto">
 {% block content %}
 {% endblock %}
 </div>
@@ -65,7 +66,7 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">12308</h4>
+                <h4 class="modal-title"><i class="fa fa-wechat"></i>12308</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
@@ -78,11 +79,26 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">吐槽我吧</h4>
+                <h4 class="modal-title"><i class="fa fa-user"></i>吐槽我吧</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
                 <img src="http://rail.qiangs.tech/static/image/qq.jpg" alt="QQ">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="search">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="fa fa-search"></i>搜索</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input id="search_input" type="text" class="form-control" placeholder="Search">
+                <div id="search_suggest">
+                </div>
             </div>
         </div>
     </div>
@@ -106,6 +122,22 @@
 </nav>
 <script>
     $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
+    $('#search').on('hidden.bs.modal', function () {
+        $('#search_input').val('')
+    });
+    $('#search_input').bind('input propertychange', function () {
+        $('#search_suggest').empty();
+        if ($('#search_input').val() != '') {
+            $.post('{% url 'data' %}', {'type': 'search', 'key': $('#search input').val()}, function (data) {
+                $.each(data, function (type, list) {
+                    $('#search_suggest').append('<div class="dropdown-divider"></div>');
+                    $.each(list, function () {
+                        $('#search_suggest').append('<a class="dropdown-item" style="text-align:left" href="/' + type + '/' + this + '">' + this + '</a>')
+                    });
+                })
+            })
+        }
+    });
     $(window).resize(function () {
         $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
     });
