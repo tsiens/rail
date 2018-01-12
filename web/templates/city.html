@@ -15,8 +15,6 @@
 {% block script %}
     <script>
         $("a:contains('城市')").addClass('active');
-        var citys =;
-        {{ citys|safe }}
         var a = '#' + {{ level|safe }}[0];
         var b = '#' + {{ level|safe }}[1];
         var c = '#' + {{ level|safe }}[2];
@@ -26,7 +24,7 @@
             $(b + ',' + c + ',' + d).empty();
             $(b + ',' + c + ',' + d).append($('<option>').text(''));
             $(c + ',' + d).attr('disabled', 'disabled');
-            $.each(citys[$(a).val()][1], function (n, bs) {
+            $.each({{ citys|safe }}[$(a).val()][1], function (n, bs) {
                 $(b).append($('<option>').text(bs[0]).val(n))
             })
         });
@@ -35,7 +33,7 @@
             $(c + ',' + d).empty();
             $(c + ',' + d).append($('<option>').text(''));
             $(d).attr('disabled', 'disabled');
-            $.each(citys[$(a).val()][1][$(b).val()][1], function (n, cs) {
+            $.each({{ citys|safe }}[$(a).val()][1][$(b).val()][1], function (n, cs) {
                 $(c).append($('<option>').text(cs[0]).val(n))
             })
         });
@@ -43,7 +41,7 @@
             $(d).removeAttr('disabled');
             $(d).empty();
             $(d).append($('<option>').text(''));
-            $.each(citys[$(a).val()][1][$(b).val()][1][$(c).val()][1], function (n, ds) {
+            $.each({{ citys|safe }}[$(a).val()][1][$(b).val()][1][$(c).val()][1], function (n, ds) {
                 $(d).append($('<option>').text(ds + '站').val('{% url 'station' '*' %}'.replace('*', ds)))
             })
         });

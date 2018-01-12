@@ -14,6 +14,7 @@
         body {
             min-height: 100%
         }
+
         #footer a {
             color: #868E96
         }
@@ -55,33 +56,33 @@
                     class="fa {{ a.fa }}"></i>{{ a.text }}</a></li>
         {% endif %}
     {% endfor %}
-        </ul>
+    </ul>
     </div>
 </nav>
 <div class="container" style="overflow:auto">
-{% block content %}
-{% endblock %}
+    {% block content %}
+    {% endblock %}
 </div>
 
 {% for div in  nav.modal %}
     <div class="modal fade" id="{{ div.id }}">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title"><i class="fa {{ div.fa }}"></i>{{ div.text }}</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                {% if forloop.counter0 < 2 %}
-                    <img src="/static/{{ div.src }}" alt="{{ div.text }}">
-                {% else %}
-                    <input id="{{ div.text }}_input" type="text" class="form-control" placeholder="{{ div.text }}">
-                    <div id="{{ div.text }}_suggest">
-                {% endif %}
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title"><i class="fa {{ div.fa }}"></i>{{ div.text }}</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    {% if forloop.counter0 < 2 %}
+                        <img src="/static/{{ div.src }}" alt="{{ div.text }}">
+                    {% else %}
+                        <input id="{{ div.text }}_input" type="text" class="form-control" placeholder="{{ div.text }}">
+                        <div id="{{ div.text }}_suggest"></div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endfor %}
 <nav id="footer" class="navbar navbar-expand-md bg-dark navbar-dark">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footer_ul">
