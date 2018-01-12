@@ -3,9 +3,24 @@
     <h1>站图</h1>
     <div id="index" class="carousel slide" data-ride="carousel">
         <!-- 指示符 -->
-        <ul class="carousel-indicators"></ul>
+        <ul class="carousel-indicators">
+            {% for station in images %}
+                <li data-target="#index"
+                    data-slide-to={{ forloop.counter0 }} {% if forloop.first %}class="active"{% endif %}></li>
+            {% endfor %}
+        </ul>
         <!-- 轮播图片 -->
-        <div class="carousel-inner"></div>
+        <div class="carousel-inner">
+            {% for station in images %}
+                <div style="overflow:auto" class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <a href="{% url 'station' station %}">
+                        <img src="{{ qiniu }}station_img/{{ station }}.jpg{{ img }}" alt="{{ images }}" class="rounded">
+                    </a>
+                    <div class="carousel-caption"><strong>{{ station }}</strong></div>
+                </div>
+            {% endfor %}
+        </div>
+
         <!-- 左右切换按钮 -->
         <a class="carousel-control-prev" href="#index" data-slide="prev">
             <span class="carousel-control-prev-icon"></span>
@@ -18,23 +33,7 @@
 {% block script %}
     <script>
         $('img').tooltip();
-        $("a:contains('首页')").addClass('active');
+        $("a:contains('主页')").addClass('active');
         $('.container').height($(window).height() - $('#header').height() - $('#footer').height() - 32);
-        var images ={{ images|safe }};
-        var n = 0;
-        while (n < images.length) {
-            var li = $('<li>').attr({'data-target': '#index', 'data-slide-to': n});
-            var div = $('<div class="carousel-item" style="overflow:auto">' +
-                '<a href="/station/' + images[n] + '"><img src="{{ qiniu }}station_img/' + images[n] + '{{ img }}" alt="' + images[n] + '" class="rounded"</a>' +
-                '<div class="carousel-caption"><strong>' + images[n] + '</strong></div>' +
-                '</div>');
-            if (n == 0) {
-                li.addClass('active');
-                div.addClass('active')
-            }
-            $('#index ul').append(li);
-            $('#index .carousel-inner').append(div);
-            n++
-        }
     </script>
 {% endblock %}

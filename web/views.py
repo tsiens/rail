@@ -11,8 +11,27 @@ from pypinyin import lazy_pinyin
 
 sort_pinyin = lambda keys: sorted(keys, key=lambda x: ''.join([i[0] for i in lazy_pinyin(x[0][:2])]))
 
-qiniu = 'http://qiniu.rail.qiangs.tech/'
-img = '.jpg?imageMogr2/thumbnail/x480/format/webp/blur/1x0/quality/75|imageslim'
+
+def val(request):
+    qiniu = 'http://qiniu.rail.qiangs.tech/'
+    img = '?imageMogr2/thumbnail/x480/format/webp/blur/1x0/quality/75|imageslim'
+    level = ['province', 'city', 'county', 'station']
+    nav = {'header': [{'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
+                      {'href': '/', 'text': 'Rail'},
+                      {'href': '/', 'fa': 'fa-home', 'text': '主页'},
+                      {'href': '/ticket', 'fa': 'fa-ticket', 'text': '余票'},
+                      {'href': '/station}', 'fa': 'fa-train', 'text': '车站'},
+                      {'href': '/line', 'fa': 'fa-list-alt', 'text': '车次'},
+                      {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
+                      {'target': '#wechat', 'fa': 'fa-wechat', 'text': '公众号'},
+                      {'target': '#contact', 'fa': 'fa-user', 'text': '交流'},
+                      {'target': '#search', 'fa': 'fa-search', 'text': 'search'},
+                      ],
+           'modal': [{'id': 'wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
+                     {'id': 'contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
+                     {'id': 'search', 'fa': 'search"', 'text': 'search'}], }
+    return {'level': level, 'nav': nav, 'qiniu': qiniu, 'img': img}
+
 def index(request):
     last = Station.objects.count()
     images = []
@@ -20,7 +39,7 @@ def index(request):
         station = Station.objects.all()[random.randint(0, last)]
         if station.image_date and Timetable.objects.filter(station=station.cn):
             images.append(station.cn)
-    return render(request, 'index.html', {'images': images, 'qiniu': qiniu, 'img': img})
+    return render(request, 'index.html', {'images': images})
 
 def log(request):
     return render(request, 'log.html')
@@ -61,7 +80,7 @@ def city(request):
             city_list.append([city, sort_pinyin(county_list)])
         province_list.append([province, sort_pinyin(city_list)])
     return render(request, 'city.html',
-                  {'citys': sort_pinyin(province_list), 'ids': ['province', 'city', 'county', 'station', 'href']})
+                  {'citys': sort_pinyin(province_list)})
 
 def ticket(request, start, arrive, date):
     if len(date) < 3:

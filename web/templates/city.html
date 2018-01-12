@@ -1,7 +1,15 @@
 {% extends 'template.html' %}
 {% block content %}
-    {% for id in ids %}
-        <select id="{{ id }}" class="form-control" title="{{ id }}"></select>
+    {% for id in level %}
+        <select id="{{ id }}" class="form-control"
+                {% if not forloop.first %}disabled="disabled" {% endif %}{% if forloop.last %}onchange="window.location=this.value"{% endif %}>
+            <option></option>
+            {% if forloop.first %}
+                {% for city in citys %}
+                    <option value="{{ forloop.counter0 }}">{{ city|first }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
     {% endfor %}
 {% endblock %}
 {% block script %}
@@ -9,40 +17,35 @@
         $("a:contains('城市')").addClass('active');
         var citys =;
         {{ citys|safe }}
-        var a = '#' + {{ ids|safe }}[0];
-        var b = '#' + {{ ids|safe }}[1];
-        var c = '#' + {{ ids|safe }}[2];
-        var d = '#' + {{ ids|safe }}[3];
-        $(a).append($('<option>').text(''));
-        $.each(citys, function (n, as) {
-            $(a).append($('<option>').text(as[0]).val(n))
-        });
+        var a = '#' + {{ level|safe }}[0];
+        var b = '#' + {{ level|safe }}[1];
+        var c = '#' + {{ level|safe }}[2];
+        var d = '#' + {{ level|safe }}[3];
         $(a).change(function () {
+            $(b).removeAttr('disabled');
             $(b + ',' + c + ',' + d).empty();
             $(b + ',' + c + ',' + d).append($('<option>').text(''));
+            $(c + ',' + d).attr('disabled', 'disabled');
             $.each(citys[$(a).val()][1], function (n, bs) {
                 $(b).append($('<option>').text(bs[0]).val(n))
             })
         });
         $(b).change(function () {
+            $(c).removeAttr('disabled');
             $(c + ',' + d).empty();
             $(c + ',' + d).append($('<option>').text(''));
+            $(d).attr('disabled', 'disabled');
             $.each(citys[$(a).val()][1][$(b).val()][1], function (n, cs) {
                 $(c).append($('<option>').text(cs[0]).val(n))
             })
         });
         $(c).change(function () {
+            $(d).removeAttr('disabled');
             $(d).empty();
             $(d).append($('<option>').text(''));
             $.each(citys[$(a).val()][1][$(b).val()][1][$(c).val()][1], function (n, ds) {
-                $(d).append($('<option>').text(ds).val(ds))
+                $(d).append($('<option>').text(ds + '站').val('{% url 'station' '*' %}'.replace('*', ds)))
             })
         });
-        $(a).change(function () {
-            if ($(a).val() != '') {
-                station = 1;
-                console.log('{% url 'station' '0' %}')
-            }
-        })
     </script>
 {% endblock %}
