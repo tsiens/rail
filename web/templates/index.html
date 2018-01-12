@@ -25,7 +25,7 @@
         while (n < images.length) {
             var li = $('<li>').attr({'data-target': '#index', 'data-slide-to': n});
             var div = $('<div class="carousel-item" style="overflow:auto">' +
-                '<a href="/station/' + images[n] + '"><img src="{{ qiniu }}station_img/' + images[n] + '{{ img }}"class="rounded"</a>' +
+                '<a href="/station/' + images[n] + '"><img src="{{ qiniu }}station_img/' + images[n] + '{{ img }}" alt="' + images[n] + '" class="rounded"</a>' +
                 '<div class="carousel-caption"><strong>' + images[n] + '</strong></div>' +
                 '</div>');
             if (n == 0) {

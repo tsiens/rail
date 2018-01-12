@@ -74,7 +74,7 @@ def get_img():
         "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and (image_date is null or image_date<'%s')" % (
             station_table, timetable_table, today - timedelta(days=100)))
     sqls = []
-    for station in stations[:]:
+    for station in stations[:100]:
         station = station[0]
         src = get_station_img(station)
         sqls.append("UPDATE %s SET image_date='%s' WHERE cn='%s'" % (

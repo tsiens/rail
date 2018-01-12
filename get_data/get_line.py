@@ -81,6 +81,13 @@ def get_line():
             "UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
         log('插入 车次 %s ' % len(data))
         log('更新 车次 %s ' % len(update_line))
+        lines_delete = mysql.execute(
+            "SELECT code FROM %s WHERE date<'%s'" % (line_table, today))
+        if len(lines_delete) > 0:
+            lines_delete = [line[0] for line in lines_delete]
+            mysql.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, "','".join(lines_delete)),
+                          "DELETE FROM %s WHERE code in('%s')" % (line_table, "','".join(lines_delete)))
+        log('删除 车次 %s' % (len(lines_delete)))
 
 
 if __name__ == '__main__':

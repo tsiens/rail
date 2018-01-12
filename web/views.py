@@ -7,6 +7,9 @@ import json, random
 from datetime import datetime
 from web.models import *
 from django.db.models import Q
+from pypinyin import lazy_pinyin
+
+sort_pinyin = lambda keys: sorted(keys, key=lambda x: ''.join([i[0] for i in lazy_pinyin(x[0][:2])]))
 
 qiniu = 'http://qiniu.rail.qiangs.tech/'
 img = '.jpg?imageMogr2/thumbnail/x480/format/webp/blur/1x0/quality/75|imageslim'
@@ -21,16 +24,44 @@ def index(request):
 
 def log(request):
     return render(request, 'log.html')
-def station(request, cn):
-    data = Station.objects.get(cn=cn)
+
+
+def station(request, station):
+    data = Station.objects.get(cn=station)
     return render(request, 'station.html',
-                  {'station': cn, 'province': data.province, 'city': data.city, 'county': data.county})
-
-
+                  {'station': station, 'province': data.province, 'city': data.city, 'county': data.county})
 def line(request, line):
     data = Line.objects.get(line=line)
     return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
 
+
+def city(request):
+    data = {}
+    stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
+    for row in Station.objects.filter(cn__in=stations).values('cn', 'province', 'city', 'county'):
+        cn, province, city, county = row['cn'], row['province'], row['city'], row['county']
+        if 'None' in [province, city, county] or None in [province, city, county]:
+            print(cn)
+        if province not in data:
+            data[province] = {}
+        if city not in data[province]:
+            data[province][city] = {}
+        if county in data[province][city]:
+            data[province][city][county].append(cn)
+        else:
+            data[province][city][county] = [cn]
+    province_list = []
+    for province, citys in data.items():
+        city_list = []
+        for city, countys in citys.items():
+            county_list = []
+            for county, cns in countys.items():
+                cns_list = [cn for cn in cns]
+                county_list.append([county, sort_pinyin(cns_list)])
+            city_list.append([city, sort_pinyin(county_list)])
+        province_list.append([province, sort_pinyin(city_list)])
+    return render(request, 'city.html',
+                  {'citys': sort_pinyin(province_list), 'ids': ['province', 'city', 'county', 'station', 'href']})
 
 def ticket(request, start, arrive, date):
     if len(date) < 3:
@@ -40,7 +71,7 @@ def ticket(request, start, arrive, date):
 
 
 def data(request):
-    type = request.POST.get('type', 'error')
+    type = request.POST.get('type')
     data = []
     if type == 'log':
         with open('get_data/data.log', 'r') as f:
@@ -72,9 +103,9 @@ def data(request):
         data = get_ticket(*request.POST.get('info').split('|'))
     elif type == 'search':
         key = request.POST.get('key')
-        data = {'station': [], 'line': [], 'city': []}
+        data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
         for row in Station.objects.filter(cn__contains=key).values('cn'):
-            data['station'].append(row['cn'])
+            data[0][2].append(row['cn'])
         for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key)):
             if key in row.county:
                 row_data = row.province + '-' + row.city + '-' + row.county
@@ -82,15 +113,11 @@ def data(request):
                 row_data = row.province + '-' + row.city
             else:
                 row_data = row.province
-            if row_data not in data['city']:
-                data['city'].append(row_data)
+            if row_data not in data[1][2]:
+                data[1][2].append(row_data)
         for row in Line.objects.filter(line__contains=key)[:10]:
-            data['line'].append(row.line)
-        for k in list(data.keys()):
-            if data[k] == []:
-                del data[k]
-            else:
-                data[k] = sorted(data[k])
+            data[2][2].append(row.line)
+        data = [[x, y, sorted(z)] for x, y, z in data if z != []]
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
