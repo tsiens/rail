@@ -6,8 +6,8 @@ from get_data.get_timetable import *
 def delete_log(signum):
     for path in ['/home/service/rail/access.log', '/home/service/rail/error.log',
                  '/home/service/rail/uwsgi.log', '/home/rail/get_data/data.log']:
-        with open(path, 'w') as f:
-            f.write('')
+        with open(path, 'r+') as f:
+            f.truncate()
 
 
 def get(signum):
@@ -22,7 +22,7 @@ def get(signum):
     log('数据爬取完成')
 
 
-jobs = [{'name': get, 'time': [1, 7, -1, -1, -1]},  # 分,时，日，月，周几
+jobs = [{'name': get, 'time': [0, 1, -1, -1, -1]},  # 分,时，日，月，周几
         {'name': delete_log, 'time': [0, 23, -1, -1, 7]},  # 每周日清空日志
         # {'name': get,'time': [60]},#每隔60秒
         ]

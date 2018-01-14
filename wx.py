@@ -57,7 +57,7 @@ def wx(request):
                 start, arrive, date = txt.split(' ')
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '余票: %s号 %s-%s' % (date, start, arrive),
-                    'image': qiniu_img_url % txt,
+                    'image': qiniu_img_url % start,
                     'url': 'http://rail.qiangs.tech/ticket/%s/%s/%s' % (start, arrive, date)
                 }])
             else:

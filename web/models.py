@@ -13,7 +13,7 @@ class Station(models.Model):
     y = models.FloatField('维度')
     province = models.CharField('省', max_length=20)
     city = models.CharField('市', max_length=20)
-    county = models.IntegerField('县')
+    county = models.CharField('县', max_length=20)
     date = models.DateField('更新')
     image_date = models.DateField('图片')
 

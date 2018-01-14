@@ -26,7 +26,7 @@
                 var tr = $('<tr>');
                 $.each(line, function (n, txt) {
                     if (n < 3) {
-                        td = $('<td>').append($('<a>').attr('href', ['/line/', '/station/', '/station/'][n] + txt).text(txt))
+                        td = $('<td>').append($('<a>').attr('href', ['{% url 'line' '*' %}', '{% url 'station' '*' %}', '{% url 'station' '*' %}'][n].replace('*', txt)).text(txt))
                     }
                     else if ($.inArray(txt, ['始', '终']) > -1) {
                         td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {

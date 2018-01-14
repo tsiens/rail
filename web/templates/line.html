@@ -14,7 +14,7 @@
                 var tr = $('<tr>');
                 $.each(station, function (n, txt) {
                     if (n == 1) {
-                        td = $('<td>').append($('<a>').attr('href', '/station/' + txt).text(txt))
+                        td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
                     }
                     else {
                         td = $('<td>').text(txt);

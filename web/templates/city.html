@@ -1,49 +1,81 @@
 {% extends 'template.html' %}
 {% block content %}
-    {% for id in level %}
-        <select id="{{ id }}" class="form-control"
-                {% if not forloop.first %}disabled="disabled" {% endif %}{% if forloop.last %}onchange="window.location=this.value"{% endif %}>
-            <option></option>
-            {% if forloop.first %}
-                {% for city in citys %}
-                    <option value="{{ forloop.counter0 }}">{{ city|first }}</option>
-                {% endfor %}
-            {% endif %}
-        </select>
-    {% endfor %}
+    <div id="treemap" class="echarts"></div>
 {% endblock %}
 {% block script %}
     <script>
         $("a:contains('城市')").addClass('active');
-        var a = '#' + {{ level|safe }}[0];
-        var b = '#' + {{ level|safe }}[1];
-        var c = '#' + {{ level|safe }}[2];
-        var d = '#' + {{ level|safe }}[3];
-        $(a).change(function () {
-            $(b).removeAttr('disabled');
-            $(b + ',' + c + ',' + d).empty();
-            $(b + ',' + c + ',' + d).append($('<option>').text(''));
-            $(c + ',' + d).attr('disabled', 'disabled');
-            $.each({{ citys|safe }}[$(a).val()][1], function (n, bs) {
-                $(b).append($('<option>').text(bs[0]).val(n))
-            })
-        });
-        $(b).change(function () {
-            $(c).removeAttr('disabled');
-            $(c + ',' + d).empty();
-            $(c + ',' + d).append($('<option>').text(''));
-            $(d).attr('disabled', 'disabled');
-            $.each({{ citys|safe }}[$(a).val()][1][$(b).val()][1], function (n, cs) {
-                $(c).append($('<option>').text(cs[0]).val(n))
-            })
-        });
-        $(c).change(function () {
-            $(d).removeAttr('disabled');
-            $(d).empty();
-            $(d).append($('<option>').text(''));
-            $.each({{ citys|safe }}[$(a).val()][1][$(b).val()][1][$(c).val()][1], function (n, ds) {
-                $(d).append($('<option>').text(ds + '站').val('{% url 'station' '*' %}'.replace('*', ds)))
-            })
-        });
+        $('.echarts').height($(window).height() / 2);
+        treemap('treemap');
+
+        function treemap(div) {
+            var option = {
+                {#                backgroundColor: 'rgba(255,255,255,0)',#}
+                tooltip: {
+                    formatter: function (paramer) {
+                        if (paramer.treePathInfo.length < 5) {
+                            return paramer.name + '</br>'
+                                + '车站 ' + paramer.value + ' 座'
+                        }
+                        else {
+                            return paramer.name
+                        }
+                    }
+                },
+                series: [{
+                    name: '全国',
+                    type: 'treemap',
+                    label: {
+                        normal: {
+                            show: true,
+                            formatter: '{b} '
+                        }
+                    },
+                    levels: levels(4),
+                    leafDepth: 1,//层级
+                    drillDownIcon: '',
+                    nodeClick: 'link',
+                    slient: true,
+                    data: conversion({{ citys|safe }}, 0)
+                }]
+            };
+            var charts = echarts.init(document.getElementById(div));
+            charts.setOption(option);
+        }
+
+        function conversion(data_old, n) {
+            var data_new = [];
+            $.each(data_old, function (k, v) {
+                if (n < 3) {
+                    var item = {'name': k, 'children': conversion(v, n + 1)}
+                }
+                else {
+                    var item = {
+                        'name': v + '站',
+                        'value': 1,
+                        'link': '{% url 'station' '*' %}'.replace('*', v),
+                        'target': 'self'
+                    }
+                }
+                data_new.push(item)
+            });
+            return data_new
+        }
+
+        function levels(n) {
+            levels = [];
+            while (n > -1) {
+                levels.push({
+                    itemStyle: {
+                        normal: {
+                            borderWidth: n,
+                            borderColor: 'rgba(255,255,255,0)',
+                        }
+                    }
+                });
+                n = n - 1
+            }
+            return levels
+        }
     </script>
 {% endblock %}

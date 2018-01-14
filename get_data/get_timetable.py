@@ -7,8 +7,6 @@ def get_timetable_thread(info):
     order, day, runtime = 1, 1, 0
     if not get:
         return None
-    log('检索 %s 次  %s - %s  %s%%' % (line, start, arrive,
-                                    int(lines_list.index(info) / len(lines_list) * 100)))
     for row in get.get('data', {}).get('data', []):
         station, arrivetime, leavetime = row['station_name'], row['arrive_time'], row['start_time']
         if arrivetime == '----': arrivetime = leavetime
@@ -31,19 +29,23 @@ def get_timetable_thread(info):
         data.append([line, code, order, station, arrivedate, arrivetime.time(), leavedate, leavetime.time(), staytime])
         order += 1
     if len(data) > 1:
+        log('检索 %s 次  %s - %s  %s%%' % (line, start, arrive,
+                                        int(lines_list.index(info) / len(lines_list) * 100)))
         data[0][-1] = -1
         data[-1][-1] = -2
-        lock.acquire()
+        # lock.acquire()
         mysql.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
-                         "UPDATE %s SET runtime='%s' WHERE code='%s'" % (line_table, runtime, code))
-        lock.release()
-
+                      "UPDATE %s SET runtime='%s',date='%s' WHERE code='%s'" % (line_table, runtime, today, code))
+        # lock.release()
+    else:
+        log('检索 %s 次  无效  %s%%' % (line, int(lines_list.index(info) / len(lines_list) * 100)))
+        mysql.execute("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, code))
 
 def get_timetable(old=[]):
     global stations_cn, stations_en, lines, lines_list
     stations_cn, stations_en, lines = stations_lines()
     lines_list = mysql.execute(
-        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE runtime='0'" % (line_table))
+        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date<'%s'" % (line_table, today))
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
         ##uwsgi定时任务无法使用多线程
@@ -53,7 +55,6 @@ def get_timetable(old=[]):
         for info in lines_list:
             get_timetable_thread(info)
         return get_timetable(lines_list)
-
 
 if __name__ == '__main__':
     get_timetable()

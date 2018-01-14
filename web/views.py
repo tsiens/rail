@@ -19,9 +19,9 @@ def val(request):
     nav = {'header': [{'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
                       {'href': '/', 'text': 'Rail'},
                       {'href': '/', 'fa': 'fa-home', 'text': '主页'},
-                      {'href': '/ticket', 'fa': 'fa-ticket', 'text': '余票'},
-                      {'href': '/station}', 'fa': 'fa-train', 'text': '车站'},
-                      {'href': '/line', 'fa': 'fa-list-alt', 'text': '车次'},
+                      {'href': '/ticket/杭州/上海/16', 'fa': 'fa-ticket', 'text': '余票'},
+                      {'href': '/station/合川', 'fa': 'fa-train', 'text': '车站'},
+                      {'href': '/line/Z258', 'fa': 'fa-list-alt', 'text': '车次'},
                       {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
                       {'target': '#wechat', 'fa': 'fa-wechat', 'text': '公众号'},
                       {'target': '#contact', 'fa': 'fa-user', 'text': '交流'},
@@ -44,11 +44,14 @@ def index(request):
 def log(request):
     return render(request, 'log.html')
 
-
 def station(request, station):
-    data = Station.objects.get(cn=station)
-    return render(request, 'station.html',
-                  {'station': station, 'province': data.province, 'city': data.city, 'county': data.county})
+    if station == 'index':
+        return render(request, 'station.html', {'index': True})
+    else:
+        data = Station.objects.get(cn=station)
+        return render(request, 'station.html',
+                      {'index': False, 'station': station, 'province': data.province, 'city': data.city,
+                       'county': data.county})
 def line(request, line):
     data = Line.objects.get(line=line)
     return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
@@ -59,8 +62,6 @@ def city(request):
     stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
     for row in Station.objects.filter(cn__in=stations).values('cn', 'province', 'city', 'county'):
         cn, province, city, county = row['cn'], row['province'], row['city'], row['county']
-        if 'None' in [province, city, county] or None in [province, city, county]:
-            print(cn)
         if province not in data:
             data[province] = {}
         if city not in data[province]:
@@ -69,18 +70,7 @@ def city(request):
             data[province][city][county].append(cn)
         else:
             data[province][city][county] = [cn]
-    province_list = []
-    for province, citys in data.items():
-        city_list = []
-        for city, countys in citys.items():
-            county_list = []
-            for county, cns in countys.items():
-                cns_list = [cn for cn in cns]
-                county_list.append([county, sort_pinyin(cns_list)])
-            city_list.append([city, sort_pinyin(county_list)])
-        province_list.append([province, sort_pinyin(city_list)])
-    return render(request, 'city.html',
-                  {'citys': sort_pinyin(province_list)})
+    return render(request, 'city.html', {'citys': data})
 
 def ticket(request, start, arrive, date):
     if len(date) < 3:

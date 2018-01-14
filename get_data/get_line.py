@@ -2,48 +2,19 @@ from get_data.config import *
 from get_data.get_ticket import *
 from get_data.get_timetable import *
 
-def insert_station(name, code, start_en, arrive_en):
-    get = getjson(get_timetable_url % (code, start_en, arrive_en, tomorrow))
-    data = get.get('data', {}).get('data', [{'station_name': name + start_en}, {'station_name': name + arrive_en}])
-    for en, cn in {start_en: data[0]['station_name'], arrive_en: data[-1]['station_name']}.items():
-        if cn not in stations_cn:
-            stations_cn[cn] = en
-            stations_en[en] = cn
-            log('插入 %s 站' % cn)
-            mysql.execute("INSERT INTO %s VALUE (null,'%s','%s','%s','%s','%s','%s','%s','%s')" % (
-                station_table, cn, en, 125, 30, None, None, None, today))
-
-
 def get_city_line_thread(city):
-    data, update_city, update_line, sqls = [], [], [], []
     start, arrive = city.split('-')
     if start not in stations_cn or arrive not in stations_cn:
         return None
-    for line in get_ticket(start, arrive, tomorrow, ticker=False):
-        name, code, start_en, arrive_en = line
-        if start_en not in stations_en or arrive_en not in stations_en:
-            insert_station(name, code, start_en, arrive_en)
-        start_cn, arrive_cn = stations_en[start_en], stations_en[arrive_en]
-        if code in lines:
-            if lines[code] < today:
-                update_line.append(code)
-                lines[code] = today, today
-        else:
-            data.append((name, code, start_cn, start_en, arrive_cn, arrive_en, 0, today))
-            lines[code] = today
-    sqls.append(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data))
-    sqls.append("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
-    if data + update_line != []:
-        log('检索 %s - %s  %s%%' % (start, arrive,
-                                  int(citys_list.index(city) / len(citys_list) * 100)))
-    lock.acquire()
-    mysql.execute(*sqls)
-    lock.release()
+    for line in get_ticket(start, arrive, today, ticker=False):
+        if line[1] not in codes:
+            codes.append(line[1])
 
 
 def get_city(citys):
-    global citys_list
+    global citys_list, codes
     citys_list = sorted([city for city in citys], key=lambda city: citys[city], reverse=True)
+    codes = []
     # rs = threadpool.makeRequests(get_city_line_thread, citys_list)
     # [pool.putRequest(r) for r in rs]
     # pool.wait()
@@ -64,30 +35,31 @@ def get_line():
             citys[city] = data.count(city)
         get_city(citys)
     else:
-        data, update_line = [], []
-        for line in re.findall('{"station_train_code":"([^\)]+)\(([^-]+)-([^\)]+)\)","train_no":"([^\"]+)"}', get[0]):
-            name, start, arrive, code = line
-            if start not in stations_cn or arrive not in stations_cn:
-                continue
-            if code in lines:
-                if lines[code] < today:
-                    update_line.append(code)
-                    lines[code] = today
-            else:
-                data.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive], 0, today))
+        codes = re.findall('{"station_train_code":"([^\)]+)\(([^-]+)-([^\)]+)\)","train_no":"([^\"]+)"}', get[0])
+    data, update_line = [], []
+    for line in codes:
+        name, start, arrive, code = line
+        if start not in stations_cn or arrive not in stations_cn:
+            continue
+        if code in lines:
+            if lines[code] < today and lines[code] > datetime(1970, 1, 1).date():
+                update_line.append(code)
                 lines[code] = today
-        mysql.execute(
-            ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data),
-            "UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, "' or code='".join(update_line)))
-        log('插入 车次 %s ' % len(data))
-        log('更新 车次 %s ' % len(update_line))
-        lines_delete = mysql.execute(
-            "SELECT code FROM %s WHERE date<'%s'" % (line_table, today))
-        if len(lines_delete) > 0:
-            lines_delete = [line[0] for line in lines_delete]
-            mysql.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, "','".join(lines_delete)),
-                          "DELETE FROM %s WHERE code in('%s')" % (line_table, "','".join(lines_delete)))
-        log('删除 车次 %s' % (len(lines_delete)))
+        else:
+            data.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive], 0, '1970-01-01'))
+            lines[code] = datetime(1970, 1, 1).date()
+    mysql.execute(
+        ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data),
+        "UPDATE %s SET date='%s' WHERE code in ('%s')" % (line_table, today, "','".join(update_line)))
+    log('插入 车次 %s ' % len(data))
+    log('更新 车次 %s ' % len(update_line))
+    lines_delete = mysql.execute(
+        "SELECT code FROM %s WHERE date<'%s' and date>'1970-01-01'" % (line_table, today))
+    if len(lines_delete) > 0:
+        lines_delete = [line[0] for line in lines_delete]
+        mysql.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, "','".join(lines_delete)),
+                      "DELETE FROM %s WHERE code in('%s')" % (line_table, "','".join(lines_delete)))
+    log('删除 车次 %s' % (len(lines_delete)))
 
 
 if __name__ == '__main__':

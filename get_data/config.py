@@ -42,6 +42,7 @@ get_ticket_url = 'https://kyfw.12306.cn/otn/leftTicket/queryA?leftTicketDTO.trai
 
 amap_url = 'http://restapi.amap.com/v3/place/text?&types=火车站&keywords=%s站&city=%s&output=json&offset=20&page=1&key=%s'
 amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&ak=%s'
+baidu_url = 'http://api.map.baidu.com/place/v2/search?query=%s站&tag=火车站&region=%s&output=json&ak=%s'
 geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-over'
 geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
 wiki_url = 'https://zh.wikipedia.org/wiki/%s站'
