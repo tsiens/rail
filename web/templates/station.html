@@ -13,7 +13,6 @@
 {% endblock %}
 {% block script %}
     <script>
-        $("a:contains('车站')").addClass('active');
         var station = '{{ station }}';
         var th = ['车次', '始发', '终到', '到达', '离开', '停留'];
         $('title,#title').text(station + '站');
@@ -41,6 +40,6 @@
                 });
                 $('#table').find('tbody').append(tr);
             });
-        })
+        });
     </script>
 {% endblock %}

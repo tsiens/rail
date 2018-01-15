@@ -48,7 +48,6 @@ def get_station_location(station):
 
     def get_baidu(province, city, county):
         get = getjson(baidu_url % (station, city if city else '北京', baidu_sak))
-        print(get)
         for row in get.get('results', []):
             if station + '站' in row['name']:
                 return [station, row['location']['lng'], row['location']['lat'], province, city, county]
@@ -60,6 +59,8 @@ def get_station_location(station):
     try:
         code = getjson(geogv_url1 % station)['data'][0][0]
         province, city, county = getjson(geogv_url2 % code)['location'].split(' ')
+        if city in ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市']:
+            county = city
     except:
         province, city, county = None, None, None
     for location in [get_amap(city), get_baidu(province, city, county)]:
@@ -70,7 +71,7 @@ def get_station_location(station):
 
 def get_img():
     stations = mysql.execute(
-        "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and (image_date is null or image_date<'%s')" % (
+        "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and image_date<'%s'" % (
             station_table, timetable_table, today - timedelta(days=100)))
     sqls = []
     for station in stations[:100]:
@@ -99,7 +100,8 @@ def get_station_img(station):
     return re.findall(r'"thumburl":"(.+?\.jpg)"', html)[0].replace('\\', '')
 
 if __name__ == '__main__':
-    #     get_station()
-    #     get_location()
-    print(get_station_location('德兴东'))
+    # get_station()
+    # get_location()
+    get_img()
+    # print(get_station_location('德兴东'))
     # print(get_station_img('北京南'))

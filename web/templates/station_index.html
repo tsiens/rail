@@ -1,0 +1,21 @@
+{% extends 'template.html' %}
+{% block content %}
+    <div id="masonry">
+        {% for station in stations %}
+            {% if forloop.counter0 < 100 %}
+                <a href="{% url 'station' station.cn %}">
+                    <img src="{{ qiniu }}{{ station.cn }}{{ format }}" class="img-thumbnail" alt="{{ station.cn }}">
+                    <p>{{ station.cn }}</p>
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        $("a:contains('车站')").addClass('active');
+        $('#masonry').masonry({
+            itemSelector: 'a'
+        });
+    </script>
+{% endblock %}

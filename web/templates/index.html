@@ -4,17 +4,17 @@
     <div id="index" class="carousel slide" data-ride="carousel">
         <!-- 指示符 -->
         <ul class="carousel-indicators">
-            {% for station in images %}
+            {% for station in stations %}
                 <li data-target="#index"
                     data-slide-to={{ forloop.counter0 }} {% if forloop.first %}class="active"{% endif %}></li>
             {% endfor %}
         </ul>
         <!-- 轮播图片 -->
         <div class="carousel-inner">
-            {% for station in images %}
+            {% for station in stations %}
                 <div style="overflow:auto" class="carousel-item {% if forloop.first %}active{% endif %}">
                     <a href="{% url 'station' station %}">
-                        <img src="{{ qiniu }}station_img/{{ station }}.jpg{{ img }}" alt="{{ images }}" class="rounded">
+                        <img src="{{ qiniu }}{{ station }}{{ format }}" alt="{{ station }}" class="rounded">
                     </a>
                     <div class="carousel-caption"><strong>{{ station }}</strong></div>
                 </div>

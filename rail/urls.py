@@ -15,10 +15,9 @@ Including another URLconf
 """
 from django.urls import path
 from django.conf.urls import include
-
-from wx import *
+from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('web.urls'))
+    path('', include('web.urls')),
 ]

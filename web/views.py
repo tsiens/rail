@@ -6,21 +6,19 @@ from get_data.get_ticket import get_ticket
 import json, random
 from datetime import datetime
 from web.models import *
-from django.db.models import Q
-from pypinyin import lazy_pinyin
+from django.db.models import Q, Count
 
-sort_pinyin = lambda keys: sorted(keys, key=lambda x: ''.join([i[0] for i in lazy_pinyin(x[0][:2])]))
+import random
 
 
 def val(request):
-    qiniu = 'http://qiniu.rail.qiangs.tech/'
-    img = '?imageMogr2/thumbnail/x480/format/webp/blur/1x0/quality/75|imageslim'
+    qiniu = 'http://qiniu.rail.qiangs.tech/station_img/'
     level = ['province', 'city', 'county', 'station']
     nav = {'header': [{'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
                       {'href': '/', 'text': 'Rail'},
                       {'href': '/', 'fa': 'fa-home', 'text': '主页'},
                       {'href': '/ticket/杭州/上海/16', 'fa': 'fa-ticket', 'text': '余票'},
-                      {'href': '/station/合川', 'fa': 'fa-train', 'text': '车站'},
+                      {'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
                       {'href': '/line/Z258', 'fa': 'fa-list-alt', 'text': '车次'},
                       {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
                       {'target': '#wechat', 'fa': 'fa-wechat', 'text': '公众号'},
@@ -30,27 +28,34 @@ def val(request):
            'modal': [{'id': 'wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
                      {'id': 'contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
                      {'id': 'search', 'fa': 'search"', 'text': 'search'}], }
-    return {'level': level, 'nav': nav, 'qiniu': qiniu, 'img': img}
+    return {'level': level, 'nav': nav, 'qiniu': qiniu}
 
 def index(request):
-    last = Station.objects.count()
-    images = []
-    while len(images) < 10:
-        station = Station.objects.all()[random.randint(0, last)]
-        if station.image_date and Timetable.objects.filter(station=station.cn):
-            images.append(station.cn)
-    return render(request, 'index.html', {'images': images})
+    format = '.jpg?imageMogr2/auto-orient/thumbnail/x480/gravity/Center/crop/x480/interlace/1/blur/1x0/quality/75|imageslim'
+    stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
+    stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
+    stations = random.sample(stations, 10)
+    return render(request, 'index.html', {'stations': stations, 'format': format})
 
 def log(request):
     return render(request, 'log.html')
 
 def station(request, station):
     if station == 'index':
-        return render(request, 'station.html', {'index': True})
+        format = '.jpg?imageMogr2/auto-orient/thumbnail/150x/gravity/Center/crop/150x/interlace/1/blur/1x0/quality/75|imageslim'
+        stations = Timetable.objects.values('station').annotate(dcount=Count('line'))
+        count = {}
+        for station in stations:
+            count[station['station']] = station['dcount']
+        stations = list(
+            Station.objects.filter(cn__in=[station['station'] for station in stations]).values('cn', 'province', 'city',
+                                                                                               'county'))
+        stations.sort(key=lambda x: count[x['cn']], reverse=True)
+        return render(request, 'station_index.html', {'stations': stations, 'format': format})
     else:
         data = Station.objects.get(cn=station)
         return render(request, 'station.html',
-                      {'index': False, 'station': station, 'province': data.province, 'city': data.city,
+                      {'station': station, 'province': data.province, 'city': data.city,
                        'county': data.county})
 def line(request, line):
     data = Line.objects.get(line=line)

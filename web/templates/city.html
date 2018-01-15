@@ -10,7 +10,6 @@
 
         function treemap(div) {
             var option = {
-                {#                backgroundColor: 'rgba(255,255,255,0)',#}
                 tooltip: {
                     formatter: function (paramer) {
                         if (paramer.treePathInfo.length < 5) {
@@ -28,9 +27,11 @@
                     label: {
                         normal: {
                             show: true,
-                            formatter: '{b} '
+                            formatter: '{b}',
                         }
                     },
+                    width: '100%',
+                    height: '100%',
                     levels: levels(4),
                     leafDepth: 1,//层级
                     drillDownIcon: '',
