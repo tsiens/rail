@@ -1,21 +1,31 @@
 {% extends 'template.html' %}
 {% block content %}
     <div id="masonry">
-        {% for station in stations %}
-            {% if forloop.counter0 < 100 %}
-                <a href="{% url 'station' station.cn %}">
-                    <img src="{{ qiniu }}{{ station.cn }}{{ format }}" class="img-thumbnail" alt="{{ station.cn }}">
-                    <p>{{ station.cn }}</p>
-                </a>
-            {% endif %}
-        {% endfor %}
     </div>
 {% endblock %}
 {% block script %}
     <script>
         $("a:contains('车站')").addClass('active');
-        $('#masonry').masonry({
-            itemSelector: 'a'
+        var img_start = 0;
+        masonry(0);
+        $(window).scroll(function () {
+            masonry($(this).scrollTop())
         });
+
+        function masonry(scrollTop) {
+            if ($('#footer').offset().top < $(window).height() * 1.5 + scrollTop) {
+                var img = {{ stations|safe }}[img_start];
+                img_start = img_start + 1;
+                var a = $('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', img.cn)).append($('<img>').addClass('img-thumbnail').attr({
+                    'alt': img.cn,
+                    'src': '{{ qiniu }}' + img.cn + '{{ format }}',
+                    'text': img.cn
+                }));
+                $('#masonry').append(a).masonry('appended', a).masonry({itemSelector: 'a'});
+                {#                $('#masonry a').css('padding', '5px');#}
+                $('#masonry').imagesLoaded(masonry(scrollTop))
+            }
+        }
+
     </script>
 {% endblock %}
