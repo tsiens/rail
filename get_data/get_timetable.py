@@ -1,4 +1,7 @@
-from config import *
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from get_data.config import *
 
 def get_timetable_thread(info):
     line, start, arrive, code, start_en, arrive_en = info.split('-|-')

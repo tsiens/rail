@@ -1,6 +1,9 @@
-from config import *
-from get_ticket import *
-from get_timetable import *
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from get_data.config import *
+from get_data.get_ticket import *
+from get_data.get_timetable import *
 
 def get_city_line_thread(city):
     start, arrive = city.split('-')

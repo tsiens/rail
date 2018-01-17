@@ -1,7 +1,7 @@
-import sys
+import sys, os
 
-sys.path.append('get_data')  # django调用以rail为根，python1以目录为根
-from config import *
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from get_data.config import *
 
 def get_ticket(start, arrive, date, ticker=True):
     global stations_cn, stations_en, lines

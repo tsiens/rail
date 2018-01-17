@@ -37,7 +37,8 @@
         function masonry(scrollTop) {
             $('#masonry').masonry({itemSelector: 'a'});
             if ($('#footer').offset().top < $(window).height() * 2 + scrollTop) {
-                $.each({{ stations|safe }}.slice(img_start, img_start + 10), function () {
+                $.each(({{ stations|safe }}).slice(img_start, img_start + 10), function () {
+                    img_start = img_start + 1;
                     var a = $('<a>').addClass('img-thumbnail').css('margin', '4px').attr({
                         'href': '{% url 'station' '*' %}'.replace('*', this.cn)
                     }).append(
@@ -47,10 +48,8 @@
                         })
                     ).append($('<h5>').text(this.cn)).append($('<p>').text(this.province + ' ' + this.city + ' ' + this.county));
                     $('#masonry').append(a).masonry('appended', a);
-                };
-            )
-                $('#masonry img').imagesLoaded(function () {
-                    img_start = img_start + 10;
+                });
+                $('#masonry').imagesLoaded(function () {
                     masonry(scrollTop)
                 });
             }

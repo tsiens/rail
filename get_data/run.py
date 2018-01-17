@@ -1,6 +1,9 @@
-from get_station import *
-from get_line import *
-from get_timetable import *
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from get_data.get_station import *
+from get_data.get_line import *
+from get_data.get_timetable import *
 
 
 def get():

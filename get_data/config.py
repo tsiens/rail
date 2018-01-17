@@ -1,11 +1,11 @@
 import sys, traceback, threading, threadpool, requests, os, logging, re
 from pyquery import PyQuery as pq
 from datetime import *
-from mysql import Mysql
-from qiniuyun import Qiniuyun
 from prettytable import PrettyTable  # 表格输出
 
-sys.path.append('..')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from get_data.mysql import Mysql
+from get_data.qiniuyun import Qiniuyun
 from key import *
 
 logger = logging.getLogger()
