@@ -1,6 +1,7 @@
 import sys
-sys.path += ['.', 'get_data']  # django调用以rail为根，python1以目录为根
-from get_data.config import *
+
+sys.path.append('get_data')  # django调用以rail为根，python1以目录为根
+from config import *
 
 def get_ticket(start, arrive, date, ticker=True):
     global stations_cn, stations_en, lines
@@ -8,6 +9,7 @@ def get_ticket(start, arrive, date, ticker=True):
     if len(date) < 3:
         year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
         date = str(datetime(year, month + 1 if int(date) < day else month, int(date)).date())
+    print(date)
     get = getjson(get_ticket_url % (date, stations_cn[start], stations_cn[arrive]))
     if get.get('status', None) == False:
         query = get['c_url'].split('/')[1]

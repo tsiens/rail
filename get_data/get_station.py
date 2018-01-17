@@ -1,4 +1,4 @@
-from get_data.config import *
+from config import *
 
 def get_station():
     stations_cn, stations_en = stations_lines()[:2]

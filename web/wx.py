@@ -3,7 +3,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from web.models import *
 from key import wx_token
-import re
 
 from wechatpy import *
 from wechatpy.exceptions import *

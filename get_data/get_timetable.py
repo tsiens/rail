@@ -1,4 +1,4 @@
-from get_data.config import *
+from config import *
 
 def get_timetable_thread(info):
     line, start, arrive, code, start_en, arrive_en = info.split('-|-')

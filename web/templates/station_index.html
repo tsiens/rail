@@ -1,4 +1,26 @@
 {% extends 'template.html' %}
+{% block head %}
+    <style>
+        #masonry h5 {
+            margin: 0;
+            color: #000
+        }
+
+        #masonry p {
+            margin: 0;
+            color: #AAA;
+            font-size: 10px
+        }
+
+        #masonry a:hover {
+            background-color: #EEE
+        }
+
+        #masonry a:hover > h5, #masonry a:hover > p {
+            font-weight: bold
+        }
+    </style>
+{% endblock %}
 {% block content %}
     <div id="masonry">
     </div>
@@ -13,17 +35,24 @@
         });
 
         function masonry(scrollTop) {
-            if ($('#footer').offset().top < $(window).height() * 1.5 + scrollTop) {
-                var img = {{ stations|safe }}[img_start];
-                img_start = img_start + 1;
-                var a = $('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', img.cn)).append($('<img>').addClass('img-thumbnail').attr({
-                    'alt': img.cn,
-                    'src': '{{ qiniu }}' + img.cn + '{{ format }}',
-                    'text': img.cn
-                }));
-                $('#masonry').append(a).masonry('appended', a).masonry({itemSelector: 'a'});
-                {#                $('#masonry a').css('padding', '5px');#}
-                $('#masonry').imagesLoaded(masonry(scrollTop))
+            $('#masonry').masonry({itemSelector: 'a'});
+            if ($('#footer').offset().top < $(window).height() * 2 + scrollTop) {
+                $.each({{ stations|safe }}.slice(img_start, img_start + 10), function () {
+                    var a = $('<a>').addClass('img-thumbnail').css('margin', '4px').attr({
+                        'href': '{% url 'station' '*' %}'.replace('*', this.cn)
+                    }).append(
+                        $('<img>').attr({
+                            'alt': this.cn,
+                            'src': '{{ qiniu }}' + this.cn + '{{ format }}'
+                        })
+                    ).append($('<h5>').text(this.cn)).append($('<p>').text(this.province + ' ' + this.city + ' ' + this.county));
+                    $('#masonry').append(a).masonry('appended', a);
+                };
+            )
+                $('#masonry img').imagesLoaded(function () {
+                    img_start = img_start + 10;
+                    masonry(scrollTop)
+                });
             }
         }
 

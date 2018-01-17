@@ -20,7 +20,7 @@ import platform
 if platform.system() == 'Linux':
     # 定时器
     import uwsgi
-    from data import *
+    from setInterval import *
 
     for job_id, job in enumerate(jobs):
         uwsgi.register_signal(job_id, "", job['name'])

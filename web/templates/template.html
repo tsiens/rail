@@ -19,12 +19,14 @@
             min-height: 100%
         }
 
+        a:hover {
+            text-decoration: none;
+        }
         #footer a {
             color: #868E96
         }
 
         #footer a:hover {
-            text-decoration: none;
             color: #CCCDCF
         }
 
@@ -63,7 +65,7 @@
     </ul>
     </div>
 </nav>
-<div class="container">
+<div class="container" style="overflow:auto">
     {% block content %}
     {% endblock %}
 </div>

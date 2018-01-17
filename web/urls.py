@@ -16,7 +16,7 @@ Including another URLconf
 from django.urls import path
 
 from .views import *
-from wx import *
+from .wx import *
 
 urlpatterns = [
     path('', index, name='index'),

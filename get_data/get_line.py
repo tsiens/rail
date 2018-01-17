@@ -1,6 +1,6 @@
-from get_data.config import *
-from get_data.get_ticket import *
-from get_data.get_timetable import *
+from config import *
+from get_ticket import *
+from get_timetable import *
 
 def get_city_line_thread(city):
     start, arrive = city.split('-')

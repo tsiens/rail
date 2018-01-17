@@ -8,8 +8,6 @@ from datetime import datetime
 from web.models import *
 from django.db.models import Q, Count
 
-import random
-
 
 def val(request):
     qiniu = 'http://qiniu.rail.qiangs.tech/station_img/'
@@ -42,7 +40,7 @@ def log(request):
 
 def station(request, station):
     if station == 'index':
-        format = '.jpg?imageMogr2/auto-orient/thumbnail/150x/gravity/Center/crop/150x/interlace/1/blur/1x0/quality/75|imageslim'
+        format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/gravity/Center/crop/200x/interlace/1/blur/1x0/quality/75|imageslim'
         stations = Timetable.objects.values('station').annotate(dcount=Count('line'))
         count = {}
         for station in stations:
