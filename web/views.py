@@ -19,17 +19,17 @@ def val(request):
                       {'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
                       {'href': '/line/Z258', 'fa': 'fa-list-alt', 'text': '车次'},
                       {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
-                      {'target': '#wechat', 'fa': 'fa-wechat', 'text': '公众号'},
-                      {'target': '#contact', 'fa': 'fa-user', 'text': '交流'},
-                      {'target': '#search', 'fa': 'fa-search', 'text': 'search'},
+                      {'target': '#modal_wechat', 'fa': 'fa-wechat', 'text': '公众号'},
+                      {'target': '#modal_contact', 'fa': 'fa-user', 'text': '交流'},
+                      {'target': '#modal_search', 'fa': 'fa-search', 'text': 'search'},
                       ],
-           'modal': [{'id': 'wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
-                     {'id': 'contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
-                     {'id': 'search', 'fa': 'search"', 'text': 'search'}], }
+           'modal': [{'id': 'modal_wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
+                     {'id': 'modal_contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
+                     {'id': 'modal_search', 'fa': 'search"', 'text': 'search'}], }
     return {'level': level, 'nav': nav, 'qiniu': qiniu}
 
 def index(request):
-    format = '.jpg?imageMogr2/auto-orient/thumbnail/x480/gravity/Center/crop/x480/interlace/1/blur/1x0/quality/75|imageslim'
+    format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
     stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
     stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
     stations = random.sample(stations, 10)
@@ -116,9 +116,10 @@ def data(request):
     elif type == 'search':
         key = request.POST.get('key')
         data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
-        for row in Station.objects.filter(cn__contains=key).values('cn'):
+        for row in Station.objects.filter(cn__contains=key).values('cn')[:5]:
             data[0][2].append(row['cn'])
-        for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key)):
+        for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
+                   :5]:
             if key in row.county:
                 row_data = row.province + '-' + row.city + '-' + row.county
             elif key in row.city:
@@ -127,7 +128,7 @@ def data(request):
                 row_data = row.province
             if row_data not in data[1][2]:
                 data[1][2].append(row_data)
-        for row in Line.objects.filter(line__contains=key)[:10]:
+        for row in Line.objects.filter(line__contains=key)[:5]:
             data[2][2].append(row.line)
         data = [[x, y, sorted(z)] for x, y, z in data if z != []]
     else:

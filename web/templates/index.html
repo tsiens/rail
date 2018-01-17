@@ -1,11 +1,15 @@
 {% extends 'template.html' %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
 {% block content %}
-    <h1>站图</h1>
-    <div id="index" class="carousel slide" data-ride="carousel">
+    <br/>
+    <div id="carousel" class="carousel slide" data-ride="carousel">
         <!-- 指示符 -->
         <ul class="carousel-indicators">
             {% for station in stations %}
-                <li data-target="#index"
+                <li data-target="#carousel"
                     data-slide-to={{ forloop.counter0 }} {% if forloop.first %}class="active"{% endif %}></li>
             {% endfor %}
         </ul>
@@ -14,7 +18,8 @@
             {% for station in stations %}
                 <div style="overflow:auto" class="carousel-item {% if forloop.first %}active{% endif %}">
                     <a href="{% url 'station' station %}">
-                        <img src="{{ qiniu }}{{ station }}{{ format }}" alt="{{ station }}" class="rounded">
+                        <img style="height: 300px" src="{{ qiniu }}{{ station }}{{ format }}" alt="{{ station }}"
+                             class="img-fluid img-thumbnail">
                     </a>
                     <div class="carousel-caption"><strong>{{ station }}</strong></div>
                 </div>
@@ -22,18 +27,32 @@
         </div>
 
         <!-- 左右切换按钮 -->
-        <a class="carousel-control-prev" href="#index" data-slide="prev">
+        <a class="carousel-control-prev" href="#carousel" data-slide="prev">
             <span class="carousel-control-prev-icon"></span>
         </a>
-        <a class="carousel-control-next" href="#index" data-slide="next">
+        <a class="carousel-control-next" href="#carousel" data-slide="next">
             <span class="carousel-control-next-icon"></span>
         </a>
+    </div>
+    <div id="index_search" style="max-width: 500px;">
+        <br/>
+        <input type="text" class="form-control">
+        <div style="background-color: #FFF"></div>
+        <br/>
+        <button type="button" class="btn btn-secondary">手气不错</button>
     </div>
 {% endblock %}
 {% block script %}
     <script>
-        $('img').tooltip();
         $("a:contains('主页')").addClass('active');
-        $('.container').height($(window).height() - $('#header').height() - $('#footer').height() - 32);
+        $('#index_search input').bind('input propertychange', function () {
+            search($(this))
+        });
+        $('#index_search input').blur(function () {
+            setTimeout(function () {
+                $('#index_search input').val('');
+                $('#index_search input').next().empty()
+            }, 500)
+        });
     </script>
 {% endblock %}

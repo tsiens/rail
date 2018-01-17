@@ -16,30 +16,47 @@
     <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
     <style>
         body {
-            min-height: 100%
+            background-color: #F0F0F0
+        }
+
+        input, button {
+            box-shadow: 1px 1px 1px #888888
+        }
+
+        input:hover, button:hover {
+            box-shadow: 3px 3px 2px #888888
         }
 
         a:hover {
             text-decoration: none;
         }
+
         #footer a {
             color: #868E96
+        }
+
+        *:focus {
+            outline: none;
         }
 
         #footer a:hover {
             color: #CCCDCF
         }
 
-        a:focus {
-            outline: none
+        .container div {
+            text-align: center;
+            margin: 0 auto
         }
 
-        div {
-            text-align: center
+        input + div > p, input + div > a {
+            padding: 0 12px;
+            margin: 0;
+            font-size: 10px;
+            text-align: left
         }
     </style>
-{% block head %}
-{% endblock %}
+    {% block head %}
+    {% endblock %}
 </head>
 <body>
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
@@ -76,14 +93,13 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title"><i class="fa {{ div.fa }}"></i>{{ div.text }}</h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
                     {% if forloop.counter0 < 2 %}
                         <img src="/static/{{ div.src }}" alt="{{ div.text }}">
                     {% else %}
-                        <input id="{{ div.text }}_input" type="text" class="form-control" placeholder="{{ div.text }}">
-                        <div id="{{ div.text }}_suggest"></div>
+                        <input type="text" class="form-control">
+                        <div></div>
                     {% endif %}
                 </div>
             </div>
@@ -110,22 +126,26 @@
 </nav>
 <script>
     $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
-    $('#search').on('hidden.bs.modal', function () {
-        $('#search_input').val('')
+    $('#modal_search').on('hidden.bs.modal', function () {
+        $('#modal_search input').val('')
     });
-    $('#search_input').bind('input propertychange', function () {
-        $('#search_suggest').empty();
-        if ($('#search_input').val() != '') {
-            $.post('{% url 'data' %}', {'type': 'search', 'key': $('#search input').val()}, function (data) {
+    $('#modal_search input').bind('input propertychange', function () {
+        search($(this))
+    });
+
+    function search(input) {
+        input.next().empty();
+        if (input.val() != '') {
+            $.post('{% url 'data' %}', {'type': 'search', 'key': input.val()}, function (data) {
                 $.each(data, function (n, item) {
-                    $('#search_suggest').append('<div class="dropdown-divider"></div><p class="dropdown-header" style="text-align:left">' + item[1] + '</p>');
+                    input.next().append('<div class="dropdown-divider"></div><p class="dropdown-header">' + item[1] + '</p>');
                     $.each(item[2], function () {
-                        $('#search_suggest').append('<a class="dropdown-item" style="text-align:left" href="/' + item[0] + '/' + this + '">' + this + '</a>')
+                        input.next().append('<a class="dropdown-item"  href="/' + item[0] + '/' + this + '">' + this + '</a>')
                     });
                 })
             })
         }
-    });
+    }
     $(window).resize(function () {
         $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
     });
