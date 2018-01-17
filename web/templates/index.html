@@ -45,14 +45,5 @@
 {% block script %}
     <script>
         $("a:contains('主页')").addClass('active');
-        $('#index_search input').bind('input propertychange', function () {
-            search($(this))
-        });
-        $('#index_search input').blur(function () {
-            setTimeout(function () {
-                $('#index_search input').val('');
-                $('#index_search input').next().empty()
-            }, 500)
-        });
     </script>
 {% endblock %}

@@ -14,6 +14,7 @@
     <script src="https://cdn.bootcss.com/echarts/3.8.5/extension/bmap.min.js"></script>
     <script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
     <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+    <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});</script>
     <style>
         body {
             background-color: #F0F0F0
@@ -48,11 +49,12 @@
             margin: 0 auto
         }
 
-        input + div > p, input + div > a {
+        .dropdown-header, .dropdown-item {
             padding: 0 12px;
             margin: 0;
             font-size: 10px;
-            text-align: left
+            text-align: left;
+        {#            background-color: #FFF;#}{#            float: left;#}{#            display:inline#}
         }
     </style>
     {% block head %}
@@ -126,20 +128,22 @@
     </div>
 </nav>
 <script>
-    $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
-    $('#modal_search').on('hidden.bs.modal', function () {
-        $('#modal_search input').val('')
-    });
-    $('#modal_search input').bind('input propertychange', function () {
+    $('input').bind('input propertychange', function () {
         search($(this))
     });
-
+    $('input').blur(function () {
+        var input = $(this);
+        setTimeout(function () {
+            input.val('');
+            input.next().hide()
+        }, 200)
+    });
     function search(input) {
-        input.next().empty();
+        input.next().empty().show();
         if (input.val() != '') {
             $.post('{% url 'data' %}', {'type': 'search', 'key': input.val()}, function (data) {
                 $.each(data, function (n, item) {
-                    input.next().append('<div class="dropdown-divider"></div><p class="dropdown-header">' + item[1] + '</p>');
+                    input.next().append('<div class="dropdown-divider"></div><p class="dropdown-header">' + item[1] + '</p></span>');
                     $.each(item[2], function () {
                         input.next().append('<a class="dropdown-item"  href="/' + item[0] + '/' + this + '">' + this + '</a>')
                     });

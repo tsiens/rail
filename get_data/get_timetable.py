@@ -36,10 +36,10 @@ def get_timetable_thread(info):
                                         int(lines_list.index(info) / len(lines_list) * 100)))
         data[0][-1] = -1
         data[-1][-1] = -2
-        # lock.acquire()
+        lock.acquire()
         mysql.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
                       "UPDATE %s SET runtime='%s',date='%s' WHERE code='%s'" % (line_table, runtime, today, code))
-        # lock.release()
+        lock.release()
     else:
         log('检索 %s 次  无效  %s%%' % (line, int(lines_list.index(info) / len(lines_list) * 100)))
         mysql.execute("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, code))
@@ -51,13 +51,9 @@ def get_timetable(old=[]):
         "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date<'%s'" % (line_table, today))
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
-        ##uwsgi定时任务无法使用多线程
-        # rs = threadpool.makeRequests(get_timetable_thread, lines_list)
-        # [pool.putRequest(r) for r in rs]
-        # pool.wait()
-        for info in lines_list:
-            get_timetable_thread(info)
-        return get_timetable(lines_list)
+        rs = threadpool.makeRequests(get_timetable_thread, lines_list)
+        [pool.putRequest(r) for r in rs]
+        pool.wait()
 
 if __name__ == '__main__':
     get_timetable()
