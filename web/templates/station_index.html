@@ -29,17 +29,19 @@
     <script>
         $("a:contains('车站')").addClass('active');
         var img_start = 0;
-        masonry(0);
+        var scrollTop = 0;
+        masonry(scrollTop);
         $(window).scroll(function () {
-            masonry($(this).scrollTop())
+            scrollTop = $(this).scrollTop();
+            masonry(scrollTop)
         });
 
-        function masonry(scrollTop) {
+        function masonry() {
             $('#masonry').masonry({itemSelector: 'a'});
             if ($('#footer').offset().top < $(window).height() * 2 + scrollTop) {
                 $.each(({{ stations|safe }}).slice(img_start, img_start + 10), function () {
                     img_start = img_start + 1;
-                    var a = $('<a>').addClass('img-thumbnail').css('margin', '4px').attr({
+                    var a = $('<a>').addClass('img-thumbnail').css({'max-width': '210px', 'margin': '4px'}).attr({
                         'href': '{% url 'station' '*' %}'.replace('*', this.cn)
                     }).append(
                         $('<img>').attr({
@@ -55,5 +57,8 @@
             }
         }
 
+        $(window).resize(function () {
+            masonry(scrollTop);
+        });
     </script>
 {% endblock %}

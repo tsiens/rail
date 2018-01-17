@@ -19,11 +19,11 @@
             background-color: #F0F0F0
         }
 
-        input, button {
+        input {
             box-shadow: 1px 1px 1px #888888
         }
 
-        input:hover, button:hover {
+        input:hover {
             box-shadow: 3px 3px 2px #888888
         }
 
@@ -93,6 +93,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title"><i class="fa {{ div.fa }}"></i>{{ div.text }}</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
                     {% if forloop.counter0 < 2 %}
