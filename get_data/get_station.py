@@ -94,7 +94,7 @@ def get_station_img(station):
     src = pq(requests.get(wiki_url % station, headers=headers).text)('[property="og:image"]')
     if src:
         src = src.attr('content').replace('1200px', '640px')
-        if 'Missing' not in src and 'No_free_image' not in src:
+        if 'Missing' not in src and 'No' not in src:
             return src
     src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
     if src:
