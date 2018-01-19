@@ -21,7 +21,7 @@ from .wx import *
 urlpatterns = [
     path('', index, name='index'),
     path('log', log, name='log'),
-    path('ticket/<start>/<arrive>/<date>', ticket, name='ticket'),
+    path('ticket/', ticket, name='ticket'),
     path('station/<station>', station, name='station'),
     path('line/<line>', line, name='line'),
     path('city', city, name='city'),

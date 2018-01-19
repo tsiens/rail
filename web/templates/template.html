@@ -49,12 +49,22 @@
             margin: 0 auto
         }
 
-        .dropdown-header, .dropdown-item {
-            padding: 0 12px;
-            margin: 0;
-            font-size: 10px;
+        .search + div {
             text-align: left;
-        {#            background-color: #FFF;#}{#            float: left;#}{#            display:inline#}
+            padding: 0 0 0 12px;
+        }
+
+        .search + div p, .search + div a {
+            padding: 0 12px 0 0;
+            font-size: 10px;
+        }
+
+        .search + div a {
+            color: black;
+        }
+
+        .search + div a:hover {
+            background-color: #EEE;
         }
     </style>
     {% block head %}
@@ -101,7 +111,7 @@
                     {% if forloop.counter0 < 2 %}
                         <img src="/static/{{ div.src }}" alt="{{ div.text }}">
                     {% else %}
-                        <input type="text" class="form-control">
+                        <input class='search form-control' type="text" class="form-control" style="width: 100%">
                         <div></div>
                     {% endif %}
                 </div>
@@ -128,10 +138,10 @@
     </div>
 </nav>
 <script>
-    $('input').bind('input propertychange', function () {
+    $('.search').bind('input propertychange', function () {
         search($(this))
     });
-    $('input').blur(function () {
+    $('.search').blur(function () {
         var input = $(this);
         setTimeout(function () {
             input.val('');
@@ -143,10 +153,12 @@
         if (input.val() != '') {
             $.post('{% url 'data' %}', {'type': 'search', 'key': input.val()}, function (data) {
                 $.each(data, function (n, item) {
-                    input.next().append('<div class="dropdown-divider"></div><p class="dropdown-header">' + item[1] + '</p></span>');
+                    input.next().append($('<p>').addClass('dropdown-header').text(item[1]));
                     $.each(item[2], function () {
-                        input.next().append('<a class="dropdown-item"  href="/' + item[0] + '/' + this + '">' + this + '</a>')
+                        var a = $('<a>').attr('href', '/' + item[0] + '/' + this).text(this);
+                        input.next().append($('<a>').attr('href', '/' + item[0] + '/' + this).text(this + ' '));
                     });
+                    input.next().append($('<div>').addClass('dropdown-divider'));
                 })
             })
         }

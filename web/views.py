@@ -76,10 +76,7 @@ def city(request):
     return render(request, 'city.html', {'citys': data})
 
 def ticket(request, start, arrive, date):
-    if len(date) < 3:
-        year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-        date = str(datetime(year, month + 1 if int(date) < day else month, int(date)).date())
-    return render(request, 'ticket.html', {'start': start, 'arrive': arrive, 'date': date})
+    return render(request, 'ticket.html')
 
 
 def data(request):
@@ -116,10 +113,10 @@ def data(request):
     elif type == 'search':
         key = request.POST.get('key')
         data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
-        for row in Station.objects.filter(cn__contains=key).values('cn')[:5]:
+        for row in Station.objects.filter(cn__contains=key).values('cn')[:10]:
             data[0][2].append(row['cn'])
         for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
-                   :5]:
+                   :10]:
             if key in row.county:
                 row_data = row.province + '-' + row.city + '-' + row.county
             elif key in row.city:
@@ -128,7 +125,7 @@ def data(request):
                 row_data = row.province
             if row_data not in data[1][2]:
                 data[1][2].append(row_data)
-        for row in Line.objects.filter(line__contains=key)[:5]:
+        for row in Line.objects.filter(line__contains=key)[:20]:
             data[2][2].append(row.line)
         data = [[x, y, sorted(z)] for x, y, z in data if z != []]
     else:
