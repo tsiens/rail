@@ -1,0 +1,36 @@
+{% extends 'template.html' %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+    <ul id="tab" class="nav nav-tabs" role="tablist">
+        {% for line in lines %}
+            <li class="nav-item">
+                <a class="nav-link{% if forloop.counter0 == 0 %} active{% endif %}" href="#line_{{ line.0 }}"
+                   data-toggle="tab">
+                    <span class="badge badge-pill badge-dark">{{ line.0 }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content">
+        {% for k in lines %}
+            <div class="tab-pane{% if forloop.counter0 == 0 %} active{% endif %}" id="line_{{ k.0 }}">
+                {% for line in k.1 %}
+                    <button id="{{ line.0 }}" type="button" class="btn btn-dark" style="margin: 3px">{{ line.0 }}
+                        <span class="badge badge-light">{{ line.1 }}-{{ line.2 }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        $("a:contains('车次')").addClass('active');
+        $('button').click(function () {
+            window.open('{% url 'line' '*' %}'.replace('*', $(this).attr('id')))
+        })
+    </script>
+{% endblock %}

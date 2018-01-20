@@ -17,7 +17,7 @@ def val(request):
                       {'href': '/', 'fa': 'fa-home', 'text': '主页'},
                       {'href': '/ticket/杭州/上海/16', 'fa': 'fa-ticket', 'text': '余票'},
                       {'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
-                      {'href': '/line/Z258', 'fa': 'fa-list-alt', 'text': '车次'},
+                      {'href': '/line/index', 'fa': 'fa-list-alt', 'text': '车次'},
                       {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
                       {'target': '#modal_wechat', 'fa': 'fa-wechat', 'text': '公众号'},
                       {'target': '#modal_contact', 'fa': 'fa-user', 'text': '交流'},
@@ -56,8 +56,19 @@ def station(request, station):
                       {'station': station, 'province': data.province, 'city': data.city,
                        'county': data.county})
 def line(request, line):
-    data = Line.objects.get(line=line)
-    return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
+    if line == 'index':
+        lines = {}
+        for line in Line.objects.all().values('line', 'start', 'arrive'):
+            if line['line'][0] in lines:
+                lines[line['line'][0]].append([line['line'], line['start'], line['arrive']])
+            else:
+                lines[line['line'][0]] = [[line['line'], line['start'], line['arrive']]]
+        lines = [[k, sorted(v, key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))] for k, v in lines.items()]
+        lines.sort(key=lambda x: x[0])
+        return render(request, 'line_index.html', {'lines': lines})
+    else:
+        data = Line.objects.get(line=line)
+        return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
 
 
 def city(request):
