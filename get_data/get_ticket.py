@@ -6,10 +6,6 @@ from get_data.config import *
 def get_ticket(start, arrive, date, ticker=True):
     global stations_cn, stations_en, lines
     stations_cn, stations_en, lines = stations_lines()
-    if len(date) < 3:
-        year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-        date = str(datetime(year, month + 1 if int(date) < day else month, int(date)).date())
-    print(date)
     get = getjson(get_ticket_url % (date, stations_cn[start], stations_cn[arrive]))
     if get.get('status', None) == False:
         query = get['c_url'].split('/')[1]

@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from get_data.get_ticket import get_ticket
 import json, random
-from datetime import datetime
+from datetime import *
 from web.models import *
 from django.db.models import Q, Count
 
@@ -12,16 +12,15 @@ from django.db.models import Q, Count
 def val(request):
     qiniu = 'http://qiniu.rail.qiangs.tech/station_img/'
     level = ['province', 'city', 'county', 'station']
-    nav = {'header': [{'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
-                      {'href': '/', 'text': 'Rail'},
-                      {'href': '/', 'fa': 'fa-home', 'text': '主页'},
-                      {'href': '/ticket/杭州/上海/16', 'fa': 'fa-ticket', 'text': '余票'},
-                      {'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
-                      {'href': '/line/index', 'fa': 'fa-list-alt', 'text': '车次'},
-                      {'href': '/city', 'fa': 'fa-map-o', 'text': '城市'},
-                      {'target': '#modal_wechat', 'fa': 'fa-wechat', 'text': '公众号'},
-                      {'target': '#modal_contact', 'fa': 'fa-user', 'text': '交流'},
-                      {'target': '#modal_search', 'fa': 'fa-search', 'text': 'search'},
+    nav = {'header': [{'type': 0, 'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
+                      {'type': 0, 'href': '/', 'text': 'Rail'},
+                      {'type': 1, 'href': '/', 'fa': 'fa-home', 'text': '主页'},
+                      {'type': 1, 'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
+                      {'type': 1, 'href': '/line/index', 'fa': 'fa-list-alt', 'text': '车次'},
+                      {'type': 1, 'href': '/city/index', 'fa': 'fa-map-o', 'text': '城市'},
+                      {'type': 2, 'target': '#modal_wechat', 'fa': 'fa-wechat', 'text': '公众号'},
+                      {'type': 2, 'target': '#modal_contact', 'fa': 'fa-user', 'text': '交流'},
+                      {'type': 2, 'target': '#modal_search', 'fa': 'fa-search', 'text': 'search'},
                       ],
            'modal': [{'id': 'modal_wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
                      {'id': 'modal_contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
@@ -30,7 +29,7 @@ def val(request):
 
 def index(request):
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
-    stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
+    stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
     stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
     stations = random.sample(stations, 10)
     return render(request, 'index.html', {'stations': stations, 'format': format})
@@ -55,10 +54,11 @@ def station(request, station):
         return render(request, 'station.html',
                       {'station': station, 'province': data.province, 'city': data.city,
                        'county': data.county})
+
 def line(request, line):
     if line == 'index':
         lines = {}
-        for line in Line.objects.all().values('line', 'start', 'arrive'):
+        for line in Line.objects.values('line', 'start', 'arrive'):
             if line['line'][0] in lines:
                 lines[line['line'][0]].append([line['line'], line['start'], line['arrive']])
             else:
@@ -71,24 +71,37 @@ def line(request, line):
         return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
 
 
-def city(request):
-    data = {}
-    stations = [station['station'] for station in Timetable.objects.all().values('station').distinct()]
-    for row in Station.objects.filter(cn__in=stations).values('cn', 'province', 'city', 'county'):
-        cn, province, city, county = row['cn'], row['province'], row['city'], row['county']
-        if province not in data:
-            data[province] = {}
-        if city not in data[province]:
-            data[province][city] = {}
-        if county in data[province][city]:
-            data[province][city][county].append(cn)
-        else:
-            data[province][city][county] = [cn]
-    return render(request, 'city.html', {'citys': data})
+def city(request, city):
+    if city == 'index':
+        data = {}
+        stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
+        for row in Station.objects.filter(cn__in=stations).values('cn', 'province', 'city', 'county'):
+            cn, province, city, county = row['cn'], row['province'], row['city'], row['county']
+            if province not in data:
+                data[province] = {}
+            if city not in data[province]:
+                data[province][city] = {}
+            if county in data[province][city]:
+                data[province][city][county].append(cn)
+            else:
+                data[province][city][county] = [cn]
+        return render(request, 'city.html', {'citys': data})
 
-def ticket(request, start, arrive, date):
-    return render(request, 'ticket.html')
 
+def ticket(request, info):
+    if info == 'index':
+        info = ''
+    else:
+        start, arrive, date = info.split('|')
+        if len(date) < 3:
+            year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
+            date = str(datetime(year, month + 1 if int(date) < day else month, int(date)).date())
+        info = '|'.join([start, arrive, date])
+    stations = Timetable.objects.values('station').distinct()
+    stations = Station.objects.filter(cn__in=[station['station'] for station in stations]).values('cn')
+    stations = [station['cn'] for station in stations]
+    today, lastday = str(datetime.now().date()), str((datetime.now() + timedelta(days=30)).date())
+    return render(request, 'ticket.html', {'stations': stations, 'today': today, 'lastday': lastday, 'info': info})
 
 def data(request):
     type = request.POST.get('type')
@@ -136,7 +149,7 @@ def data(request):
                 row_data = row.province
             if row_data not in data[1][2]:
                 data[1][2].append(row_data)
-        for row in Line.objects.filter(line__contains=key)[:20]:
+        for row in Line.objects.filter(line__contains=key.upper())[:20]:
             data[2][2].append(row.line)
         data = [[x, y, sorted(z)] for x, y, z in data if z != []]
     else:

@@ -34,7 +34,7 @@ def wx(request):
                     'url': 'http://rail.qiangs.tech/log'
                 }])
             elif txt == '神功':
-                reply = create_reply('吸尘大法：\n车站 扣“杭州东”\n车次 敲“D1”\n余票 打“杭州 上海 6”（6号）', msg)
+                reply = create_reply('吸尘大法：\n车站 扣“杭州东”\n车次 敲“D1”', msg)
             elif Station.objects.filter(cn=txt):
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车站: %s站' % txt,
@@ -51,13 +51,6 @@ def wx(request):
                     'title': '车次: %s次 %s-%s' % (txt, start, arrive),
                     'image': qiniu_img_url % txt,
                     'url': 'http://rail.qiangs.tech/line/%s' % txt
-                }])
-            elif len(txt.split(' ')) == 3:
-                start, arrive, date = txt.split(' ')
-                reply = ArticlesReply(message=msg, articles=[{
-                    'title': '余票: %s号 %s-%s' % (date, start, arrive),
-                    'image': qiniu_img_url % start,
-                    'url': 'http://rail.qiangs.tech/ticket/%s/%s/%s' % (start, arrive, date)
                 }])
             else:
                 reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % txt, msg)
