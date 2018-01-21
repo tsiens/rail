@@ -27,13 +27,13 @@
                     label: {
                         normal: {
                             show: true,
-                            formatter: '{b}',
+                            formatter: '{b}'
                         }
                     },
                     width: '100%',
                     height: '100%',
                     levels: levels(4),
-                    leafDepth: 1,//层级
+                    leafDepth: 1,
                     drillDownIcon: '',
                     nodeClick: 'link',
                     slient: true,
@@ -47,11 +47,12 @@
         function conversion(data_old, n) {
             var data_new = [];
             $.each(data_old, function (k, v) {
+                var item = '';
                 if (n < 3) {
-                    var item = {'name': k, 'children': conversion(v, n + 1)}
+                    item = {'name': k, 'children': conversion(v, n + 1)}
                 }
                 else {
-                    var item = {
+                    item = {
                         'name': v + '站',
                         'value': 1,
                         'link': '{% url 'station' '*' %}'.replace('*', v),
@@ -70,7 +71,7 @@
                     itemStyle: {
                         normal: {
                             borderWidth: n,
-                            borderColor: 'rgba(255,255,255,0)',
+                            borderColor: 'rgba(255,255,255,0)'
                         }
                     }
                 });

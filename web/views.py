@@ -2,9 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.http import HttpResponse
-from get_data.get_ticket import get_ticket
 import json, random
-from datetime import *
 from web.models import *
 from django.db.models import Q, Count
 
@@ -25,83 +23,46 @@ def val(request):
            'modal': [{'id': 'modal_wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
                      {'id': 'modal_contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
                      {'id': 'modal_search', 'fa': 'search"', 'text': 'search'}], }
-    return {'level': level, 'nav': nav, 'qiniu': qiniu}
+    return locals()
 
 def index(request):
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
-    stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
-    stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
-    stations = random.sample(stations, 10)
-    return render(request, 'index.html', {'stations': stations, 'format': format})
-
-def log(request):
-    return render(request, 'log.html')
+    return render(request, 'index.html', locals())
 
 def station(request, station):
     if station == 'index':
         format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/interlace/1/blur/1x0/quality/75|imageslim'
-        stations = Timetable.objects.values('station').annotate(dcount=Count('line'))
-        count = {}
-        for station in stations:
-            count[station['station']] = station['dcount']
-        stations = list(
-            Station.objects.filter(cn__in=[station['station'] for station in stations]).values('cn', 'province', 'city',
-                                                                                               'county'))
-        stations.sort(key=lambda x: count[x['cn']], reverse=True)
-        return render(request, 'station_index.html', {'stations': stations, 'format': format})
+        count = Timetable.objects.values('station').distinct().count()
+        return render(request, 'station_index.html', locals())
     else:
         data = Station.objects.get(cn=station)
-        return render(request, 'station.html',
-                      {'station': station, 'province': data.province, 'city': data.city,
-                       'county': data.county})
+        return render(request, 'station.html', locals())
 
 def line(request, line):
     if line == 'index':
-        lines = {}
-        for line in Line.objects.values('line', 'start', 'arrive'):
-            if line['line'][0] in lines:
-                lines[line['line'][0]].append([line['line'], line['start'], line['arrive']])
-            else:
-                lines[line['line'][0]] = [[line['line'], line['start'], line['arrive']]]
-        lines = [[k, sorted(v, key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))] for k, v in lines.items()]
-        lines.sort(key=lambda x: x[0])
-        return render(request, 'line_index.html', {'lines': lines})
+        line_codes = [line['line'][0] for line in Line.objects.values('line')]
+        line_codes = sorted(list(set(line_codes)))
+        return render(request, 'line_index.html', locals())
     else:
         data = Line.objects.get(line=line)
-        return render(request, 'line.html', {'line': line, 'start': data.start, 'arrive': data.arrive})
-
+        line, arrive, start = data.line, data.start, data.arrive
+        return render(request, 'line.html', locals())
 
 def city(request, city):
     if city == 'index':
-        data = {}
+        citys = {}
         stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
         for row in Station.objects.filter(cn__in=stations).values('cn', 'province', 'city', 'county'):
             cn, province, city, county = row['cn'], row['province'], row['city'], row['county']
-            if province not in data:
-                data[province] = {}
-            if city not in data[province]:
-                data[province][city] = {}
-            if county in data[province][city]:
-                data[province][city][county].append(cn)
+            if province not in citys:
+                citys[province] = {}
+            if city not in citys[province]:
+                citys[province][city] = {}
+            if county in citys[province][city]:
+                citys[province][city][county].append(cn)
             else:
-                data[province][city][county] = [cn]
-        return render(request, 'city.html', {'citys': data})
-
-
-def ticket(request, info):
-    if info == 'index':
-        info = ''
-    else:
-        start, arrive, date = info.split('|')
-        if len(date) < 3:
-            year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-            date = str(datetime(year, month + 1 if int(date) < day else month, int(date)).date())
-        info = '|'.join([start, arrive, date])
-    stations = Timetable.objects.values('station').distinct()
-    stations = Station.objects.filter(cn__in=[station['station'] for station in stations]).values('cn')
-    stations = [station['cn'] for station in stations]
-    today, lastday = str(datetime.now().date()), str((datetime.now() + timedelta(days=30)).date())
-    return render(request, 'ticket.html', {'stations': stations, 'today': today, 'lastday': lastday, 'info': info})
+                citys[province][city][county] = [cn]
+        return render(request, 'city.html', locals())
 
 def data(request):
     type = request.POST.get('type')
@@ -110,6 +71,27 @@ def data(request):
         with open('get_data/data.log', 'r') as f:
             logs = f.read()
         data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
+    elif type == 'index_station':
+        stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
+        stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
+        data = random.sample(stations, 10)
+    elif type == 'station_index':
+        start, end = int(request.POST.get('start')), int(request.POST.get('end'))
+        stations = Timetable.objects.values('station').annotate(count=Count('line')).order_by('-count')[start:end]
+        count = {}
+        for station in stations:
+            count[station['station']] = station['count']
+        stations = Station.objects.filter(cn__in=[station['station'] for station in stations]).values('cn', 'province',
+                                                                                                      'city',
+                                                                                                      'county')
+        data = [[station['cn'], station['province'], station['city'], station['county']] for station in stations]
+        data.sort(key=lambda x: count[x[0]], reverse=True)
+    elif type == 'line_index':
+        data = []
+        code = request.POST.get('code')
+        for line in Line.objects.filter(line__startswith=code).values('line', 'start', 'arrive'):
+            data.append([line['line'], line['start'], line['arrive']])
+        data = sorted(data, key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))
     elif type == 'station':
         for row in Timetable.objects.filter(station=request.POST.get('station')).order_by('leavetime'):
             line, arrivetime, leavetime, staytime = row.line, str(row.arrivetime), str(row.leavetime), row.staytime
@@ -132,8 +114,6 @@ def data(request):
                 leavedate = '--'
                 leavetime = '-' * 11
             data.append([order, station, arrivedate, arrivetime, leavedate, leavetime, staytime])
-    elif type == 'ticket':
-        data = get_ticket(*request.POST.get('info').split('|'))
     elif type == 'search':
         key = request.POST.get('key')
         data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
@@ -155,3 +135,7 @@ def data(request):
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+def log(request):
+    return render(request, 'log.html')

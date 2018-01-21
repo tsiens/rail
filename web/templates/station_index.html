@@ -20,6 +20,7 @@
             font-weight: bold
         }
     </style>
+    <script>$.ajaxSetup({async: false})</script>
 {% endblock %}
 {% block content %}
     <div id="masonry">
@@ -30,30 +31,42 @@
         $("a:contains('车站')").addClass('active');
         var img_start = 0;
         var scrollTop = 0;
-        masonry(scrollTop);
+        var $grid = $('#masonry').masonry();
+        masonry(10);
         $(window).scroll(function () {
             scrollTop = $(this).scrollTop();
-            masonry(scrollTop)
+            $grid.imagesLoaded(function () {
+                masonry(10)
+            })
         });
 
-        function masonry() {
-            $('#masonry').masonry({itemSelector: 'a'});
-            if ($('#footer').offset().top < $(window).height() * 2 + scrollTop) {
-                $.each(({{ stations|safe }}).slice(img_start, img_start + 10), function () {
-                    img_start = img_start + 1;
-                    var a = $('<a>').addClass('img-thumbnail').css({'max-width': '210px', 'margin': '4px'}).attr({
-                        'href': '{% url 'station' '*' %}'.replace('*', this.cn)
-                    }).append(
-                        $('<img>').attr({
-                            'alt': this.cn,
-                            'src': '{{ qiniu }}' + this.cn + '{{ format }}'
+        function masonry(n) {
+            if (($('#footer').offset().top < $(window).height() * 3 + scrollTop) && (img_start + n <={{ count }})) {
+                $.post('{% url 'data' %}', {
+                    'type': 'station_index',
+                    'start': img_start,
+                    'end': img_start + n
+                }, function (data) {
+                    $.each(data, function () {
+                        img_start = img_start + 1;
+                        var a = $('<a>').addClass('img-thumbnail').css({'max-width': '210px', 'margin': '4px'}).attr({
+                            'href': '{% url 'station' '*' %}'.replace('*', this[0])
+                        }).append(
+                            $('<img>').attr({
+                                'alt': this[0],
+                                'src': '{{ qiniu }}' + this[0] + '{{ format }}'
+                            })
+                        ).append($('<h5>').text(this[0])).append($('<p>').text(this[1] + ' ' + this[2] + ' ' + this[3]));
+
+                        $grid.append(a).masonry('appended', a);
+                        $grid.imagesLoaded(function () {
+                            $grid.masonry({itemSelector: 'a'});
                         })
-                    ).append($('<h5>').text(this.cn)).append($('<p>').text(this.province + ' ' + this.city + ' ' + this.county));
-                    $('#masonry').append(a).masonry('appended', a);
-                });
-                $('#masonry').imagesLoaded(function () {
-                    masonry(scrollTop)
-                });
+                    });
+                    $grid.imagesLoaded(function () {
+                        masonry(n)
+                    })
+                })
             }
         }
 

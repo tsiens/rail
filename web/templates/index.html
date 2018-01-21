@@ -2,26 +2,14 @@
 {% block head %}
 {% endblock %}
 {% block content %}
+
     <br/>
-    <div id="carousel" class="carousel slide" data-ride="carousel">
+    <div id="carousel" class="carousel slide" data-ride="carousel" style="height:300px">
         <!-- 指示符 -->
         <ul class="carousel-indicators">
-            {% for station in stations %}
-                <li data-target="#carousel"
-                    data-slide-to={{ forloop.counter0 }} {% if forloop.first %}class="active"{% endif %}></li>
-            {% endfor %}
         </ul>
         <!-- 轮播图片 -->
         <div class="carousel-inner">
-            {% for station in stations %}
-                <div style="overflow:auto" class="carousel-item {% if forloop.first %}active{% endif %}">
-                    <a href="{% url 'station' station %}">
-                        <img style="height: 300px" src="{{ qiniu }}{{ station }}{{ format }}" alt="{{ station }}"
-                             class="img-fluid img-thumbnail">
-                    </a>
-                    <div class="carousel-caption"><strong>{{ station }}</strong></div>
-                </div>
-            {% endfor %}
         </div>
 
         <!-- 左右切换按钮 -->
@@ -34,7 +22,7 @@
     </div>
     <div id="index_search" style="max-width: 500px;">
         <br/>
-        <input class="search form-control" type="text" style="width: 100%">
+        <input class="search form-control" title="search">
         <div style="width: 100%;background-color: #FFF"></div>
         <br/>
         <button type="button" class="btn btn-secondary">手气不错</button>
@@ -43,5 +31,22 @@
 {% block script %}
     <script>
         $("a:contains('主页')").addClass('active');
+        $.post('{% url 'data' %}', {'type': 'index_station'}, function (data) {
+            $.each(data, function (n, station) {
+                var li = $('<li>').attr({'ata-target': '#carousel', 'data-slide-to': n});
+                var div = $('<div>').css('overflow', 'auto').addClass('carousel-item');
+                var a = $('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', station)).append($('<img>').css('height', '300px').attr({
+                    'src': '{{ qiniu }}' + station + '{{ format }}',
+                    'alt': station
+                }).addClass('img-fluid img-thumbnail'));
+                if (n === 0) {
+                    li.addClass('active');
+                    div.addClass('active')
+                }
+                div.append(a).append('<div class="carousel-caption"><strong>' + station + '</strong></div>');
+                $('.carousel-indicators').append(li);
+                $('.carousel-inner').append(div)
+            })
+        })
     </script>
 {% endblock %}

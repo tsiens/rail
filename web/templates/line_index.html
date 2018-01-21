@@ -1,34 +1,44 @@
 {% extends 'template.html' %}
 {% block head %}
+    <style>
+        a {
+            color: #F0F0F0
+        }
+
+        a:hover {
+            color: #FFF
+        }
+    </style>
 {% endblock %}
 {% block content %}
-    <ul id="tab" class="nav nav-tabs" role="tablist">
-        {% for line in lines %}
-            <li class="nav-item">
-                <a class="nav-link{% if forloop.counter0 == 0 %} active{% endif %}" href="#line_{{ line.0 }}"
-                   data-toggle="tab">
-                    <span class="badge badge-pill badge-dark">{{ line.0 }}</span>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    <div class="tab-content">
-        {% for k in lines %}
-            <div class="tab-pane{% if forloop.counter0 == 0 %} active{% endif %}" id="line_{{ k.0 }}">
-                {% for line in k.1 %}
-                    <button id="{{ line.0 }}" type="button" class="btn btn-dark" style="margin: 3px">{{ line.0 }}
-                        <span class="badge badge-light">{{ line.1 }}-{{ line.2 }}</span>
-                    </button>
-                {% endfor %}
-            </div>
-        {% endfor %}
-    </div>
+    <ul id="line_tab" class="nav nav-tabs" role="tablist"></ul>
+    <div id="line_content" class="tab-content"></div>
 {% endblock %}
 {% block script %}
     <script>
         $("a:contains('车次')").addClass('active');
-        $('button').click(function () {
-            window.open('{% url 'line' '*' %}'.replace('*', $(this).attr('id')))
-        })
+        $.each({{ line_codes|safe }}, function (n, code) {
+            var li = $('<li>').addClass('nav-item');
+            var a = $('<a>').addClass('nav-link').attr({'href': '#line_' + code, 'data-toggle': 'tab'});
+            var div = $('<div>').addClass('tab-pane').attr('id', 'line_' + code);
+            if (n === 0) {
+                a.addClass('active');
+                div.addClass('active')
+            }
+            a.append($('<span>').addClass('badge badge-pill badge-dark').text(code));
+            $('#line_tab').append(li.append(a));
+            $('#line_content').append(div);
+            $.post('{% url 'data' %}', {'type': 'line_index', 'code': code}, function (data) {
+                $.each(data, function () {
+                    var button = $('<button>').addClass('btn btn-dark').attr('type', 'button').css('margin', '3px');
+                    var button_a = $('<a>').attr({
+                        'target': '_blank',
+                        'href': '{% url 'line' '*' %}'.replace('*', this[0])
+                    }).text(this[0]);
+                    button.append(button_a.append($('<span>').addClass('badge badge-light').text(this[1] + '-' + this[2])));
+                    $('#line_' + code).append(button)
+                });
+            });
+        });
     </script>
 {% endblock %}
