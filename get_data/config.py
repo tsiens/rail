@@ -1,4 +1,11 @@
-import sys, traceback, threading, threadpool, requests, os, logging, re
+import sys
+import traceback
+import threading
+import threadpool
+import requests
+import os
+import logging
+import re
 from pyquery import PyQuery as pq
 from datetime import *
 from prettytable import PrettyTable  # 表格输出

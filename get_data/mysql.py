@@ -1,6 +1,7 @@
-import pymysql, warnings, logging
+import pymysql
+import warnings
+import logging
 warnings.filterwarnings("ignore")
-
 
 class Mysql():
     def __init__(self, host, user, pwd, basename, tables):
