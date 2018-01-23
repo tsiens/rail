@@ -1,14 +1,11 @@
-import sys
-import traceback
-import threading
-import threadpool
-import requests
-import os
 import logging
-import re
-from pyquery import PyQuery as pq
+import os
+import sys
+import threading
 from datetime import *
-from prettytable import PrettyTable  # 表格输出
+
+import requests
+import threadpool
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from get_data.mysql import Mysql
