@@ -1,28 +1,16 @@
-from django.shortcuts import render
+import json
+import random
 
+from django.db.models import Q, Count
 # Create your views here.
 from django.http import HttpResponse
-import json, random
+from django.shortcuts import render
+
 from web.models import *
-from django.db.models import Q, Count
 
 
 def val(request):
     qiniu = 'http://qiniu.rail.qiangs.tech/station_img/'
-    level = ['province', 'city', 'county', 'station']
-    nav = {'header': [{'type': 0, 'rel': True, 'href': 'https://github.com/tsiens/rail', 'fa': 'fa-github', 'text': ''},
-                      {'type': 0, 'href': '/', 'text': 'Rail'},
-                      {'type': 1, 'href': '/', 'fa': 'fa-home', 'text': '主页'},
-                      {'type': 1, 'href': '/station/index', 'fa': 'fa-train', 'text': '车站'},
-                      {'type': 1, 'href': '/line/index', 'fa': 'fa-list-alt', 'text': '车次'},
-                      {'type': 1, 'href': '/city/index', 'fa': 'fa-map-o', 'text': '城市'},
-                      {'type': 2, 'target': '#modal_wechat', 'fa': 'fa-wechat', 'text': '公众号'},
-                      {'type': 2, 'target': '#modal_contact', 'fa': 'fa-user', 'text': '交流'},
-                      {'type': 2, 'target': '#modal_search', 'fa': 'fa-search', 'text': 'search'},
-                      ],
-           'modal': [{'id': 'modal_wechat', 'fa': 'wechat', 'text': '12308', 'src': 'image/wechat.jpg'},
-                     {'id': 'modal_contact', 'fa': 'fa-user"', 'text': '吐槽我吧', 'src': 'image/qq.jpg'},
-                     {'id': 'modal_search', 'fa': 'search"', 'text': 'search'}], }
     return locals()
 
 def index(request):
