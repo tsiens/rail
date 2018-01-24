@@ -10,10 +10,11 @@
     <script src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
     <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
-    <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
     <script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
     <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.js"></script>
+    <script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
     <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
     {% load staticfiles %}
     <script src="{% static '/echarts/mapStyle.js' %}"></script>

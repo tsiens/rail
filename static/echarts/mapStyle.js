@@ -1,6 +1,107 @@
 mapStyle_white = {
     styleJson: [
         {
+            'featureType': 'water',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#d1d1d1'
+            }
+        }, {
+            'featureType': 'land',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#F0F0F0'
+            }
+        }, {
+            'featureType': 'highway',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#fdfdfd'
+            }
+        }, {
+            'featureType': 'highway',
+            'elementType': 'all',
+            'stylers': {
+                'visibility': 'off'
+            }
+        }, {
+            'featureType': 'arterial',
+            'elementType': 'geometry',
+            'stylers': {
+                'color': '#fefefe'
+            }
+        }, {
+            'featureType': 'arterial',
+            'elementType': 'geometry.fill',
+            'stylers': {
+                'color': '#fefefe'
+            }
+        }, {
+            'featureType': 'poi',
+            'elementType': 'all',
+            'stylers': {
+                'visibility': 'off'
+            }
+        }, {
+            'featureType': 'green',
+            'elementType': 'all',
+            'stylers': {
+                'visibility': 'off'
+            }
+        }, {
+            'featureType': 'railway',
+            'elementType': 'geometry.fill',
+            'stylers': {
+                'color': '#FFFF00'
+            }
+        }, {
+            'featureType': 'railway',
+            'elementType': 'geometry.stroke',
+            'stylers': {
+                'color': '#FF0000'
+            }
+        }, {
+            'featureType': 'subway',
+            'elementType': 'all',
+            'stylers': {
+                'visibility': 'off'
+            }
+        }, {
+            'featureType': 'manmade',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#d1d1d1'
+            }
+        }, {
+            'featureType': 'local',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#d1d1d1'
+            }
+        }, {
+            'featureType': 'arterial',
+            'elementType': 'labels',
+            'stylers': {
+                'visibility': 'off'
+            }
+        }, {
+            'featureType': 'boundary',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#fefefe'
+            }
+        }, {
+            'featureType': 'building',
+            'elementType': 'all',
+            'stylers': {
+                'color': '#d1d1d1'
+            }
+        }
+    ]
+};
+mapStyle_black = {
+    styleJson: [
+        {
             'featureType': 'railway',
             'elementType': 'geometry.fill',
             'stylers': {

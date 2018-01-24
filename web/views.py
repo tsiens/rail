@@ -6,11 +6,14 @@ from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.shortcuts import render
 
+import key
 from web.models import *
 
 
 def val(request):
     qiniu = 'http://qiniu.rail.qiangs.tech/station_img/'
+    baidu_bak = key.baidu_bak
+    amap_bak = key.amap_bak
     return locals()
 
 def index(request):
@@ -101,7 +104,9 @@ def data(request):
             if staytime == '终':
                 leavedate = '--'
                 leavetime = '-' * 11
-            data.append([order, station, arrivedate, arrivetime, leavedate, leavetime, staytime])
+            info = Station.objects.get(cn=station)
+            data.append([info.x, info.y, info.province, info.city, info.county, order, station, arrivedate, arrivetime,
+                         leavedate, leavetime, staytime])
     elif type == 'search':
         key = request.POST.get('key')
         data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]

@@ -1,30 +1,128 @@
-{% extends 'station.html' %}
+{% extends 'template.html' %}
 {% block head %}
+{% endblock %}
+{% block content %}
+    <div style="width:100%; height:400px;overflow:hidden">
+        <div id="map" style="width:100%; height:450px"></div>
+    </div>
+    <div style="overflow:auto">
+        <table id='table' class='table table-hover table-bordered'>
+            <thead>
+            <tr>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
 {% block script %}
     <script>
         $("a:contains('车次')").addClass('active');
-        var line = '{{ line }}';
-        var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
-        $('title,#title').text(line + '次');
-        $('#info').text('{{start}} - {{arrive}}');
-        $.each(th, function () {
-            $('#table').find('thead').find('tr').append($('<td>').text(this));
-        });
+        var hidden = 50;
+        var map_div = $('#map');
+        var map = echarts.init(map_div.get(0));
+        set_map('');
         $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
+            set_map(data);
+            set_timetable(data)
+        });
+
+        function set_timetable(data) {
+            var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
+            $.each(th, function () {
+                $('#table').find('thead').find('tr').append($('<td>').text(this));
+            });
             $.each(data, function (n, station) {
                 var tr = $('<tr>');
                 $.each(station, function (n, txt) {
-                    if (n === 1) {
-                        td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
+                    if (n > 4) {
+                        if (n === 5) {
+                            td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
+                        }
+                        else if (n > 5) {
+                            td = $('<td>').text(txt);
+                        }
+                        tr.append(td)
                     }
-                    else {
-                        td = $('<td>').text(txt);
-                    }
-                    tr.append(td)
                 });
                 $('#table').find('tbody').append(tr);
             });
-        })
+        }
+
+        function set_map(data) {
+            var option = {};
+            if (!data) {
+                option = {
+                    title: {
+                        text: '{{ line }}',
+                        subtext: '{{start}} - {{arrive}}',
+                        left: 'center'
+                    },
+                    series: []
+                };
+                map.showLoading()
+            }
+            else {
+                var x_list = [];
+                var y_list = [];
+                $.each(data, function () {
+                    x_list.push(this[0]);
+                    y_list.push(this[1]);
+                });
+                var x_min = Math.min.apply(null, x_list);
+                var x_max = Math.max.apply(null, x_list);
+                var y_min = Math.min.apply(null, y_list);
+                var y_max = Math.max.apply(null, y_list);
+                var center = [(x_min + x_max) / 2, (y_min + y_max) / 2];
+                var zoom = 5;
+                if (map_div.width() / (map_div.height() - hidden) > (x_max - x_min) / (y_max - y_min)) {
+                    zoom = Math.floor(Math.log(2.048 / (y_max - y_min) * (map_div.height() - hidden)) / Math.log(2))
+                }
+                else {
+                    zoom = Math.floor(Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2))
+                }
+                center[1] = center[1] - 2.048 / Math.pow(2, zoom) * hidden / 2;
+                option = {
+                    bmap: {
+                        center: center,
+                        zoom: zoom,
+                        mapStyle: mapStyle_white
+                    },
+                    series: {
+                        name: '车站',
+                        coordinateSystem: 'bmap',
+                        type: 'effectScatter',
+                        symbolSize: zoom,
+                        showEffectOn: 'render',
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        data: data,
+                        hoverAnimation: true,
+                        label: {
+                            normal: {
+                                formatter: function (info) {
+                                    return info.data[6]
+                                },
+                                show: true
+                            },
+                            emphasis: {
+                                fontSize: 15
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: 'red',
+                                shadowBlur: zoom,
+                                shadowColor: 'white'
+                            }
+                        }
+                    }
+                };
+                map.hideLoading()
+            }
+            map.setOption(option);
+        }
     </script>
 {% endblock %}
