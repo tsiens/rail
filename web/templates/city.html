@@ -2,12 +2,11 @@
 {% block content %}
     <div id="treemap" class="echarts"></div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('城市')").addClass('active');
         $('.echarts').height($(window).height() / 2);
         treemap('treemap');
-
         function treemap(div) {
             var option = {
                 tooltip: {
@@ -79,5 +78,5 @@
             }
             return levels
         }
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

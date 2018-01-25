@@ -1,5 +1,6 @@
 import json
 import random
+from datetime import datetime
 
 from django.db.models import Q, Count
 # Create your views here.
@@ -84,15 +85,45 @@ def data(request):
             data.append([line['line'], line['start'], line['arrive']])
         data = sorted(data, key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))
     elif type == 'station':
-        for row in Timetable.objects.filter(station=request.POST.get('station')).order_by('leavetime'):
-            line, arrivetime, leavetime, staytime = row.line, str(row.arrivetime), str(row.leavetime), row.staytime
-            line_data = Line.objects.get(line=line)
-            start = line_data.start
-            arrive = line_data.arrive
-            staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
-            if staytime == '始': arrivetime = '-' * 11
-            if staytime == '终': leavetime = '-' * 11
-            data.append([line, start, arrive, arrivetime, leavetime, staytime])
+        name = request.POST.get('station')
+        lines = [line.line for line in Timetable.objects.filter(station=name).order_by('leavetime')]
+        timetable, stations1, stations2, stations_locations = {}, {}, {}, {}
+        for row in Timetable.objects.filter(line__in=lines):
+            line, order, station, arrivedate, arrivetime, leavedate, leavetime, staytime = row.line, row.order, row.station, row.arrivedate, str(
+                row.arrivetime), row.leavedate, str(row.leavetime), row.staytime
+            if station not in stations1:
+                stations1[station] = {}
+            stations1[station][line] = [order, arrivedate, arrivetime, leavedate, leavetime]
+            if line not in timetable:
+                timetable[line] = [None, None, None, None, None, 1]
+            if order == 1:
+                timetable[line][0] = station
+                timetable[line][1] = station
+            elif order > timetable[line][-1]:
+                timetable[line][1] = station
+                timetable[line][-1] = order
+            if station == name:
+                staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
+                timetable[line][2] = arrivetime if staytime != '始' else '-' * 11
+                timetable[line][3] = leavetime if staytime != '终' else '-' * 11
+                timetable[line][4] = staytime
+        for station, station_data in stations1.items():
+            if station != name:
+                stations2[station] = [0, 10000]
+                for line, line_data in station_data.items():
+                    station_line = stations1[name][line]
+                    a, b = [station_line, line_data] if line_data[0] < station_line[0] else [line_data, station_line]
+                    runtime = round((datetime.strptime('1970010%s %s' % (a[1], a[2]),
+                                                       '%Y%m%d %H:%M:%S') - datetime.strptime(
+                        '1970010%s %s' % (b[3], b[4]), '%Y%m%d %H:%M:%S')).total_seconds() / 3600, 1)
+                    if runtime < stations2[station][1]:
+                        stations2[station][1] = runtime
+                    stations2[station][0] += 1
+        for info in Station.objects.filter(cn__in=[station for station in stations2]):
+            stations_locations[info.cn] = [info.x, info.y, info.cn, info.province, info.city, info.county]
+        timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[3])
+        stations = [stations_locations[k] + v for k, v in stations2.items()]
+        data = [timetable, stations]
     elif type == 'line':
         for row in Timetable.objects.filter(line=request.POST.get('line').upper()).order_by('order'):
             order, station, arrivedate, arrivetime, leavedate, leavetime, staytime = row.order, row.station, row.arrivedate, str(

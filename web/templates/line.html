@@ -1,9 +1,7 @@
 {% extends 'template.html' %}
-{% block head %}
-{% endblock %}
 {% block content %}
-    <div style="width:100%; height:400px;overflow:hidden">
-        <div id="map" style="width:100%; height:450px"></div>
+    <div style="height:400px;overflow:hidden">
+        <div id="map"></div>
     </div>
     <div style="overflow:auto">
         <table id='table' class='table table-hover table-bordered'>
@@ -16,18 +14,17 @@
         </table>
     </div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('车次')").addClass('active');
-        var hidden = 50;
         var map_div = $('#map');
+        map_div.height(map_div.parent().height() + hidden);
         var map = echarts.init(map_div.get(0));
         set_map('');
         $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
             set_map(data);
             set_timetable(data)
         });
-
         function set_timetable(data) {
             var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
             $.each(th, function () {
@@ -37,10 +34,10 @@
                 var tr = $('<tr>');
                 $.each(station, function (n, txt) {
                     if (n > 4) {
-                        if (n === 5) {
+                        if (n === 6) {
                             td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
                         }
-                        else if (n > 5) {
+                        else {
                             td = $('<td>').text(txt);
                         }
                         tr.append(td)
@@ -49,7 +46,6 @@
                 $('#table').find('tbody').append(tr);
             });
         }
-
         function set_map(data) {
             var option = {};
             if (!data) {
@@ -64,36 +60,19 @@
                 map.showLoading()
             }
             else {
-                var x_list = [];
-                var y_list = [];
-                $.each(data, function () {
-                    x_list.push(this[0]);
-                    y_list.push(this[1]);
-                });
-                var x_min = Math.min.apply(null, x_list);
-                var x_max = Math.max.apply(null, x_list);
-                var y_min = Math.min.apply(null, y_list);
-                var y_max = Math.max.apply(null, y_list);
-                var center = [(x_min + x_max) / 2, (y_min + y_max) / 2];
-                var zoom = 5;
-                if (map_div.width() / (map_div.height() - hidden) > (x_max - x_min) / (y_max - y_min)) {
-                    zoom = Math.floor(Math.log(2.048 / (y_max - y_min) * (map_div.height() - hidden)) / Math.log(2))
-                }
-                else {
-                    zoom = Math.floor(Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2))
-                }
-                center[1] = center[1] - 2.048 / Math.pow(2, zoom) * hidden / 2;
+                var center_zoom = location(data);
                 option = {
                     bmap: {
-                        center: center,
-                        zoom: zoom,
+                        center: center_zoom[0],
+                        zoom: center_zoom[1],
+                        roam: true,
                         mapStyle: mapStyle_white
                     },
                     series: {
                         name: '车站',
                         coordinateSystem: 'bmap',
                         type: 'effectScatter',
-                        symbolSize: zoom,
+                        symbolSize: center_zoom[1],
                         showEffectOn: 'render',
                         rippleEffect: {
                             brushType: 'stroke'
@@ -103,18 +82,16 @@
                         label: {
                             normal: {
                                 formatter: function (info) {
-                                    return info.data[6]
+                                    return info.data[5]
                                 },
-                                show: true
-                            },
-                            emphasis: {
-                                fontSize: 15
+                                show: true,
+                                position: 'top'
                             }
                         },
                         itemStyle: {
                             normal: {
                                 color: 'red',
-                                shadowBlur: zoom,
+                                shadowBlur: center_zoom[1],
                                 shadowColor: 'white'
                             }
                         }
@@ -124,5 +101,5 @@
             }
             map.setOption(option);
         }
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

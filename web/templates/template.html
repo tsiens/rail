@@ -49,6 +49,7 @@
 
         .container div {
             text-align: center;
+            width: 100%;
             margin: 0 auto
         }
 
@@ -167,6 +168,7 @@
     </div>
 </nav>
 <script>
+    var hidden = 50;
     $('.search').bind('input propertychange', function () {
         search($(this))
     });
@@ -177,7 +179,6 @@
             input.next().hide()
         }, 200)
     });
-
     function search(input) {
         input.next().empty().show();
         if (input.val() != '') {
@@ -194,12 +195,34 @@
         }
     }
 
+    function location(data) {
+        var x_list = [];
+        var y_list = [];
+        $.each(data, function () {
+            x_list.push(this[0]);
+            y_list.push(this[1]);
+        });
+        var x_min = Math.min.apply(null, x_list);
+        var x_max = Math.max.apply(null, x_list);
+        var y_min = Math.min.apply(null, y_list);
+        var y_max = Math.max.apply(null, y_list);
+        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2];
+        var zoom = 5;
+        if (map_div.width() / (map_div.height() - hidden) > (x_max - x_min) / (y_max - y_min)) {
+            zoom = Math.floor(Math.log(2.048 / (y_max - y_min) * (map_div.height() - hidden)) / Math.log(2))
+        }
+        else {
+            zoom = Math.floor(Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2))
+        }
+        center[1] = center[1] - 2.048 / Math.pow(2, zoom) * hidden / 2;
+        return [center, zoom]
+    }
     $(window).resize(function () {
         $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
     });
     $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
+    {% block script %}
+    {% endblock %}
 </script>
-{% block script %}
-{% endblock %}
 </body>
 </html>
