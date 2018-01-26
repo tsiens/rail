@@ -120,6 +120,9 @@
                         }
                     }
                 };
+                map.on('click', function (param) {
+                    document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][6])
+                });
                 map.hideLoading()
             }
             map.setOption(option);
