@@ -126,7 +126,7 @@ mapStyle_black = {
             'featureType': 'land',
             'elementType': 'geometry',
             'stylers': {
-                'color': '#2A2A2A'
+                'color': '#343A40'
             }
         },
         {

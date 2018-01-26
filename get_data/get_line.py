@@ -7,8 +7,6 @@ from get_data.get_timetable import *
 
 def get_city_line_thread(city):
     start, arrive = city.split('-')
-    if start not in stations_cn or arrive not in stations_cn:
-        return None
     for line in get_ticket(start, arrive, today, ticker=False):
         if line[1] not in codes:
             codes.append(line[1])

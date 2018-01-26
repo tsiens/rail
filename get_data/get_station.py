@@ -4,6 +4,7 @@ import sys
 
 from pyquery import PyQuery as pq
 
+# encoding='utf-8'
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from get_data.config import *
 
@@ -21,8 +22,14 @@ def get_station():
 
 
 def get_location():
-    stations = mysql.execute(
-        "SELECT cn FROM %s WHERE x=125 and y=30 and cn in (SELECT station FROM %s) and date<'%s'" % (
+    data = []
+    stations_old, stations_now = mysql.execute(
+        "SELECT cn FROM %s " % station_table, "SELECT DISTINCT station FROM %s " % timetable_table)
+    for station in set(stations_now) - set(stations_old):
+        data.append((station[0], 'A', 125, 30, None, None, None, '1970-01-01', '1970-01-01'))
+        log('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), station[0]))
+    stations = mysql.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data),
+                             "SELECT cn FROM %s WHERE x=125 and y=30 and cn in (SELECT station FROM %s) and date<'%s'" % (
             station_table, timetable_table, today))
     sqls = []
     for station in stations:
@@ -65,9 +72,16 @@ def get_station_location(station):
         return location
     try:
         code = getjson(geogv_url1 % station)['data'][0][0]
-        province, city, county = getjson(geogv_url2 % code)['location'].split(' ')
-        if city in ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市']:
+        info = getjson(geogv_url2 % code)['location'].split(' ')
+        province, city = info[:2]
+        provinces = ['重庆市', '北京市', '上海市', '天津市']
+        citys = ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市', '济源市']
+        if province in provinces:
+            county, city = city, province
+        elif city in citys:
             county = city
+        else:
+            county = info[2]
     except:
         province, city, county = None, None, None
     for location in [get_amap(city), get_baidu(province, city, county)]:
@@ -78,7 +92,7 @@ def get_station_location(station):
 
 def get_img():
     stations = mysql.execute(
-        "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and image_date<'%s'" % (
+        "SELECT cn FROM %s WHERE cn in (SELECT DISTINCT station FROM %s) and image_date<'%s'" % (
             station_table, timetable_table, today - timedelta(days=100)))
     sqls = []
     for station in stations[:100]:
@@ -110,5 +124,5 @@ if __name__ == '__main__':
     # get_station()
     # get_location()
     get_img()
-    # print(get_station_location('德兴东'))
+    # print(get_station_location('干溪沟'))
     # print(get_station_img('北京南'))

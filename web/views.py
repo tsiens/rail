@@ -65,7 +65,8 @@ def data(request):
         data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
     elif type == 'index_station':
         stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
-        stations = [station['cn'] for station in Station.objects.filter(cn__in=stations).values('cn')]
+        stations = [station['cn'] for station in
+                    Station.objects.filter(Q(cn__in=stations), Q(image_date__gt='1970-01-01')).values('cn')]
         data = random.sample(stations, 10)
     elif type == 'station_index':
         start, end = int(request.POST.get('start')), int(request.POST.get('end'))
@@ -119,10 +120,11 @@ def data(request):
                     if runtime < stations2[station][1]:
                         stations2[station][1] = runtime
                     stations2[station][0] += 1
-        for info in Station.objects.filter(cn__in=[station for station in stations2]):
+        for info in Station.objects.filter(cn__in=[station for station in stations2] + [name]):
             stations_locations[info.cn] = [info.x, info.y, info.cn, info.province, info.city, info.county]
         timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[3])
         stations = [stations_locations[k] + v for k, v in stations2.items()]
+        stations.insert(0, stations_locations[name] + [0, 0])
         data = [timetable, stations]
     elif type == 'line':
         for row in Timetable.objects.filter(line=request.POST.get('line').upper()).order_by('order'):

@@ -11,8 +11,8 @@
         </table>
     </div>
 {% endblock %}
-<script>
-    {% block script %}
+{% block script %}
+    <script>
         var th = ['时间', '日志'];
         $('title,#title').text('日志巡检');
         $.each(th, function () {
@@ -33,5 +33,5 @@
                 });
             })
         }
-    {% endblock %}
-</script>
+    </script>
+{% endblock %}

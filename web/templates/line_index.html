@@ -14,8 +14,8 @@
     <ul id="line_tab" class="nav nav-tabs" role="tablist"></ul>
     <div id="line_content" class="tab-content"></div>
 {% endblock %}
-<script>
-    {% block script %}
+{% block script %}
+    <script>
         $("a:contains('车次')").addClass('active');
         $.each({{ line_codes|safe }}, function (n, code) {
             var li = $('<li>').addClass('nav-item');
@@ -40,5 +40,5 @@
                 });
             });
         });
-    {% endblock %}
-</script>
+    </script>
+{% endblock %}

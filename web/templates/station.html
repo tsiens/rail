@@ -1,6 +1,6 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div style="height:400px;overflow:hidden">
+    <div style="height:600px;overflow:hidden">
         <div id="map"></div>
     </div>
     <div style="overflow:auto">
@@ -14,11 +14,11 @@
         </table>
     </div>
 {% endblock %}
-<script>
-    {% block script %}
+{% block script %}
+    <script>
         $("a:contains('车站')").addClass('active');
         var map_div = $('#map');
-        map_div.height(map_div.parent().height() + hidden);
+        map_div.height(map_div.parent().height() + map_hidden);
         var map = echarts.init(map_div.get(0));
         var station = '{{ data.cn }}';
         $('#info').text('');
@@ -58,8 +58,42 @@
                 option = {
                     title: {
                         text: station,
+                        textStyle: {
+                            color: 'white'
+                        },
                         subtext: '{{data.province}} {{data.city}} {{data.county}}',
                         left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        orient: 'vertical'
+                    },
+                    visualMap: {
+                        bottom: map_hidden,
+                        right: 0,
+                        pieces: [
+                            {lte: 1, label: '1小时'},
+                            {gt: 1, lte: 3, label: '3小时'},
+                            {gt: 3, lte: 8, label: '8小时'},
+                            {gt: 8, lte: 20, label: '20小时'},
+                            {gt: 20, label: '20小时以上'}
+                        ],
+                        color: ['#50a3ba', '#eac736', '#d94e5d'],
+                        textStyle: {
+                            color: '#FFF'
+                        },
+                        dimension: 7
+                    },
+                    itemStyle: {
+                        normal: {
+                            // opacity: 1,
+                            shadowColor: '#FFF',
+                            shadowBlur: 2
+                        },
+                        emphasis: {
+                            borderColor: '#FFF',
+                            borderWidth: 1
+                        }
                     },
                     series: []
                 };
@@ -72,40 +106,68 @@
                         center: center_zoom[0],
                         zoom: center_zoom[1],
                         roam: true,
-                        mapStyle: mapStyle_white
+                        mapStyle: mapStyle_black
                     },
-                    series: {
-                        name: '车站',
-                        coordinateSystem: 'bmap',
-                        type: 'effectScatter',
-                        symbolSize: center_zoom[1],
-                        showEffectOn: 'render',
-                        rippleEffect: {
-                            brushType: 'stroke'
+                    series: [
+                        {
+                            name: '本站',
+                            zlevel: 10,
+                            coordinateSystem: 'bmap',
+                            type: 'effectScatter',
+                            symbol: 'diamond',
+                            symbolSize: 5 * center_zoom[1],
+                            showEffectOn: 'render',
+                            rippleEffect: {
+                                brushType: 'stroke'
+                            },
+                            data: [data[0]],
+                            label: {
+                                normal: {
+                                    formatter: function (params) {
+                                        return params.value[2]
+                                    },
+                                    show: true
+                                }
+                            },
+                            tooltip: {
+                                formatter: function (params) {
+                                    params = params.value;
+                                    return station + '<br/>'
+                                        + '连通车站：' + (data.length - 1) + ' 座<br/>'
+                                }
+                            }
                         },
-                        data: data,
-                        hoverAnimation: true,
-                        {#                        label: {#}
-                        {#                            normal: {#}
-                        {#                                formatter: function (info) {#}
-                        {#                                    return info.data[5]#}
-                        {#                                },#}
-                        {#                                show: true,#}
-                        {#                                position:'top'#}
-                        {#                            }#}
-                        {#                        },#}
-                        itemStyle: {
-                            normal: {
-                                color: 'red',
-                                shadowBlur: center_zoom[1],
-                                shadowColor: 'white'
+                        {
+                            name: '车站',
+                            zlevel: 5,
+                            coordinateSystem: 'bmap',
+                            type: 'scatter',
+                            symbolSize: function (val) {
+                                return Math.sqrt(val[6]) + center_zoom[1];
+                            },
+                            data: data.slice(1),
+                            label: {
+                                emphasis: {
+                                    formatter: function (params) {
+                                        return params.value[2]
+                                    },
+                                    show: true
+                                }
+                            },
+                            tooltip: {
+                                formatter: function (params) {
+                                    params = params.value;
+                                    return params[2] + '<br/>'
+                                        + '最快：' + params[7] + ' 小时<br/>'
+                                        + '数量：' + params[6] + ' 车次<br/>'
+                                }
                             }
                         }
-                    }
+                    ]
                 };
                 map.hideLoading()
             }
             map.setOption(option);
         }
-    {% endblock %}
-</script>
+    </script>
+{% endblock %}

@@ -14,11 +14,11 @@
         </table>
     </div>
 {% endblock %}
-<script>
-    {% block script %}
+{% block script %}
+    <script>
         $("a:contains('车次')").addClass('active');
         var map_div = $('#map');
-        map_div.height(map_div.parent().height() + hidden);
+        map_div.height(map_div.parent().height() + map_hidden);
         var map = echarts.init(map_div.get(0));
         set_map('');
         $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
@@ -52,8 +52,33 @@
                 option = {
                     title: {
                         text: '{{ line }}',
+                        textStyle: {
+                            color: 'white'
+                        },
                         subtext: '{{start}} - {{arrive}}',
                         left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        orient: 'vertical',
+                        formatter: function (params) {
+                            params = params.value;
+                            var a = '';
+                            var b = '';
+                            if (params[11] === '始') {
+                                a = '始发站：';
+                                b = '出发：' + params[10] + '<br/>'
+                            }
+                            else if (params[11] === '终') {
+                                a = '终点站：';
+                                b = '到达：' + params[8] + '<br/>'
+                            }
+                            else {
+                                a = '第' + params[5] + '站：';
+                                b = '到达：' + params[8] + '<br/>出发：' + params[10] + '<br/>';
+                            }
+                            return a + params[6] + '<br/>' + b
+                        }
                     },
                     series: []
                 };
@@ -66,26 +91,24 @@
                         center: center_zoom[0],
                         zoom: center_zoom[1],
                         roam: true,
-                        mapStyle: mapStyle_white
+                        mapStyle: mapStyle_black
                     },
                     series: {
                         name: '车站',
                         coordinateSystem: 'bmap',
-                        type: 'effectScatter',
-                        symbolSize: center_zoom[1],
-                        showEffectOn: 'render',
-                        rippleEffect: {
-                            brushType: 'stroke'
-                        },
+                        type: 'scatter',
+                        symbolSize: 2 * center_zoom[1],
                         data: data,
-                        hoverAnimation: true,
                         label: {
                             normal: {
                                 formatter: function (info) {
-                                    return info.data[5]
+                                    return info.value[5]
                                 },
                                 show: true,
-                                position: 'top'
+                                fontSize: 1.5 * center_zoom[1]
+                            },
+                            emphasis: {
+                                fontSize: 2 * center_zoom[1]
                             }
                         },
                         itemStyle: {
@@ -101,5 +124,5 @@
             }
             map.setOption(option);
         }
-    {% endblock %}
-</script>
+    </script>
+{% endblock %}
