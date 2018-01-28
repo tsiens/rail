@@ -222,14 +222,13 @@
         var y_min = Math.min.apply(null, y_list);
         var y_max = Math.max.apply(null, y_list);
         var zoom = Math.log(2.048 / (x_max - x_min) * (map_div.width())) / Math.log(2);
-        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2];
+        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
         var height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
-        if (height > map_div.height() - 2 * map_hidden) {
-            return [center, zoom - 1, height / 2 + 4 * map_hidden]
+        while (height > map_div.height() - 2 * map_hidden) {
+            zoom = zoom - 1;
+            height = height / 2
         }
-        else {
-            return [center, zoom, height + 4 * map_hidden]
-        }
+        return [center, zoom, height + 4 * map_hidden]
     }
 {% block script %}
 {% endblock %}
