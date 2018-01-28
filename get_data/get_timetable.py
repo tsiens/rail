@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from get_data.config import *
 
@@ -31,18 +32,18 @@ def get_timetable_thread(info):
         lasttime = leavetime
         data.append([line, code, order, station, arrivedate, arrivetime.time(), leavedate, leavetime.time(), staytime])
         order += 1
+    lock.acquire()
     if len(data) > 1:
         log('检索 %s 次  %s - %s  %s%%' % (line, start, arrive,
                                         int(lines_list.index(info) / len(lines_list) * 100)))
         data[0][-1] = -1
         data[-1][-1] = -2
-        lock.acquire()
         mysql.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
                       "UPDATE %s SET runtime='%s',date='%s' WHERE code='%s'" % (line_table, runtime, today, code))
-        lock.release()
     else:
         log('检索 %s 次  无效  %s%%' % (line, int(lines_list.index(info) / len(lines_list) * 100)))
         mysql.execute("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, code))
+    lock.release()
 
 def get_timetable(old=[]):
     global stations_cn, stations_en, lines, lines_list
