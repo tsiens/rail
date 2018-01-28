@@ -6,6 +6,7 @@ from get_data.get_ticket import *
 from get_data.get_timetable import *
 
 def get_city_line_thread(city):
+    global codes
     start, arrive = city.split('-')
     if start in stations_cn and arrive in stations_cn:
         for line in get_ticket(start, arrive, today, ticker=False):
@@ -16,9 +17,7 @@ def get_city_line_thread(city):
 
 
 def get_city(citys):
-    global citys_list, codes
     citys_list = sorted([city for city in citys], key=lambda city: citys[city], reverse=True)
-    codes = []
     rs = threadpool.makeRequests(get_city_line_thread, citys_list)
     [pool.putRequest(r) for r in rs]
     pool.wait()
@@ -26,8 +25,9 @@ def get_city(citys):
 
 
 def get_line():
-    global stations_cn, stations_en, lines
+    global stations_cn, stations_en, lines, codes
     stations_cn, stations_en, lines = stations_lines()
+    codes = []
     html = requests.get(get_lines_url, verify=False).text
     get = re.findall('"%s":.+?}]}' % today, html)
     if get == []:
