@@ -105,8 +105,8 @@ def data(request):
                 timetable[line][-1] = order
             if station == name:
                 staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
-                timetable[line][2] = arrivetime if staytime != '始' else '-' * 11
-                timetable[line][3] = leavetime if staytime != '终' else '-' * 11
+                timetable[line][2] = arrivetime
+                timetable[line][3] = leavetime
                 timetable[line][4] = staytime
         for station, station_data in stations1.items():
             if station != name:
@@ -122,7 +122,7 @@ def data(request):
                     stations2[station][0] += 1
         for info in Station.objects.filter(cn__in=[station for station in stations2] + [name]):
             stations_locations[info.cn] = [info.x, info.y, info.cn, info.province, info.city, info.county]
-        timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[3])
+        timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[-2])
         stations = [stations_locations[k] + v for k, v in stations2.items()]
         stations.insert(0, stations_locations[name] + [0, 0])
         data = [timetable, stations]
@@ -131,12 +131,6 @@ def data(request):
             order, station, arrivedate, arrivetime, leavedate, leavetime, staytime = row.order, row.station, row.arrivedate, str(
                 row.arrivetime), row.leavedate, str(row.leavetime), row.staytime
             staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
-            if staytime == '始':
-                arrivedate = '--'
-                arrivetime = '-' * 11
-            if staytime == '终':
-                leavedate = '--'
-                leavetime = '-' * 11
             info = Station.objects.get(cn=station)
             data.append([info.x, info.y, info.province, info.city, info.county, order, station, arrivedate, arrivetime,
                          leavedate, leavetime, staytime])

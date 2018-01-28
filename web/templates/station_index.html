@@ -26,8 +26,8 @@
     <div id="masonry">
     </div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('车站')").addClass('active');
         var img_start = 0;
         var scrollTop = 0;
@@ -73,5 +73,5 @@
         $(window).resize(function () {
             masonry(scrollTop);
         });
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

@@ -24,8 +24,8 @@
         <button type="button" class="btn btn-secondary">手气不错</button>
     </div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('主页')").addClass('active');
         $.post('{% url 'data' %}', {'type': 'index_station'}, function (data) {
             $.each(data, function (n, station) {
@@ -44,5 +44,5 @@
                 $('.carousel-inner').append(div)
             })
         });
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

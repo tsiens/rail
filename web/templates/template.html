@@ -12,8 +12,8 @@
     <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
     <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
-    <script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.min.js"></script>
-    <script src="https://cdn.bootcss.com/echarts/3.8.5/extension/bmap.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
     <script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
     <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
     {% load staticfiles %}
@@ -167,7 +167,7 @@
     </div>
 </nav>
 <script>
-    var map_hidden = 50;
+    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
     $('.search').bind('input propertychange', function () {
         search($(this))
     });
@@ -194,7 +194,23 @@
         }
     }
 
-    function location(data) {
+    function map_init(map_id) {
+        var map_div = map_id;
+        while ($('body').height() === $(window).height()) {
+            map_div.height(map_div.height() + 1);
+        }
+        map_div.height(map_div.height() - 1);
+        var map = echarts.init(map_div.get(0));
+        map.showLoading({
+            color: '#c23531',
+            maskColor: 'rgba(255, 255, 255, 0)'
+        });
+        return [map_div, map]
+    }
+
+    var map_hidden = 50;
+
+    function map_area(map_div, data) {
         var x_list = [];
         var y_list = [];
         $.each(data, function () {
@@ -205,23 +221,18 @@
         var x_max = Math.max.apply(null, x_list);
         var y_min = Math.min.apply(null, y_list);
         var y_max = Math.max.apply(null, y_list);
-        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2];
-        var zoom = 5;
-        if (map_div.width() / (map_div.height() - map_hidden) > (x_max - x_min) / (y_max - y_min)) {
-            zoom = Math.floor(Math.log(2.048 / (y_max - y_min) * (map_div.height() - map_hidden)) / Math.log(2))
+        var zoom = Math.log(2 / (x_max - x_min) * (map_div.width())) / Math.log(2);
+        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - map_hidden / Math.pow(2, Math.floor(zoom))];
+        var height = (y_max - y_min) / (2 / Math.pow(2, Math.floor(zoom)));
+        if (height > map_div.height()) {
+            return [center, zoom - 1, height / 2 + 3 * map_hidden]
         }
         else {
-            zoom = Math.floor(Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2))
+            return [center, zoom, height + 3 * map_hidden]
         }
-        center[1] = center[1] - 2.048 / Math.pow(2, zoom) * map_hidden / 2;
-        return [center, zoom]
     }
-    $(window).resize(function () {
-        $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
-    });
-    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
-</script>
 {% block script %}
 {% endblock %}
+</script>
 </body>
 </html>

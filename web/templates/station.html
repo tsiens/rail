@@ -1,6 +1,7 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div style="height:600px;overflow:hidden">
+    <br/>
+    <div>
         <div id="map"></div>
     </div>
     <div style="overflow:auto">
@@ -14,15 +15,12 @@
         </table>
     </div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('车站')").addClass('active');
-        var map_div = $('#map');
-        map_div.height(map_div.parent().height() + map_hidden);
-        var map = echarts.init(map_div.get(0));
+        [map_div, map] = map_init($('#map'));
         var station = '{{ data.cn }}';
         $('#info').text('');
-        set_map('');
         $.post('{% url 'data' %}', {'type': 'station', 'station': station}, function (data) {
             set_timetable(data[0]);
             set_map(data[1])
@@ -53,124 +51,126 @@
             });
         }
         function set_map(data) {
-            var option = {};
-            if (!data) {
-                option = {
-                    title: {
-                        text: station,
-                        textStyle: {
-                            color: 'white'
-                        },
-                        subtext: '{{data.province}} {{data.city}} {{data.county}}',
-                        left: 'center'
+            [center, zoom, height] = map_area(map_div, data);
+            map_div.height(height);
+            map_div.parent().css({'height': height - map_hidden, 'overflow': 'hidden'});
+            var option = {
+                title: {
+                    text: station,
+                    textStyle: {
+                        color: 'white'
                     },
-                    tooltip: {
-                        trigger: 'item',
-                        orient: 'vertical'
-                    },
-                    visualMap: {
-                        bottom: map_hidden,
-                        right: 0,
-                        pieces: [
-                            {lte: 1, label: '1小时'},
-                            {gt: 1, lte: 3, label: '3小时'},
-                            {gt: 3, lte: 8, label: '8小时'},
-                            {gt: 8, lte: 20, label: '20小时'},
-                            {gt: 20, label: '20小时以上'}
-                        ],
-                        color: ['#50a3ba', '#eac736', '#d94e5d'],
-                        textStyle: {
-                            color: '#FFF'
-                        },
-                        dimension: 7
-                    },
-                    itemStyle: {
-                        normal: {
-                            // opacity: 1,
-                            shadowColor: '#FFF',
-                            shadowBlur: 2
-                        },
-                        emphasis: {
-                            borderColor: '#FFF',
-                            borderWidth: 1
+                    subtext: '{{data.province}} {{data.city}} {{data.county}}',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    orient: 'vertical',
+                    position: function (point, params, dom, rect, size) {
+                        if (point[1] > size['contentSize'][1]) {
+                            return 'top'
                         }
+                        else {
+                            return 'bottom'
+                        }
+                    }
+                },
+                visualMap: {
+                    top: 0,
+                    right: 0,
+                    orient: 'horizontal',
+                    pieces: [
+                        {lte: 1, label: '1小时'},
+                        {gt: 1, lte: 3, label: '3小时'},
+                        {gt: 3, lte: 8, label: '8小时'},
+                        {gt: 8, lte: 20, label: '20小时'},
+                        {gt: 20, label: '20小时以上'}
+                    ],
+                    color: ['#50a3ba', '#eac736', '#d94e5d'],
+                    textStyle: {
+                        color: '#FFF'
                     },
-                    series: []
-                };
-                map.showLoading()
-            }
-            else {
-                var center_zoom = location(data);
-                option = {
-                    bmap: {
-                        center: center_zoom[0],
-                        zoom: center_zoom[1],
-                        roam: true,
-                        mapStyle: mapStyle_black
-                    },
-                    series: [
-                        {
-                            name: '本站',
-                            zlevel: 10,
-                            coordinateSystem: 'bmap',
-                            type: 'effectScatter',
-                            symbol: 'diamond',
-                            symbolSize: 5 * center_zoom[1],
-                            showEffectOn: 'render',
-                            rippleEffect: {
-                                brushType: 'stroke'
-                            },
-                            data: [data[0]],
-                            label: {
-                                normal: {
-                                    formatter: function (params) {
-                                        return params.value[2]
-                                    },
-                                    show: true
-                                }
-                            },
-                            tooltip: {
+                    dimension: 7
+                },
+                bmap: {
+                    center: center,
+                    zoom: zoom,
+                    roam: true,
+                    mapStyle: mapStyle_black
+                },
+                series: [
+                    {
+                        name: '本站',
+                        zlevel: 10,
+                        coordinateSystem: 'bmap',
+                        type: 'effectScatter',
+                        symbol: 'diamond',
+                        symbolSize: 5 * zoom,
+                        showEffectOn: 'render',
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        data: [data[0]],
+                        label: {
+                            normal: {
                                 formatter: function (params) {
-                                    params = params.value;
-                                    return station + '<br/>'
-                                        + '连通车站：' + (data.length - 1) + ' 座<br/>'
-                                }
+                                    return params.value[2]
+                                },
+                                show: true
                             }
                         },
-                        {
-                            name: '车站',
-                            zlevel: 5,
-                            coordinateSystem: 'bmap',
-                            type: 'scatter',
-                            symbolSize: function (val) {
-                                return Math.sqrt(val[6]) + center_zoom[1];
-                            },
-                            data: data.slice(1),
-                            label: {
-                                emphasis: {
-                                    formatter: function (params) {
-                                        return params.value[2]
-                                    },
-                                    show: true
-                                }
-                            },
-                            tooltip: {
-                                formatter: function (params) {
-                                    params = params.value;
-                                    return params[2] + '<br/>'
-                                        + '最快：' + params[7] + ' 小时<br/>'
-                                        + '数量：' + params[6] + ' 车次<br/>'
-                                }
+                        tooltip: {
+                            formatter: function (params) {
+                                params = params.value;
+                                return station + '<br/>'
+                                    + '连通车站：' + (data.length - 1) + ' 座<br/>'
                             }
                         }
-                    ]
-                };
-                map.on('click', function (param) {
-                    document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][2])
-                });
-                map.hideLoading()
-            }
+                    },
+                    {
+                        name: '车站',
+                        zlevel: 5,
+                        coordinateSystem: 'bmap',
+                        type: 'scatter',
+                        symbolSize: function (val) {
+                            return Math.sqrt(val[6]) + zoom;
+                        },
+                        data: data.slice(1),
+                        label: {
+                            emphasis: {
+                                formatter: function (params) {
+                                    return params.value[2]
+                                },
+                                show: true
+                            }
+                        },
+                        tooltip: {
+                            formatter: function (params) {
+                                params = params.value;
+                                return params[2] + '<br/>'
+                                    + '最快：' + params[7] + ' 小时<br/>'
+                                    + '数量：' + params[6] + ' 车次<br/>'
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                opacity: 1,
+                                shadowColor: '#FFF',
+                                shadowBlur: 2
+                            },
+                            emphasis: {
+                                borderColor: '#FFF',
+                                borderWidth: 1
+                            }
+                        }
+                    }
+                ]
+            };
+            map.on('click', function (param) {
+                document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][2])
+            });
             map.setOption(option);
+            map.hideLoading()
         }
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

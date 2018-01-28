@@ -1,6 +1,7 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div style="height:400px;overflow:hidden">
+    <br/>
+    <div>
         <div id="map"></div>
     </div>
     <div style="overflow:auto">
@@ -14,16 +15,13 @@
         </table>
     </div>
 {% endblock %}
-{% block script %}
-    <script>
+<script>
+    {% block script %}
         $("a:contains('车次')").addClass('active');
-        var map_div = $('#map');
-        map_div.height(map_div.parent().height() + map_hidden);
-        var map = echarts.init(map_div.get(0));
-        set_map('');
+        [map_div, map] = map_init($('#map'));
         $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
-            set_map(data);
-            set_timetable(data)
+            set_timetable(data);
+            set_map(data)
         });
         function set_timetable(data) {
             var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
@@ -37,6 +35,12 @@
                         if (n === 6) {
                             td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
                         }
+                        else if ($.inArray(txt, ['始', '终']) > -1) {
+                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
+                                '始': 'success',
+                                '终': 'warning'
+                            }[txt]).text(txt))
+                        }
                         else {
                             td = $('<td>').text(txt);
                         }
@@ -47,85 +51,90 @@
             });
         }
         function set_map(data) {
-            var option = {};
-            if (!data) {
-                option = {
-                    title: {
-                        text: '{{ line }}',
-                        textStyle: {
-                            color: 'white'
-                        },
-                        subtext: '{{start}} - {{arrive}}',
-                        left: 'center'
+            [center, zoom, height] = map_area(map_div, data);
+            map_div.height(height);
+            map_div.parent().css({'height': height - map_hidden, 'overflow': 'hidden'});
+            option = {
+                title: {
+                    text: '{{ line }}',
+                    textStyle: {
+                        color: 'white'
                     },
-                    tooltip: {
-                        trigger: 'item',
-                        orient: 'vertical',
-                        formatter: function (params) {
-                            params = params.value;
-                            var a = '';
-                            var b = '';
-                            if (params[11] === '始') {
-                                a = '始发站：';
-                                b = '出发：' + params[10] + '<br/>'
-                            }
-                            else if (params[11] === '终') {
-                                a = '终点站：';
-                                b = '到达：' + params[8] + '<br/>'
-                            }
-                            else {
-                                a = '第' + params[5] + '站：';
-                                b = '到达：' + params[8] + '<br/>出发：' + params[10] + '<br/>';
-                            }
-                            return a + params[6] + '<br/>' + b
+                    subtext: '{{start}} - {{arrive}}',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    orient: 'vertical',
+                    position: function (point, params, dom, rect, size) {
+                        if (point[1] > size['contentSize'][1]) {
+                            return 'top'
+                        }
+                        else {
+                            return 'bottom'
                         }
                     },
-                    series: []
-                };
-                map.showLoading()
-            }
-            else {
-                var center_zoom = location(data);
-                option = {
-                    bmap: {
-                        center: center_zoom[0],
-                        zoom: center_zoom[1],
-                        roam: true,
-                        mapStyle: mapStyle_black
-                    },
-                    series: {
-                        name: '车站',
-                        coordinateSystem: 'bmap',
-                        type: 'scatter',
-                        symbolSize: 2 * center_zoom[1],
-                        data: data,
-                        label: {
-                            normal: {
-                                formatter: function (info) {
-                                    return info.value[5]
-                                },
-                                show: true,
-                                fontSize: 1.5 * center_zoom[1]
+                    formatter: function (params) {
+                        params = params.value;
+                        var a = '';
+                        var b = '';
+                        if (params[11] === '始') {
+                            a = '始发站：';
+                            b = '出发：' + params[10] + '<br/>'
+                        }
+                        else if (params[11] === '终') {
+                            a = '终点站：';
+                            b = '到达：' + params[8] + '<br/>'
+                        }
+                        else {
+                            a = '第' + params[5] + '站：';
+                            b = '到达：' + params[8] + '<br/>出发：' + params[10] + '<br/>';
+                        }
+                        return a + params[6] + '<br/>' + b
+                    }
+                },
+                bmap: {
+                    center: center,
+                    zoom: zoom,
+                    roam: true,
+                    mapStyle: mapStyle_black
+                },
+                series: {
+                    name: '车站',
+                    coordinateSystem: 'bmap',
+                    type: 'scatter',
+                    symbolSize: 2 * zoom,
+                    data: data,
+                    label: {
+                        normal: {
+                            formatter: function (params) {
+                                return params.value[5]
                             },
-                            emphasis: {
-                                fontSize: 2 * center_zoom[1]
-                            }
+                            show: true,
+                            fontSize: 1.5 * zoom
                         },
-                        itemStyle: {
-                            normal: {
-                                color: 'red',
-                                shadowBlur: center_zoom[1],
-                                shadowColor: 'white'
-                            }
+                        emphasis: {
+                            fontSize: 2 * zoom
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            opacity: 1,
+                            shadowColor: '#FFF',
+                            shadowBlur: 2
+                        },
+                        emphasis: {
+                            borderColor: '#FFF',
+                            borderWidth: 1
                         }
                     }
-                };
-                map.on('click', function (param) {
-                    document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][6])
-                });
-                map.hideLoading()
-            }
+                }
+            };
+            map.on('click', function (param) {
+                document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][6])
+            });
             map.setOption(option);
+            map.hideLoading()
         }
-    </script>
-{% endblock %}
+    {% endblock %}
+</script>

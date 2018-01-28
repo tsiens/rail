@@ -1,13 +1,12 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
-from web.models import *
-from key import wx_token
-
 from wechatpy import *
 from wechatpy.exceptions import *
-from wechatpy.utils import *
 from wechatpy.replies import *
+from wechatpy.utils import *
+
+from key import wx_token
+from web.models import *
 
 qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim'
 @csrf_exempt  # 去除csrf认证
@@ -49,7 +48,7 @@ def wx(request):
                 arrive = Line.objects.get(line=txt).arrive
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '车次: %s次 %s-%s' % (txt, start, arrive),
-                    'image': qiniu_img_url % txt,
+                    'image': qiniu_img_url % start,
                     'url': 'http://rail.qiangs.tech/line/%s' % txt
                 }])
             else:
