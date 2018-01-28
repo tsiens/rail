@@ -35,11 +35,18 @@
                         if (n === 6) {
                             td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
                         }
-                        else if ($.inArray(txt, ['始', '终']) > -1) {
-                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
-                                '始': 'success',
-                                '终': 'warning'
-                            }[txt]).text(txt))
+                        else if (txt === -1) {
+                            tr.find('td').eq(-3).text('-');
+                            tr.find('td').eq(-4).text('-');
+                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text('始发'))
+                        }
+                        else if (txt === -2) {
+                            tr.find('td').eq(-1).text('-');
+                            tr.find('td').eq(-2).text('-');
+                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text('终到'))
+                        }
+                        else if (txt === 0) {
+                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-warning').text('乘降所'))
                         }
                         else {
                             td = $('<td>').text(txt);

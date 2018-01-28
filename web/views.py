@@ -104,7 +104,6 @@ def data(request):
                 timetable[line][1] = station
                 timetable[line][-1] = order
             if station == name:
-                staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
                 timetable[line][2] = arrivetime
                 timetable[line][3] = leavetime
                 timetable[line][4] = staytime
@@ -130,7 +129,6 @@ def data(request):
         for row in Timetable.objects.filter(line=request.POST.get('line').upper()).order_by('order'):
             order, station, arrivedate, arrivetime, leavedate, leavetime, staytime = row.order, row.station, row.arrivedate, str(
                 row.arrivetime), row.leavedate, str(row.leavetime), row.staytime
-            staytime = [staytime, '终', '始'][staytime if staytime in [-2, -1] else 0]
             info = Station.objects.get(cn=station)
             data.append([info.x, info.y, info.province, info.city, info.county, order, station, arrivedate, arrivetime,
                          leavedate, leavetime, staytime])

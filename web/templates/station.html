@@ -36,11 +36,13 @@
                     if (n < 3) {
                         td = $('<td>').append($('<a>').attr('href', ['{% url 'line' '*' %}', '{% url 'station' '*' %}', '{% url 'station' '*' %}'][n].replace('*', txt)).text(txt))
                     }
-                    else if ($.inArray(txt, ['始', '终']) > -1) {
-                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-' + {
-                            '始': 'success',
-                            '终': 'warning'
-                        }[txt]).text(txt))
+                    else if (txt === -1) {
+                        tr.find('td').eq(-2).text('-');
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text('始发'))
+                    }
+                    else if (txt === -2) {
+                        tr.find('td').eq(-1).text('-');
+                        td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text('终到'))
                     }
                     else {
                         td = $('<td>').text(txt);
@@ -76,6 +78,7 @@
                     }
                 },
                 visualMap: {
+                    show: false,
                     top: 0,
                     right: 0,
                     orient: 'horizontal',
