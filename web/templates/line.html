@@ -85,11 +85,11 @@
                         params = params.value;
                         var a = '';
                         var b = '';
-                        if (params[11] === '始') {
+                        if (params[5] === 1) {
                             a = '始发站：';
                             b = '出发：' + params[10] + '<br/>'
                         }
-                        else if (params[11] === '终') {
+                        else if (params[5] === data.length) {
                             a = '终点站：';
                             b = '到达：' + params[8] + '<br/>'
                         }
