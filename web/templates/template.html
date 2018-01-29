@@ -202,8 +202,8 @@
             },
             search: function () {
                 this.suggest = {};
-                var _this = this;
                 if (this.input) {
+                    var _this = this;
                     var suggest = {};
                     $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (result) {
                         $.each(result, function (k, v) {
