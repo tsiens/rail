@@ -134,9 +134,9 @@ def data(request):
                          leavedate, leavetime, staytime])
     elif type == 'search':
         key = request.POST.get('key')
-        data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
+        data = {'车站': [], '城市': [], '车次': []}
         for row in Station.objects.filter(cn__contains=key).values('cn')[:10]:
-            data[0][2].append(row['cn'])
+            data['车站'].append(row['cn'])
         for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
                    :10]:
             if key in row.county:
@@ -145,11 +145,28 @@ def data(request):
                 row_data = row.province + '-' + row.city
             else:
                 row_data = row.province
-            if row_data not in data[1][2]:
-                data[1][2].append(row_data)
+            if row_data not in data['城市']:
+                data['城市'].append(row_data)
         for row in Line.objects.filter(line__contains=key.upper())[:20]:
-            data[2][2].append(row.line)
-        data = [[x, y, sorted(z)] for x, y, z in data if z != []]
+            data['车次'].append(row.line)
+        for k, v in data.items():
+            data[k] = sorted(v)
+            # data = [['station', '车站', []], ['city', '城市', []], ['line', '车次', []]]
+            # for row in Station.objects.filter(cn__contains=key).values('cn')[:10]:
+            #     data[0][2].append(row['cn'])
+            # for row in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
+            #            :10]:
+            #     if key in row.county:
+            #         row_data = row.province + '-' + row.city + '-' + row.county
+            #     elif key in row.city:
+            #         row_data = row.province + '-' + row.city
+            #     else:
+            #         row_data = row.province
+            #     if row_data not in data[1][2]:
+            #         data[1][2].append(row_data)
+            # for row in Line.objects.filter(line__contains=key.upper())[:20]:
+            #     data[2][2].append(row.line)
+            # data = [[x, y, sorted(z)] for x, y, z in data if z != []]
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')

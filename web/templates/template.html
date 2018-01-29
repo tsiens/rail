@@ -14,6 +14,7 @@
     <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
     <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
     <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
     <script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
     <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
     {% load staticfiles %}
@@ -21,14 +22,6 @@
     <style>
         body {
             background-color: #F0F0F0
-        }
-
-        input {
-            box-shadow: 1px 1px 1px #888888
-        }
-
-        input:hover {
-            box-shadow: 3px 3px 2px #888888
         }
 
         a:hover {
@@ -52,21 +45,33 @@
             margin: 0 auto
         }
 
-        .search + div {
-            text-align: left;
-            padding: 0 0 0 12px;
+        input {
+            box-shadow: 1px 1px 1px #888888
         }
 
-        .search + div p, .search + div a {
+        input:hover {
+            box-shadow: 3px 3px 2px #888888
+        }
+
+        .search div {
+            text-align: left;
+            padding: 0 0 0 12px;
+            width: 100%;
+            background-color: #FFF
+        }
+
+        .search p {
             padding: 0 12px 0 0;
             font-size: 10px;
         }
 
-        .search + div a {
+        .search a {
             color: black;
+            padding: 0 12px 0 0;
+            font-size: 10px;
         }
 
-        .search + div a:hover {
+        .search a:hover {
             background-color: #EEE;
         }
     </style>
@@ -77,28 +82,18 @@
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a>
-    <a class="navbar-brand" href="/"><i class="fa "></i>Rail</a>
+    <a class="navbar-brand" href="/">Rail</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#header_ul">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div id="header_ul" class="collapse navbar-collapse justify-content-end">
         <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" href="/"><i class="fa fa-home"></i>主页</a>
+            <li v-for="item in items1" class="nav-item"><a class="nav-link" :href="item.href"><i
+                    :class="item.fa"></i>[[ item.text ]]</a>
             </li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'station' 'index' %}"><i
-                    class="fa fa-train"></i>车站</a>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'line' 'index' %}"><i
-                    class="fa fa-list-alt"></i>车次</a>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'city' 'index' %}"><i class="fa fa-map-o"></i>城市</a>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#modal_wechat"><i
-                    class="fa fa-wechat"></i>公众号</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#modal_contact"><i
-                    class="fa fa-user"></i>交流</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#modal_search"><i
-                    class="fa fa-search"></i>search</a></li>
+            <li v-for="item in items2" class="nav-item"><a class="nav-link" href="#" data-toggle="modal"
+                                                           :data-target="item.href"><i
+                    :class="item.fa"></i>[[ item.text ]]</a></li>
         </ul>
     </div>
 </nav>
@@ -107,42 +102,29 @@
     {% endblock %}
 </div>
 <nav id="modal">
-    <div class="modal fade" id="modal_wechat">
+    <div v-for="item in items" class="modal fade" :id="item.id">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title"><i class="fa wechat"></i>12308</h4>
+                    <h4 class="modal-title"><i :class="item.fa"></i>[[ item.text ]]</h4>
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
-                    <img src="{% static 'image/wechat.jpg' %}" alt="12308">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="modal_contact">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title"><i class="fa fa-user&quot;"></i>吐槽我吧</h4>
-                    <button type="button" class="close" data-dismiss="modal">×</button>
-                </div>
-                <div class="modal-body">
-                    <img src="{% static 'image/qq.jpg' %}" alt="吐槽我吧">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="modal_search">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title"><i class="fa search&quot;"></i>search</h4>
-                    <button type="button" class="close" data-dismiss="modal">×</button>
-                </div>
-                <div class="modal-body">
-                    <input class="search form-control" type="text" style="width: 100%">
-                    <div></div>
+                    <template v-if="item.text != search">
+                        <img :src="item.src" alt="item.text">
+                    </template>
+                    <template v-else>
+                        <div class="search">
+                            <input class="form-control" v-model="input" @input='search' title="search">
+                            <div>
+                                <template v-for="(vs, k) in suggest">
+                                    <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                                    <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
+                                    <div v-if="vs" class="dropdown-divider"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -159,7 +141,8 @@
                 4.0</a> & <a
                     rel="nofollow" target="_blank" href="http://fontawesome.dashgame.com/">Font Awesome</a> 主题
             </li>
-            <li class="nav-item nav-link">托管于 <a rel="nofollow" target="_blank" href="http://www.aliyun.com/">阿里云主机</a>
+            <li class="nav-item nav-link">托管于 <a rel="nofollow" target="_blank"
+                                                 href="http://www.aliyun.com/">阿里云主机</a>
                 & <a rel="nofollow" target="_blank" href="https://www.qiniu.com/">七牛云存储</a></li>
             <li class="nav-item nav-link"><a rel="nofollow" target="_blank" href="http://www.miitbeian.gov.cn/">浙ICP备17050848号</a>
             </li>
@@ -167,32 +150,80 @@
     </div>
 </nav>
 <script>
-    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
-    $('.search').bind('input propertychange', function () {
-        search($(this))
+    var header = new Vue({
+        el: '#header',
+        delimiters: ['[[', ']]'],
+        data: {
+            items1: [
+                {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
+                {'href': '{% url 'station' 'index' %}', 'fa': 'fa fa-train', 'text': '车站'},
+                {'href': '{% url 'line' 'index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
+                {'href': '{% url 'city' 'index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
+            ],
+            items2: [
+                {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
+                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'},
+                {'href': '#modal_search', 'fa': 'fa fa-search', 'text': 'search'}
+            ]
+        }
     });
-    $('.search').blur(function () {
+    var modal = new Vue({
+        el: '#modal',
+        delimiters: ['[[', ']]'],
+        data: {
+            items: [
+                {
+                    'id': 'modal_wechat',
+                    'fa': 'fa wechat',
+                    'text': '12308',
+                    'src': '{% static 'image/wechat.jpg' %}'
+                },
+                {
+                    'id': 'modal_contact',
+                    'fa': 'fa fa-user',
+                    'text': '吐槽我吧',
+                    'src': '{% static 'image/qq.jpg' %}'
+                },
+                {'id': 'modal_search', 'fa': 'fa search', 'text': 'search'}
+            ]
+        }
+    });
+    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
+
+    $('input').blur(function () {
         var input = $(this);
         setTimeout(function () {
             input.val('');
-            input.next().hide()
         }, 200)
     });
-    function search(input) {
-        input.next().empty().show();
-        if (input.val() != '') {
-            $.post('{% url 'data' %}', {'type': 'search', 'key': input.val()}, function (data) {
-                $.each(data, function (n, item) {
-                    input.next().append($('<p>').addClass('dropdown-header').text(item[1]));
-                    $.each(item[2], function () {
-                        var a = $('<a>').attr('href', '/' + item[0] + '/' + this).text(this);
-                        input.next().append($('<a>').attr('href', '/' + item[0] + '/' + this).text(this + ' '));
-                    });
-                    input.next().append($('<div>').addClass('dropdown-divider'));
-                })
-            })
+    var search = new Vue({
+        el: '.search',
+        delimiters: ['[[', ']]'],
+        data: {
+            url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
+            input: '',
+            suggest: {}
+        },
+        methods: {
+            search: function () {
+                this.suggest = {};
+                if (this.input) {
+                    var suggest = {};
+                    $.post('{% url 'data' %}', {'type': 'search', 'key': this.input}, function (result) {
+                        $.each(result, function (k, v) {
+                            if (v.length > 0) {
+                                suggest[k] = [];
+                                $.each(v, function (n, text) {
+                                    suggest[k].push([search.url[k].replace('*', text), text])
+                                });
+                            }
+                        });
+                        search.suggest = suggest
+                    })
+                }
+            }
         }
-    }
+    });
 
     function map_init(map_id) {
         var map_div = map_id;
@@ -230,8 +261,8 @@
         }
         return [center, zoom, height + 4 * map_hidden]
     }
-{% block script %}
-{% endblock %}
+    {% block script %}
+    {% endblock %}
 </script>
 </body>
 </html>
