@@ -18,14 +18,12 @@
     </div>
     <div id="index_search" class="search" style="max-width: 500px;">
         <br/>
-        <input class="form-control" style="width:500px" v-model="input" @input='search' title="search">
-        <template v-for="(vs, k) in suggest">
-            <div>
-                <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
-                <div v-if="vs" class="dropdown-divider"></div>
-            </div>
-        </template>
+        <input class="form-control" style="width:500px" v-model="input" @input="search" @blur="blur" title="search">
+        <div v-for="(vs, k) in suggest">
+            <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+            <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
+            <div v-if="vs" class="dropdown-divider"></div>
+        </div>
         <br/>
         <button type="button" class="btn btn-secondary">手气不错</button>
     </div>

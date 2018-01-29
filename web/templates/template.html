@@ -110,21 +110,16 @@
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
-                    <template v-if="item.text != search">
-                        <img :src="item.src" alt="item.text">
-                    </template>
-                    <template v-else>
-                        <div class="search">
-                            <input class="form-control" v-model="input" @input='search' title="search">
-                            <div>
-                                <template v-for="(vs, k) in suggest">
-                                    <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                                    <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
-                                    <div v-if="vs" class="dropdown-divider"></div>
-                                </template>
-                            </div>
+                    <div v-if="item.text == search" class="search">
+                        <input class="form-control" style="width:500px" v-model="input" @input="search" @blur="blur"
+                               title="search">
+                        <div v-for="(vs, k) in suggest">
+                            <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                            <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
+                            <div v-if="vs" class="dropdown-divider"></div>
                         </div>
-                    </template>
+                    </div>
+                    <img v-else :src="item.src" alt="item.text">
                 </div>
             </div>
         </div>
@@ -190,12 +185,6 @@
     });
     $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
 
-    $('input').blur(function () {
-        var input = $(this);
-        setTimeout(function () {
-            input.val('');
-        }, 200)
-    });
     var search = new Vue({
         el: '.search',
         delimiters: ['[[', ']]'],
@@ -205,16 +194,23 @@
             suggest: {}
         },
         methods: {
+            blur: function () {
+                setTimeout(function () {
+                    search.input = '';
+                    search.suggest = {}
+                }, 200)
+            },
             search: function () {
                 this.suggest = {};
+                var _this = this;
                 if (this.input) {
                     var suggest = {};
-                    $.post('{% url 'data' %}', {'type': 'search', 'key': this.input}, function (result) {
+                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (result) {
                         $.each(result, function (k, v) {
                             if (v.length > 0) {
                                 suggest[k] = [];
                                 $.each(v, function (n, text) {
-                                    suggest[k].push([search.url[k].replace('*', text), text])
+                                    suggest[k].push([_this.url[k].replace('*', text), text])
                                 });
                             }
                         });
