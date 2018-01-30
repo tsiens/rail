@@ -147,7 +147,7 @@ def data(request):
                 row_data = row.province
             if row_data not in data['城市']:
                 data['城市'].append(row_data)
-        for row in Line.objects.filter(line__contains=key.upper())[:20]:
+        for row in Line.objects.filter(line__contains=key.upper())[:10]:
             data['车次'].append(row.line)
         for k, v in data.items():
             data[k] = sorted(v)

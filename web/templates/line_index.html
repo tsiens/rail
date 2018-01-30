@@ -11,34 +11,60 @@
     </style>
 {% endblock %}
 {% block content %}
-    <ul id="line_tab" class="nav nav-tabs" role="tablist"></ul>
-    <div id="line_content" class="tab-content"></div>
+    <div id="lines">
+        <ul id="line_tab" class="nav nav-tabs" role="tablist">
+            <li v-for="tab in tabs" class="nav-item">
+                <a :class="tab.class" :href="tab.href" data-toggle="tab">
+                    <span class="badge badge-pill badge-dark">[[ tab.text ]]</span>
+                </a>
+            </li>
+        </ul>
+        <div id="line_content" class="tab-content">
+            <div v-for="content in contents" :id="content.id" :class="content.class">
+                <button v-for="line in content.lines" class="btn btn-dark" type="button" style="margin: 3px;"><a
+                        target="_blank" :href="line.href">[[ line.text ]]<span
+                        class="badge badge-light">[[ line.info ]]</span></a></button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
-        $.each({{ line_codes|safe }}, function (n, code) {
-            var li = $('<li>').addClass('nav-item');
-            var a = $('<a>').addClass('nav-link').attr({'href': '#line_' + code, 'data-toggle': 'tab'});
-            var div = $('<div>').addClass('tab-pane').attr('id', 'line_' + code);
-            if (n === 0) {
-                a.addClass('active');
-                div.addClass('active')
+        var lines = new Vue({
+            el: '#lines',
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                setTimeout(this.get, 0)
+            },
+            data: {
+                tabs: [],
+                contents: []
+            },
+            methods: {
+                get: function () {
+                    var _this = this;
+                    $.each({{ line_codes|safe }}, function (n, text) {
+                        var tab = {'class': 'nav-link', 'href': '#line_' + text, 'text': text};
+                        var content = {'id': 'line_' + text, 'class': 'tab-pane', 'lines': []};
+                        if (n === 0) {
+                            tab.class = tab.class + ' active';
+                            content.class = content.class + ' active'
+                        }
+                        _this.tabs.push(tab);
+                        $.post('{% url 'data' %}', {'type': 'line_index', 'code': text}, function (data) {
+                            $.each(data, function () {
+                                content.lines.push({
+                                    'href': '{% url 'line' '*' %}'.replace('*', this[0]),
+                                    'text': this[0],
+                                    'info': this[1] + '-' + this[2]
+                                })
+                            });
+                            _this.contents.push(content);
+                        })
+                    })
+                }
             }
-            a.append($('<span>').addClass('badge badge-pill badge-dark').text(code));
-            $('#line_tab').append(li.append(a));
-            $('#line_content').append(div);
-            $.post('{% url 'data' %}', {'type': 'line_index', 'code': code}, function (data) {
-                $.each(data, function () {
-                    var button = $('<button>').addClass('btn btn-dark').attr('type', 'button').css('margin', '3px');
-                    var button_a = $('<a>').attr({
-                        'target': '_blank',
-                        'href': '{% url 'line' '*' %}'.replace('*', this[0])
-                    }).text(this[0]);
-                    button.append(button_a.append($('<span>').addClass('badge badge-light').text(this[1] + '-' + this[2])));
-                    $('#line_' + code).append(button)
-                });
-            });
         });
     {% endblock %}
 </script>

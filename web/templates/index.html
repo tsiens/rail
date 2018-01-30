@@ -4,9 +4,18 @@
     <div id="carousel" class="carousel slide" data-ride="carousel" style="height:300px">
         <!-- 指示符 -->
         <ul class="carousel-indicators">
+            <li v-for="item in items" data-target="#carousel" :data-slide-to="item.n" :class="item.nclass"></li>
         </ul>
         <!-- 轮播图片 -->
         <div class="carousel-inner">
+            <div v-for="item in items" :class="item.class" style="overflow: auto;">
+                <a :href="item.href">
+                    <img :src="item.src" :alt="item.text" class="img-fluid img-thumbnail" style="height: 300px;">
+                </a>
+                <div class="carousel-caption">
+                    <strong>[[ item.text ]]</strong>
+                </div>
+            </div>
         </div>
         <!-- 左右切换按钮 -->
         <a class="carousel-control-prev" href="#carousel" data-slide="prev">
@@ -16,9 +25,10 @@
             <span class="carousel-control-next-icon"></span>
         </a>
     </div>
-    <div id="index_search" class="search" style="max-width: 500px;">
+    <div id="search" style="max-width: 500px;">
         <br/>
-        <input class="form-control" style="width:500px" v-model="input" @input="search" @blur="blur" title="search">
+        <input class="form-control" style="width:500px" v-model="input" @input="search" @blur="blur"
+               title="search">
         <div v-for="(vs, k) in suggest">
             <p v-if="vs" class="dropdown-header">[[ k ]]</p>
             <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
@@ -31,22 +41,75 @@
 <script>
     {% block script %}
         $("a:contains('主页')").addClass('active');
-        $.post('{% url 'data' %}', {'type': 'index_station'}, function (data) {
-            $.each(data, function (n, station) {
-                var li = $('<li>').attr({'ata-target': '#carousel', 'data-slide-to': n});
-                var div = $('<div>').css('overflow', 'auto').addClass('carousel-item');
-                var a = $('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', station)).append($('<img>').css('height', '300px').attr({
-                    'src': '{{ qiniu }}' + station + '{{ format }}',
-                    'alt': station
-                }).addClass('img-fluid img-thumbnail'));
-                if (n === 0) {
-                    li.addClass('active');
-                    div.addClass('active')
+        var search = new Vue({
+            el: '#search',
+            delimiters: ['[[', ']]'],
+            data: {
+                url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
+                input: '',
+                suggest: {}
+            },
+            methods: {
+                blur: function () {
+                    var _this = this;
+                    setTimeout(function () {
+                        _this.input = '';
+                        _this.suggest = {}
+                    }, 200)
+                },
+                search: function () {
+                    this.suggest = {};
+                    if (this.input) {
+                        var _this = this;
+                        var suggest = {};
+                        $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
+                            $.each(res, function (k, v) {
+                                if (v.length > 0) {
+                                    suggest[k] = [];
+                                    $.each(v, function (n, text) {
+                                        suggest[k].push([_this.url[k].replace('*', text), text])
+                                    });
+                                }
+                            });
+                            _this.suggest = suggest
+                        })
+                    }
                 }
-                div.append(a).append('<div class="carousel-caption"><strong>' + station + '</strong></div>');
-                $('.carousel-indicators').append(li);
-                $('.carousel-inner').append(div)
-            })
+            }
+        });
+        var img = new Vue({
+            el: '#carousel',
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                setTimeout(this.get, 0)
+            },
+            data: {
+                items: []
+            },
+            methods: {
+                get: function () {
+                    var _this = this;
+                    $.post('{% url 'data' %}', {'type': 'index_station'}, function (data) {
+                        var items = [];
+                        $.each(data, function (n, station) {
+                            var item = {
+                                'class': 'carousel-item',
+                                'href': '{% url 'station' '*' %}'.replace('*', station),
+                                'src': '{{ qiniu }}' + station + '{{ format }}',
+                                'text': station,
+                                'n': n,
+                                'nclass': ''
+                            };
+                            if (n === 0) {
+                                item.class = item.class + ' active';
+                                item.nclass = 'active'
+                            }
+                            items.push(item)
+                        });
+                        _this.items = items
+                    })
+                }
+            }
         });
     {% endblock %}
 </script>

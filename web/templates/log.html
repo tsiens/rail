@@ -1,7 +1,7 @@
 {% extends 'template.html' %}
 {% block content %}
     <div style="overflow:auto">
-        <table id='table' class='table table-hover table-bordered'>
+        <table id='log_table' class='table table-hover table-bordered'>
             <thead>
             <tr>
             </tr>
@@ -14,7 +14,6 @@
 <script>
     {% block script %}
         var th = ['时间', '日志'];
-        $('title,#title').text('日志巡检');
         $.each(th, function () {
             $('#table').find('thead').find('tr').append($('<td>').text(this));
         });

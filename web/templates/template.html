@@ -20,6 +20,33 @@
     {% load staticfiles %}
     <script src="{% static '/echarts/mapStyle.js' %}"></script>
     <style>
+        .loadEffect {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 0 auto;
+            margin-top: 100px;
+        }
+
+        .loadEffect span {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #343a40;
+            position: absolute;
+            -webkit-animation: load 1.04s ease infinite;
+        }
+
+        @-webkit-keyframes load {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.2;
+            }
+        }
+
         body {
             background-color: #F0F0F0
         }
@@ -53,25 +80,25 @@
             box-shadow: 3px 3px 2px #888888
         }
 
-        .search div {
+        #search div {
             text-align: left;
-            padding: 0 0 0 12px;
+            padding: 0 6px;
             width: 100%;
             background-color: #FFF
         }
 
-        .search p {
-            padding: 0 12px 0 0;
+        #search p {
+            padding: 0 6px;
             font-size: 10px;
         }
 
-        .search a {
+        #search a {
             color: black;
-            padding: 0 12px 0 0;
+            padding: 0 6px;
             font-size: 10px;
         }
 
-        .search a:hover {
+        #search a:hover {
             background-color: #EEE;
         }
     </style>
@@ -98,6 +125,18 @@
     </div>
 </nav>
 <div class="container">
+    {#    <div class="loadEffect" style="height: 500px;padding: 200px">#}
+    {#        <div>#}
+    {#            <span style="left: 0;top: 50%;margin-top: -8px;-webkit-animation-delay: 0.1s"></span>#}
+    {#            <span style="left: 14px;top: 14px;-webkit-animation-delay: 0.2s"></span>#}
+    {#            <span style="left: 50%;top: 0;margin-left: -8px;-webkit-animation-delay: 0.3s;"></span>#}
+    {#            <span style="top: 14px;right: 14px;-webkit-animation-delay: 0.4s;"></span>#}
+    {#            <span style=" right: 0;top: 50%;margin-top: -8px;-webkit-animation-delay: 0.5s;"></span>#}
+    {#            <span style="right: 14px;bottom: 14px;-webkit-animation-delay: 0.6s"></span>#}
+    {#            <span style="bottom: 0;left: 50%;margin-left: -8px;-webkit-animation-delay: 0.7s"></span>#}
+    {#            <span style="bottom: 14px;left: 14px;-webkit-animation-delay: 0.8s"></span>#}
+    {#        </div>#}
+    {#    </div>#}
     {% block content %}
     {% endblock %}
 </div>
@@ -110,19 +149,11 @@
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
-                    <div v-if="item.text == search" class="search">
-                        <input class="form-control" style="width:500px" v-model="input" @input="search" @blur="blur"
-                               title="search">
-                        <div v-for="(vs, k) in suggest">
-                            <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                            <a v-for="v in vs" :href="v[0]">[[ v[1] ]]</a>
-                            <div v-if="vs" class="dropdown-divider"></div>
-                        </div>
-                    </div>
-                    <img v-else :src="item.src" alt="item.text">
+                    <img :src="item.src" alt="item.text">
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </nav>
 <nav id="footer" class="navbar navbar-expand-md bg-dark navbar-dark">
@@ -157,8 +188,7 @@
             ],
             items2: [
                 {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
-                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'},
-                {'href': '#modal_search', 'fa': 'fa fa-search', 'text': 'search'}
+                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'}
             ]
         }
     });
@@ -169,7 +199,7 @@
             items: [
                 {
                     'id': 'modal_wechat',
-                    'fa': 'fa wechat',
+                    'fa': 'fa fa-wechat',
                     'text': '12308',
                     'src': '{% static 'image/wechat.jpg' %}'
                 },
@@ -178,48 +208,28 @@
                     'fa': 'fa fa-user',
                     'text': '吐槽我吧',
                     'src': '{% static 'image/qq.jpg' %}'
-                },
-                {'id': 'modal_search', 'fa': 'fa search', 'text': 'search'}
+                }
             ]
         }
     });
-    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
-
-    var search = new Vue({
-        el: '.search',
-        delimiters: ['[[', ']]'],
+    var loading = new Vue({
+        el: '.loadEffect',
+        methods: ['[[', ']]'],
         data: {
-            url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
-            input: '',
-            suggest: {}
-        },
-        methods: {
-            blur: function () {
-                setTimeout(function () {
-                    search.input = '';
-                    search.suggest = {}
-                }, 200)
-            },
-            search: function () {
-                this.suggest = {};
-                if (this.input) {
-                    var _this = this;
-                    var suggest = {};
-                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (result) {
-                        $.each(result, function (k, v) {
-                            if (v.length > 0) {
-                                suggest[k] = [];
-                                $.each(v, function (n, text) {
-                                    suggest[k].push([_this.url[k].replace('*', text), text])
-                                });
-                            }
-                        });
-                        search.suggest = suggest
-                    })
-                }
+            set: function () {
+                data = [[],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ]
             }
         }
     });
+    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
 
     function map_init(map_id) {
         var map_div = map_id;
@@ -238,6 +248,9 @@
     var map_hidden = 50;
 
     function map_area(map_div, data) {
+        if (data.length === 1) {
+            return [[data[0][0], [data[0][1]]], 8, map_div.height()]
+        }
         var x_list = [];
         var y_list = [];
         $.each(data, function () {

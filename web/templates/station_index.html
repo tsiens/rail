@@ -20,7 +20,6 @@
             font-weight: bold
         }
     </style>
-    <script>$.ajaxSetup({async: false})</script>
 {% endblock %}
 {% block content %}
     <div id="masonry">
@@ -28,6 +27,7 @@
 {% endblock %}
 <script>
     {% block script %}
+        $.ajaxSetup({async: false});
         $("a:contains('车站')").addClass('active');
         var img_start = 0;
         var scrollTop = 0;

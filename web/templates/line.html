@@ -5,12 +5,20 @@
         <div id="map"></div>
     </div>
     <div style="overflow:auto">
-        <table id='table' class='table table-hover table-bordered'>
+        <table id='time_table' class='table table-hover table-bordered'>
             <thead>
-            <tr>
+            <tr v-if="table.length>0">
+                <th v-for="item in items">[[ item ]]</th>
             </tr>
             </thead>
             <tbody>
+            <tr v-for="items in table">
+                <template v-for="item in items">
+                    <td v-if="'href' in item"><a :href="item.href">[[ item.text ]]</a></td>
+                    <td v-else if="'span' in item"><span :class="item.span">[[ item.text ]]</span></td>
+                    <td v-else>[[ item.text ]]</td>
+                </template>
+            </tr>
             </tbody>
         </table>
     </div>
@@ -19,44 +27,50 @@
     {% block script %}
         $("a:contains('车次')").addClass('active');
         [map_div, map] = map_init($('#map'));
-        $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line }}'}, function (data) {
-            set_timetable(data);
-            set_map(data)
+        var time_table = new Vue({
+            el: '#time_table',
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                setTimeout(this.get, 0)
+            },
+            data: {
+                items: ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
+                table: []
+            },
+            methods: {
+                get: function () {
+                    var _this = this;
+                    $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
+                        set_map(res);
+                        $.each(res, function () {
+                            var items = [];
+                            $.each(this, function (n, text) {
+                                if (n > 4) {
+                                    var item = {'text': text};
+                                    if (n === 6) {
+                                        item.href = '{% url 'station' '*' %}'.replace('*', text)
+                                    }
+                                    else if ($.inArray(text, [0, -1, -2]) > -1) {
+                                        item.span = 'badge badge-pill badge-' + ['warning', 'success', 'danger'][0 - text];
+                                        item.text = ['乘降所', '始发', '终到'][0 - text];
+                                        if (text === -1) {
+                                            items[2].text = '-';
+                                            items[3].text = '-'
+                                        }
+                                        else if (text === -2) {
+                                            items[4].text = '-';
+                                            items[5].text = '-'
+                                        }
+                                    }
+                                    items.push(item)
+                                }
+                            });
+                            _this.table.push(items)
+                        })
+                    })
+                }
+            }
         });
-        function set_timetable(data) {
-            var th = ['站序', '车站', '到日', '到时', '发日', '发时', '停留'];
-            $.each(th, function () {
-                $('#table').find('thead').find('tr').append($('<td>').text(this));
-            });
-            $.each(data, function (n, station) {
-                var tr = $('<tr>');
-                $.each(station, function (n, txt) {
-                    if (n > 4) {
-                        if (n === 6) {
-                            td = $('<td>').append($('<a>').attr('href', '{% url 'station' '*' %}'.replace('*', txt)).text(txt))
-                        }
-                        else if (txt === -1) {
-                            tr.find('td').eq(-3).text('-');
-                            tr.find('td').eq(-4).text('-');
-                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-success').text('始发'))
-                        }
-                        else if (txt === -2) {
-                            tr.find('td').eq(-1).text('-');
-                            tr.find('td').eq(-2).text('-');
-                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-danger').text('终到'))
-                        }
-                        else if (txt === 0) {
-                            td = $('<td>').append($('<span>').attr('class', 'badge badge-pill badge-warning').text('乘降所'))
-                        }
-                        else {
-                            td = $('<td>').text(txt);
-                        }
-                        tr.append(td)
-                    }
-                });
-                $('#table').find('tbody').append(tr);
-            });
-        }
         function set_map(data) {
             [center, zoom, height] = map_area(map_div, data);
             map_div.height(height);
