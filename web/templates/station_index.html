@@ -1,37 +1,43 @@
 {% extends 'template.html' %}
 {% block head %}
     <style>
-        #masonry h5 {
+        #imgs h5 {
             margin: 0;
             color: #000
         }
 
-        #masonry p {
+        #imgs p {
             margin: 0;
             color: #AAA;
             font-size: 10px
         }
 
-        #masonry a:hover {
+        #imgs a:hover {
             background-color: #EEE
         }
 
-        #masonry a:hover > h5, #masonry a:hover > p {
+        #imgs a:hover > h5, #imgs a:hover > p {
             font-weight: bold
         }
     </style>
 {% endblock %}
 {% block content %}
-    <div id="masonry">
+    <div id="imgs">
+        {#        <a v-for="img in imgs" class="img-thumbnail" :href="img.href"#}
+        {#           style="max-width: 210px; margin: 4px; position: absolute; left: 436px; top: 0">#}
+        {#            <img :alt="img.text" :src="img.src">#}
+        {#            <h5>[[ img.text ]]</h5>#}
+        {#            <p>[[ img.info ]]</p>#}
+        {#        </a>#}
     </div>
 {% endblock %}
 <script>
     {% block script %}
-        $.ajaxSetup({async: false});
         $("a:contains('车站')").addClass('active');
+        $.ajaxSetup({async: false});
         var img_start = 0;
         var scrollTop = 0;
-        var $grid = $('#masonry').masonry();
+        var $grid = $('#imgs').masonry();
         masonry(10);
         $(window).scroll(function () {
             scrollTop = $(this).scrollTop();
@@ -39,6 +45,42 @@
                 masonry(10)
             })
         });
+        {#        new Vue({#}
+        {#            el: '#imgs',#}
+        {#            delimiters: ['[[', ']]'],#}
+        {#            mounted: function () {#}
+        {#                setTimeout(this.get, 0)#}
+        {#            },#}
+        {#            data: {#}
+        {#                imgsArr: [],         //存放所有已加载图片的数组（即当前页面会加载的所有图片）#}
+        {#                fetchImgsArr: [],     //存放每次滚动时下一批要加载的图片的数组#}
+        {#                imgs:[],#}
+        {#                end:21,//{{ count }},#}
+        {#                num: 10#}
+        {#            },#}
+        {#            methods: {#}
+        {#                get: function () {#}
+        {#                    var start = 0;#}
+        {#                    var _this = this;#}
+        {#                    while (start <=_this.end) {#}
+        {#                        var end = start + _this.num;#}
+        {#                        if (end >_this.end) {#}
+        {#                            end =_this.end#}
+        {#                        }#}
+        {#                        var n = 0;#}
+        {#                        while (n <_this.num){#}
+        {#                            _this.imgs.push([])#}
+        {#                        }#}
+        {#                        $.post('{% url 'data' %}', {'type': 'station_index','start': start,'end': end}, function (data) {#}
+        {#                            $.each(data,function(k,v){#}
+        {#                                _this.imgs[k+start]=v#}
+        {#                            })#}
+        {#                        });#}
+        {#                        start=end#}
+        {#                    }#}
+        {#                }#}
+        {#            }#}
+        {#        });#}
 
         function masonry(n) {
             if (($('#footer').offset().top < $(window).height() * 3 + scrollTop) && (img_start + n <={{ count }})) {
@@ -47,6 +89,7 @@
                     'start': img_start,
                     'end': img_start + n
                 }, function (data) {
+                    $('#loading').hide();
                     $.each(data, function () {
                         img_start = img_start + 1;
                         var a = $('<a>').addClass('img-thumbnail').css({'max-width': '210px', 'margin': '4px'}).attr({
@@ -69,7 +112,6 @@
                 })
             }
         }
-
         $(window).resize(function () {
             masonry(scrollTop);
         });

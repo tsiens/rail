@@ -7,9 +7,11 @@
     <div style="overflow:auto">
         <table id='time_table' class='table table-hover table-bordered'>
             <thead>
-            <tr v-if="table.length>0">
-                <th v-for="item in items">[[ item ]]</th>
-            </tr>
+            <template v-if="table.length>0">
+                <tr>
+                    <th v-for="item in items">[[ item ]]</th>
+                </tr>
+            </template>
             </thead>
             <tbody>
             <tr v-for="items in table">
@@ -26,8 +28,8 @@
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
-        [map_div, map] = map_init($('#map'));
-        var time_table = new Vue({
+        loading.show();
+        new Vue({
             el: '#time_table',
             delimiters: ['[[', ']]'],
             mounted: function () {
@@ -41,6 +43,7 @@
                 get: function () {
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
+                        loading.hide();
                         set_map(res);
                         $.each(res, function () {
                             var items = [];
@@ -72,9 +75,9 @@
             }
         });
         function set_map(data) {
-            [center, zoom, height] = map_area(map_div, data);
-            map_div.height(height);
-            map_div.parent().css({'height': height - map_hidden, 'overflow': 'hidden'});
+            var map_div = $('#map');
+            [center, zoom] = map_area(map_div, data);
+            var map = echarts.init(map_div.get(0));
             option = {
                 title: {
                     text: '{{ line }}',
@@ -155,7 +158,6 @@
                 document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][6])
             });
             map.setOption(option);
-            map.hideLoading()
         }
     {% endblock %}
 </script>

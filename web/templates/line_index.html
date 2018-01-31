@@ -14,13 +14,13 @@
     <div id="lines">
         <ul id="line_tab" class="nav nav-tabs" role="tablist">
             <li v-for="tab in tabs" class="nav-item">
-                <a :class="tab.class" :href="tab.href" data-toggle="tab">
+                <a class="nav-link" v-bind:class="{ active: tab.active}" :href="tab.href" data-toggle="tab">
                     <span class="badge badge-pill badge-dark">[[ tab.text ]]</span>
                 </a>
             </li>
         </ul>
         <div id="line_content" class="tab-content">
-            <div v-for="content in contents" :id="content.id" :class="content.class">
+            <div v-for="content in contents" :id="content.id" class="tab-pane" v-bind:class="{ active: content.active}">
                 <button v-for="line in content.lines" class="btn btn-dark" type="button" style="margin: 3px;"><a
                         target="_blank" :href="line.href">[[ line.text ]]<span
                         class="badge badge-light">[[ line.info ]]</span></a></button>
@@ -31,7 +31,7 @@
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
-        var lines = new Vue({
+        new Vue({
             el: '#lines',
             delimiters: ['[[', ']]'],
             mounted: function () {
@@ -45,11 +45,11 @@
                 get: function () {
                     var _this = this;
                     $.each({{ line_codes|safe }}, function (n, text) {
-                        var tab = {'class': 'nav-link', 'href': '#line_' + text, 'text': text};
-                        var content = {'id': 'line_' + text, 'class': 'tab-pane', 'lines': []};
+                        var tab = {'active': false, 'href': '#line_' + text, 'text': text};
+                        var content = {'id': 'line_' + text, 'active': false, 'lines': []};
                         if (n === 0) {
-                            tab.class = tab.class + ' active';
-                            content.class = content.class + ' active'
+                            tab.active = true;
+                            content.active = true
                         }
                         _this.tabs.push(tab);
                         $.post('{% url 'data' %}', {'type': 'line_index', 'code': text}, function (data) {

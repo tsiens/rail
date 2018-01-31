@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load staticfiles %}
 <html lang="en">
 <head>
     <title>Rail</title>
@@ -15,40 +16,18 @@
     <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
     <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
     <script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+    <link href="{% static '/vue/vue-waterfall-easy.vue' %}" rel="stylesheet">
     <script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
     <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
-    {% load staticfiles %}
     <script src="{% static '/echarts/mapStyle.js' %}"></script>
     <style>
-        .loadEffect {
-            width: 100px;
-            height: 100px;
-            position: relative;
-            margin: 0 auto;
-            margin-top: 100px;
-        }
-
-        .loadEffect span {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #343a40;
-            position: absolute;
-            -webkit-animation: load 1.04s ease infinite;
-        }
-
         @-webkit-keyframes load {
             0% {
                 opacity: 1;
             }
             100% {
-                opacity: 0.2;
+                opacity: 0;
             }
-        }
-
-        body {
-            background-color: #F0F0F0
         }
 
         a:hover {
@@ -105,7 +84,7 @@
     {% block head %}
     {% endblock %}
 </head>
-<body>
+<body style="background-color: #F0F0F0">
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a>
@@ -125,18 +104,9 @@
     </div>
 </nav>
 <div class="container">
-    {#    <div class="loadEffect" style="height: 500px;padding: 200px">#}
-    {#        <div>#}
-    {#            <span style="left: 0;top: 50%;margin-top: -8px;-webkit-animation-delay: 0.1s"></span>#}
-    {#            <span style="left: 14px;top: 14px;-webkit-animation-delay: 0.2s"></span>#}
-    {#            <span style="left: 50%;top: 0;margin-left: -8px;-webkit-animation-delay: 0.3s;"></span>#}
-    {#            <span style="top: 14px;right: 14px;-webkit-animation-delay: 0.4s;"></span>#}
-    {#            <span style=" right: 0;top: 50%;margin-top: -8px;-webkit-animation-delay: 0.5s;"></span>#}
-    {#            <span style="right: 14px;bottom: 14px;-webkit-animation-delay: 0.6s"></span>#}
-    {#            <span style="bottom: 0;left: 50%;margin-left: -8px;-webkit-animation-delay: 0.7s"></span>#}
-    {#            <span style="bottom: 14px;left: 14px;-webkit-animation-delay: 0.8s"></span>#}
-    {#        </div>#}
-    {#    </div>#}
+    <div id="loading" style="position: relative;width:100%">
+        <span v-for="style in styles" v-bind:style="style"></span>
+    </div>
     {% block content %}
     {% endblock %}
 </div>
@@ -153,7 +123,6 @@
                 </div>
             </div>
         </div>
-    </div>
     </div>
 </nav>
 <nav id="footer" class="navbar navbar-expand-md bg-dark navbar-dark">
@@ -176,7 +145,8 @@
     </div>
 </nav>
 <script>
-    var header = new Vue({
+    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
+    new Vue({
         el: '#header',
         delimiters: ['[[', ']]'],
         data: {
@@ -192,7 +162,7 @@
             ]
         }
     });
-    var modal = new Vue({
+    new Vue({
         el: '#modal',
         delimiters: ['[[', ']]'],
         data: {
@@ -212,63 +182,92 @@
             ]
         }
     });
-    var loading = new Vue({
-        el: '.loadEffect',
-        methods: ['[[', ']]'],
+    loading = new Vue({
+        el: '#loading',
+        delimiters: ['[[', ']]'],
         data: {
-            set: function () {
-                data = [[],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    []
-                ]
+            div: '#loading',
+            size: 16,
+            radius: 50,
+            speed: 0.5,
+            styles: []
+        },
+        methods: {
+            show: function () {
+                var set = [
+                    [-1, 0],
+                    [-Math.sqrt(2) / 2, Math.sqrt(2) / 2],
+                    [0, 1],
+                    [Math.sqrt(2) / 2, Math.sqrt(2) / 2],
+                    [1, 0],
+                    [Math.sqrt(2) / 2, -Math.sqrt(2) / 2],
+                    [0, -1],
+                    [-Math.sqrt(2) / 2, -Math.sqrt(2) / 2]
+                ];
+                var div = $(this.div);
+                set_height(div);
+                var height = div.height() * 0.5;
+                var width = div.width() * 0.5;
+                var styles = [];
+                var _this = this;
+                $.each(set, function (k, v) {
+                    styles.push({
+                        'top': height + _this.radius * v[0] + 'px',
+                        'left': width + _this.radius * v[1] + 'px',
+                        'margin-left': '-' + _this.size / 2 + 'px',
+                        '-webkit-animation': 'load ' + _this.speed + 's ease infinite',
+                        '-webkit-animation-delay': _this.speed / set.length * k + 's',
+                        'display': 'inline-block',
+                        'width': _this.size + 'px',
+                        'height': _this.size + 'px',
+                        'border-radius': '50%',
+                        'background': '#343a40',
+                        'position': 'absolute'
+                    })
+                });
+                this.styles = styles
+            },
+            hide: function () {
+                $(this.div).height(0);
+                this.styles = [];
             }
         }
     });
-    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
 
-    function map_init(map_id) {
-        var map_div = map_id;
-        while ($('body').height() === $(window).height()) {
-            map_div.height(map_div.height() + 1);
+    function set_height(object) {
+        while ($('body').height() <= $(window).height()) {
+            object.height(object.height() + 1)
         }
-        map_div.height(map_div.height() - 1);
-        var map = echarts.init(map_div.get(0));
-        map.showLoading({
-            color: '#c23531',
-            maskColor: 'rgba(255, 255, 255, 0)'
-        });
-        return [map_div, map]
+        object.height(object.height() - 1);
+        return object.height()
     }
-
-    var map_hidden = 50;
-
     function map_area(map_div, data) {
-        if (data.length === 1) {
-            return [[data[0][0], [data[0][1]]], 8, map_div.height()]
+        var map_hidden = 50;
+        var zoom = 8;
+        var center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
+        var height = set_height(map_div) - 3 * map_hidden;
+        if (data.length > 1) {
+            var x_list = [];
+            var y_list = [];
+            $.each(data, function () {
+                x_list.push(this[0]);
+                y_list.push(this[1]);
+            });
+            var x_min = Math.min.apply(null, x_list);
+            var x_max = Math.max.apply(null, x_list);
+            var y_min = Math.min.apply(null, y_list);
+            var y_max = Math.max.apply(null, y_list);
+            zoom = Math.log(2.048 / (x_max - x_min) * (map_div.width())) / Math.log(2);
+            center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
+            height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
+            while (height > map_div.height()) {
+                zoom = zoom - 1;
+                height = height / 2
+            }
         }
-        var x_list = [];
-        var y_list = [];
-        $.each(data, function () {
-            x_list.push(this[0]);
-            y_list.push(this[1]);
-        });
-        var x_min = Math.min.apply(null, x_list);
-        var x_max = Math.max.apply(null, x_list);
-        var y_min = Math.min.apply(null, y_list);
-        var y_max = Math.max.apply(null, y_list);
-        var zoom = Math.log(2.048 / (x_max - x_min) * (map_div.width())) / Math.log(2);
-        var center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
-        var height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
-        while (height > map_div.height() - 2 * map_hidden) {
-            zoom = zoom - 1;
-            height = height / 2
-        }
-        return [center, zoom, height + 4 * map_hidden]
+        map_div.height(height + 3 * map_hidden);
+        map_div.parent().css({'height': height + 2 * map_hidden, 'overflow': 'hidden'});
+        return [center, zoom]
     }
     {% block script %}
     {% endblock %}
