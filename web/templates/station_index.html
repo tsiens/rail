@@ -23,40 +23,53 @@
 {% endblock %}
 {% block content %}
     <div id="imgs">
-        <a v-for="img in imgs" class="img-thumbnail" :href="img.href"
-           style="max-width: 210px; margin: 4px">
-            <img :alt="img.text" :src="img.src">
-            <h5>[[ img.text ]]</h5>
-            <p>[[ img.info ]]</p>
-        </a>
+        <template v-for="img in imgs">
+            <a class="img-thumbnail" :href="img.href"
+               style="display: none;max-width: 210px; margin: 4px">
+                <img :alt="img.text" :src="img.src">
+                <h5>[[ img.text ]]</h5>
+                <p>[[ img.info ]]</p>
+            </a>
+        </template>
     </div>
 {% endblock %}
 <script>
     {% block script %}
         $("a:contains('车站')").addClass('active');
-        var imgs = new Vue({
+        new Vue({
             el: '#imgs',
             delimiters: ['[[', ']]'],
             mounted: function () {
-                setTimeout(this.get(this.start), 0)
+                var _this = this;
+                $(window).scroll(function () {
+                    _this.get()
+                });
+                setTimeout(_this.get(), 0);
             },
             data: {
+                imgs_div: '#imgs',
                 imgs: [],
                 start: 0,
-                end: 21,//{{ count }},
-                num: 10
+                end: {{ count }},
+                num: 10,
+                ispost: false
             },
             methods: {
-                scrollTop: function () {
-                    return $(window).scrollTop()
-                },
-                get: function (start) {
-                    var _this = this;
-                    var end = start + _this.num;
-                    if (end >= _this.end) {
-                        end = _this.end
+                get: function () {
+                    if ((!this.ispost) && ($('body').height() < $(window).height() * 3 + $(window).scrollTop()) && (this.start <= this.end)) {
+                        this.ispost = true;
+                        this.post()
                     }
-                    $.post('{% url 'data' %}', {'type': 'station_index', 'start': start, 'end': end}, function (data) {
+                },
+                post: function () {
+                    var _this = this;
+                    var $imgs = $(this.imgs_div);
+                    $imgs.masonry();
+                    $.post('{% url 'data' %}', {
+                        'type': 'station_index',
+                        'start': _this.start,
+                        'end': _this.start + _this.num
+                    }, function (data) {
                         $.each(data, function () {
                             _this.imgs.push({
                                 'href': '{% url 'station' '*' %}'.replace('*', this[0]),
@@ -64,66 +77,24 @@
                                 'text': this[0],
                                 'info': this[1] + ' ' + this[2] + ' ' + this[3]
                             });
+                            _this.start = _this.start + 1;
                         });
                         setTimeout(
                             function () {
-                                $.each($('#imgs a').slice(start - end), function () {
-                                        var img = this;
-                                        $('#imgs').imagesLoaded(function () {
-                                            $('#imgs').masonry().masonry('appended', img)
-                                        })
+                                $.each($imgs.find('a').slice(0 - data.length), function () {
+                                    $imgs.masonry('appended', this)
                                     }
-                                )
+                                );
+                                $imgs.imagesLoaded(function () {
+                                    $imgs.masonry({itemSelector: 'a'});
+                                    _this.ispost = false;
+                                    _this.get()
+                                })
                             }, 0
                         );
-                        _this.start = _this.start + 1;
                     })
                 }
             }
         });
-        {#        $.ajaxSetup({async: false});#}
-        {#        var img_start = 0;#}
-        {#        var scrollTop = 0;#}
-        {#        var $grid = $('#imgs').masonry();#}
-        {#        masonry(10);#}
-        {#        $(window).scroll(function () {#}
-        {#            scrollTop = $(this).scrollTop();#}
-        {#            $grid.imagesLoaded(function () {#}
-        {#                masonry(10)#}
-        {#            })#}
-        {#        });#}
-        {#        function masonry(n) {#}
-        {#            if (($('#footer').offset().top < $(window).height() * 3 + scrollTop) && (img_start + n <={{ count }})) {#}
-        {#                $.post('{% url 'data' %}', {#}
-        {#                    'type': 'station_index',#}
-        {#                    'start': img_start,#}
-        {#                    'end': img_start + n#}
-        {#                }, function (data) {#}
-        {#                    $('#loading').hide();#}
-        {#                    $.each(data, function () {#}
-        {#                        img_start = img_start + 1;#}
-        {#                        var a = $('<a>').addClass('img-thumbnail').css({'max-width': '210px', 'margin': '4px'}).attr({#}
-        {#                            'href': '{% url 'station' '*' %}'.replace('*', this[0])#}
-        {#                        }).append(#}
-        {#                            $('<img>').attr({#}
-        {#                                'alt': this[0],#}
-        {#                                'src': '{{ qiniu }}' + this[0] + '{{ format }}'#}
-        {#                            })#}
-        {#                        ).append($('<h5>').text(this[0])).append($('<p>').text(this[1] + ' ' + this[2] + ' ' + this[3]));#}
-        {##}
-        {#                        $grid.append(a).masonry('appended', a);#}
-        {#                        $grid.imagesLoaded(function () {#}
-        {#                            $grid.masonry({itemSelector: 'a'});#}
-        {#                        })#}
-        {#                    });#}
-        {#                    $grid.imagesLoaded(function () {#}
-        {#                        masonry(n)#}
-        {#                    })#}
-        {#                })#}
-        {#            }#}
-        {#        }#}
-        {#        $(window).resize(function () {#}
-        {#            masonry(scrollTop);#}
-        {#        });#}
     {% endblock %}
 </script>
