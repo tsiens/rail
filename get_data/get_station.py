@@ -16,10 +16,11 @@ def get_station():
     for station in get:
         cn, en = station.split('|')[1:3]
         if cn not in stations_cn:
-            data.append((cn, en, 125, 30, None, None, None, '1970-01-01', '1970-01-01'))
+            data.append((cn, en))
             stations_cn[cn], stations_cn[en] = en, cn
             log('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), cn))
-    mysql.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data))
+    mysql.execute(("INSERT INTO %s VALUE (null,%%s,%%s,null,null,null,null,null,null,null,null)" % station_table, data))
+    # id 站名 代码 经度 维度 省 市 县 时间 图片 图片时间
 
 
 def get_location():
@@ -27,19 +28,19 @@ def get_location():
     stations_old, stations_now = mysql.execute(
         "SELECT cn FROM %s " % station_table, "SELECT DISTINCT station FROM %s " % timetable_table)
     for station in set(stations_now) - set(stations_old):
-        data.append((station[0], 'A', 125, 30, None, None, None, '1970-01-01', '1970-01-01'))
+        data.append((station[0]))
         log('%s 插入 %s 站' % (datetime.now().strftime('%H:%M:%S'), station[0]))
-    stations = [station[0] for station in
-                mysql.execute(("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % station_table, data),
-                              "SELECT cn FROM %s WHERE x=125 and y=30 and cn in (SELECT station FROM %s) and date<'%s'" % (
+    mysql.execute(
+        ("INSERT INTO %s VALUE (null,%%s,null,null,null,null,null,null,null,null,null)" % station_table, data))
+    stations = [station[0] for station in mysql.execute(
+        "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and ((x=125 and y=30) or (x IS NULL and y IS NULL)) and (date IS NULL or date<'%s')" % (
                                   station_table, timetable_table, today))]
     global sqls
     sqls = []
     rs = threadpool.makeRequests(get_location_thread, stations)
     [pool.putRequest(r) for r in rs]
     pool.wait()
-    if len(sqls) > 0:
-        mysql.execute(*sqls)
+    mysql.execute(*sqls)
 
 
 def get_location_thread(station):
@@ -103,35 +104,33 @@ def get_location_thread(station):
 
 def get_img():
     stations = [station[0] for station in mysql.execute(
-        "SELECT cn FROM %s WHERE cn in (SELECT DISTINCT station FROM %s) and image_date<'%s'" % (
+        "SELECT cn FROM %s WHERE cn in (SELECT DISTINCT station FROM %s) and (image_date IS NULL or image_date<'%s')" % (
             station_table, timetable_table, today - timedelta(days=100)))]
     global sqls
     sqls = []
     rs = threadpool.makeRequests(get_img_thread, stations[:100])
     [pool.putRequest(r) for r in rs]
     pool.wait()
-    if len(sqls) > 0:
-        mysql.execute(*sqls)
+    mysql.execute(*sqls)
 
 
 def get_img_thread(station):
-    src = pq(requests.get(wiki_url % station, headers=headers).text)('[property="og:image"]')
-    if src:
-        src = src.attr('content').replace('1200px', '640px')
-        if 'Missing' not in src and 'No' not in src:
-            return src
-    src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
-    if src:
-        src = re.findall(r'src=(.+)', src)[0]
+    url = pq(requests.get(wiki_url + '/wiki/%s站' % station, headers=headers).text)('.vcard [colspan="2"] a')
+    if url and 'Missing' not in str(url) and 'No' not in str(url):
+        src = pq(requests.get(wiki_url + url.attr('href'), headers=headers).text)('.fullMedia a').attr('href')
     else:
-        html = requests.get(image_url % station, headers=headers).text
-        src = re.findall(r'"thumburl":"(.+?\.jpg)"', html)[0].replace('\\', '')
-    global sqls
-    qiniuyun.fetch(src, 'station_img/%s.jpg' % station)
-    log('图片 %s 站' % station)
+        src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
+        if src:
+            src = re.findall(r'src=(.+)', src)[0]
     lock.acquire()
-    sqls.append("UPDATE %s SET image_date='%s' WHERE cn='%s'" % (
-        station_table, today, station))
+    global sqls
+    if src:
+        qiniuyun.fetch(src, 'station_img/%s.jpg' % station)
+        log('图片 %s 站' % station)
+    else:
+        src = None
+    sqls.append("UPDATE %s SET image_date='%s',image='%s' WHERE cn='%s'" % (
+        station_table, today, src, station))
     if len(sqls) == 10:
         mysql.execute(*sqls)
         sqls = []
@@ -141,7 +140,7 @@ def get_img_thread(station):
 if __name__ == '__main__':
     sqls = []
     # get_station()
-    get_location()
+    # get_location()
     # get_location_thread('昂昂溪')
-    # get_img()
-    # get_img_thread('干溪沟')
+    get_img()
+    # get_img_thread('阿城')

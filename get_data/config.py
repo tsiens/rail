@@ -50,9 +50,8 @@ amap_to_baidu = 'http://api.map.baidu.com/geoconv/v1/?coords=%s,%s&from=3&to=5&a
 baidu_url = 'http://api.map.baidu.com/place/v2/search?query=%s站&tag=火车站&region=%s&output=json&ak=%s'
 geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-over'
 geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
-wiki_url = 'https://zh.wikipedia.org/wiki/%s站'
+wiki_url = 'https://zh.wikipedia.org'
 baike_url = 'https://wapbaike.baidu.com/item/%s站'
-image_url = 'https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&word=%s站 火车'
 
 
 def stations_lines():
@@ -62,6 +61,9 @@ def stations_lines():
     stations_en = dict(zip([station[1] for station in stations], [station[0] for station in stations])) if stations != [
         ()] else {}
     lines = dict(zip([line[0] for line in lines], [line[1] for line in lines])) if lines != [()] else []
+    for k, v in lines.items():
+        if not v:
+            lines[k] = datetime(1970, 1, 1).date()
     return stations_cn, stations_en, lines
 
 def getjson(url, n=0):

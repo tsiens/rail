@@ -86,28 +86,27 @@
                 setTimeout(this.get, 0)
             },
             data: {
+                data:{{ stations|safe }},
                 items: []
             },
             methods: {
                 get: function () {
                     var _this = this;
-                    $.post('{% url 'data' %}', {'type': 'index_station'}, function (data) {
-                        var items = [];
-                        $.each(data, function (n, station) {
-                            var item = {
-                                'href': '{% url 'station' '*' %}'.replace('*', station),
-                                'src': '{{ qiniu }}' + station + '{{ format }}',
-                                'text': station,
-                                'n': n,
-                                'active': false
-                            };
-                            if (n === 0) {
-                                item.active = true
-                            }
-                            items.push(item)
-                        });
-                        _this.items = items
-                    })
+                    var items = [];
+                    $.each(this.data, function (n, station) {
+                        var item = {
+                            'href': '{% url 'station' '*' %}'.replace('*', station),
+                            'src': '{{ qiniu }}' + station + '{{ format }}',
+                            'text': station,
+                            'n': n,
+                            'active': false
+                        };
+                        if (n === 0) {
+                            item.active = true
+                        }
+                        items.push(item)
+                    });
+                    _this.items = items
                 }
             }
         });

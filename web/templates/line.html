@@ -7,9 +7,9 @@
     <div style="overflow:auto">
         <table id='time_table' class='table table-hover table-bordered'>
             <thead>
-            <template v-if="table.length>0">
-                <tr>
-                    <th v-for="item in items">[[ item ]]</th>
+            <template>
+                <tr v-if="table.length>0">
+                    <th v-for="th in ths">[[ th ]]</th>
                 </tr>
             </template>
             </thead>
@@ -36,7 +36,7 @@
                 setTimeout(this.get, 0)
             },
             data: {
-                items: ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
+                ths: ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
                 table: []
             },
             methods: {

@@ -19,6 +19,10 @@ def val(request):
 
 def index(request):
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
+    stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
+    stations = [station['cn'] for station in
+                Station.objects.filter(Q(cn__in=stations), ~Q(image=None)).values('cn')]
+    stations = random.sample(stations, 10)
     return render(request, 'index.html', locals())
 
 def station(request, station):
@@ -63,11 +67,6 @@ def data(request):
         with open('get_data/data.log', 'r') as f:
             logs = f.read()
         data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
-    elif type == 'index_station':
-        stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
-        stations = [station['cn'] for station in
-                    Station.objects.filter(Q(cn__in=stations), Q(image_date__gt='1970-01-01')).values('cn')]
-        data = random.sample(stations, 10)
     elif type == 'station_index':
         start, end = int(request.POST.get('start')), int(request.POST.get('end'))
         stations = Timetable.objects.values('station').annotate(count=Count('line')).order_by('-count')[start:end]
@@ -154,7 +153,6 @@ def data(request):
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
-
 
 def log(request):
     return render(request, 'log.html')

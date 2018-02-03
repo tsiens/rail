@@ -32,30 +32,36 @@ def get_timetable_thread(info):
         lasttime = leavetime
         data.append([line, code, order, station, arrivedate, arrivetime.time(), leavedate, leavetime.time(), staytime])
         order += 1
+    global sqls
     lock.acquire()
     if len(data) > 1:
         log('检索 %s 次  %s - %s  %s%%' % (line, start, arrive,
                                         int(lines_list.index(info) / len(lines_list) * 100)))
         data[0][-1] = -1
         data[-1][-1] = -2
-        mysql.execute(("INSERT INTO %s() VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
-                      "UPDATE %s SET runtime='%s',date='%s' WHERE code='%s'" % (line_table, runtime, today, code))
+        sqls += [("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % timetable_table, data),
+                 "UPDATE %s SET runtime='%s',date='%s' WHERE code='%s'" % (line_table, runtime, today, code)]
     else:
-        log('检索 %s 次  无效  %s%%' % (line, int(lines_list.index(info) / len(lines_list) * 100)))
-        mysql.execute("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, code))
+        log('检索 %s 次  无效  %s - %s  %s%%' % (line, start, arrive, int(lines_list.index(info) / len(lines_list) * 100)))
+        sqls.append("UPDATE %s SET date='%s' WHERE code='%s'" % (line_table, today, code))
+    if len(sqls) == 10:
+        mysql.execute(*sqls)
+        sqls = []
     lock.release()
 
 def get_timetable(old=[]):
-    global stations_cn, stations_en, lines, lines_list
+    global stations_cn, stations_en, lines, lines_list, sqls
+    sqls = []
     stations_cn, stations_en, lines = stations_lines()
     lines_list = mysql.execute(
-        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date<'%s'" % (line_table, today))
+        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date IS NULL" % line_table)
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
         rs = threadpool.makeRequests(get_timetable_thread, lines_list)
         [pool.putRequest(r) for r in rs]
         pool.wait()
-
+        mysql.execute(*sqls)
+        return get_timetable(lines_list)
 if __name__ == '__main__':
     get_timetable()
 

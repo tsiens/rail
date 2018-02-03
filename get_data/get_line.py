@@ -38,25 +38,26 @@ def get_line():
         get_city(citys)
     else:
         codes = re.findall('{"station_train_code":"([^\)]+)\(([^-]+)-([^\)]+)\)","train_no":"([^\"]+)"}', get[0])
-    data, update_line = [], []
+    codes.sort(key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))
+    insert_line, update_line = [], []
     for line in codes:
         name, start, arrive, code = line
         if start not in stations_cn or arrive not in stations_cn:
             continue
         if code in lines:
-            if lines[code] < today and lines[code] > datetime(1970, 1, 1).date():
+            if lines[code] < today:
                 update_line.append(code)
                 lines[code] = today
         else:
-            data.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive], 0, '1970-01-01'))
-            lines[code] = datetime(1970, 1, 1).date()
+            insert_line.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive]))
+            lines[code] = today
     mysql.execute(
-        ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,%%s,%%s)" % line_table, data),
+        ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,null,null)" % line_table, insert_line),
         "UPDATE %s SET date='%s' WHERE code in ('%s')" % (line_table, today, "','".join(update_line)))
-    log('插入 车次 %s ' % len(data))
+    log('插入 车次 %s ' % len(insert_line))
     log('更新 车次 %s ' % len(update_line))
     lines_delete = mysql.execute(
-        "SELECT code FROM %s WHERE date<'%s' and date>'1970-01-01'" % (line_table, today))
+        "SELECT code FROM %s WHERE date<'%s'" % (line_table, today))
     if len(lines_delete) > 0:
         lines_delete = [line[0] for line in lines_delete]
         mysql.execute("DELETE FROM %s WHERE code in('%s')" % (timetable_table, "','".join(lines_delete)),

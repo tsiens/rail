@@ -3,34 +3,47 @@
     <div style="overflow:auto">
         <table id='log_table' class='table table-hover table-bordered'>
             <thead>
-            <tr>
-            </tr>
+            <template v-if="table.length>0">
+                <tr>
+                    <th v-for="th in ths">[[ th ]]</th>
+                </tr>
+            </template>
             </thead>
             <tbody>
+            <tr v-for="items in table">
+                <template v-for="item in items">
+                    <td>[[ item ]]</td>
+                </template>
+            </tr>
             </tbody>
         </table>
     </div>
 {% endblock %}
 <script>
     {% block script %}
-        var th = ['时间', '日志'];
-        $.each(th, function () {
-            $('#table').find('thead').find('tr').append($('<td>').text(this));
+        loading.show();
+        new Vue({
+            el: '#log_table',
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                setTimeout(this.get, 0);
+            },
+            data: {
+                ths: ['时间', '日志'],
+                table: []
+            },
+            methods: {
+                get: function () {
+                    var _this = this;
+                    $.post('{% url 'data' %}', {'type': 'log'}, function (res) {
+                        loading.hide();
+                        _this.table = [];
+                        $.each(res, function () {
+                            _this.table.push(this)
+                        })
+                    })
+                }
+            }
         });
-        log();
-        setInterval(log, 10 * 1000);
-
-        function log() {
-            $.post('{% url 'data' %}', {'type': 'log'}, function (data) {
-                $('#table').find('tbody').empty();
-                $.each(data, function (n, station) {
-                    var tr = $('<tr>');
-                    $.each(station, function (n, txt) {
-                        tr.append($('<td>').text(txt))
-                    });
-                    $('#table').find('tbody').append(tr);
-                });
-            })
-        }
     {% endblock %}
 </script>

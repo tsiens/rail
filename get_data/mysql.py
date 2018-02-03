@@ -1,6 +1,8 @@
-import pymysql
-import warnings
 import logging
+import warnings
+
+import pymysql
+
 warnings.filterwarnings("ignore")
 
 class Mysql():
@@ -35,7 +37,7 @@ class Mysql():
                 if type(sql) == tuple:
                     cursor.executemany(sql[0], sql[1])
                 else:
-                    cursor.execute(sql)
+                    cursor.execute(sql.replace('\'None\'', 'null'))
                     if 'select' in sql.lower():
                         select = cursor.fetchall()
                         back.append(select)

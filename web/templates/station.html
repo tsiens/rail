@@ -9,7 +9,7 @@
             <thead>
             <template v-if="table.length>0">
                 <tr>
-                    <th v-for="item in items">[[ item ]]</th>
+                    <th v-for="th in ths">[[ th ]]</th>
                 </tr>
             </template>
             </thead>
@@ -37,7 +37,7 @@
                 setTimeout(this.get, 0)
             },
             data: {
-                items: ['车次', '始发', '终到', '到达', '离开', '停留'],
+                ths: ['车次', '始发', '终到', '到达', '离开', '停留'],
                 table: []
             },
             methods: {

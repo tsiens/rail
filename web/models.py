@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib import admin
+from django.db import models
 
 
 class Station(models.Model):
@@ -8,21 +8,22 @@ class Station(models.Model):
         verbose_name_plural = '车站'
 
     cn = models.CharField('车站', max_length=20)
-    en = models.CharField('代码', max_length=20)
+    en = models.CharField('代码', max_length=20, blank=True)
     x = models.FloatField('经度')
     y = models.FloatField('维度')
-    province = models.CharField('省', max_length=20)
-    city = models.CharField('市', max_length=20)
-    county = models.CharField('县', max_length=20)
+    province = models.CharField('省', max_length=20, blank=True)
+    city = models.CharField('市', max_length=20, blank=True)
+    county = models.CharField('县', max_length=20, blank=True)
     date = models.DateField('更新')
-    image_date = models.DateField('图片')
+    image = models.CharField('图片', max_length=255, blank=True)
+    image_date = models.DateField('图片日期')
 
     def __str__(self):
         return '%s %s-%s-%s' % (self.cn, self.province, self.city, self.county)
 
 
 class StationAdmin(admin.ModelAdmin):
-    list_display = ('cn', 'en', 'x', 'y', 'province', 'city', 'county', 'date')
+    list_display = ('cn', 'en', 'x', 'y', 'province', 'city', 'county', 'image_date')
     search_fields = ('cn', 'en', 'x', 'y', 'province', 'city', 'county')
 
 

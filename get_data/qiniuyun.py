@@ -1,8 +1,10 @@
-from qiniu import *
 from datetime import *
 
-qiniu_ak = '765Mhr-G-dZcwt07C50ki-7eFfptNFvESXd0OjtW'
-qiniu_sk = '_maWBwZBsSlaFFsaDANX11EWwAzUrGG1cbHYUNkw'
+from qiniu import *
+
+from key import *
+
+
 class Qiniuyun():
     def __init__(self, ak, sk, bucket_name):
         self.bucket_name = bucket_name
@@ -12,9 +14,10 @@ class Qiniuyun():
         self.bucket.fetch(url, self.bucket_name, name)
 
     def stat(self, names):
-        data = {}
         ops = build_batch_stat(self.bucket_name, names)
         ret, info = self.bucket.batch(ops)
+        print(info)
+        data = {}
         n = 0
         for info in eval(info.text_body):
             if info['code'] == 200:
@@ -27,3 +30,9 @@ class Qiniuyun():
     def delete(self, names):
         ops = build_batch_delete(self.bucket_name, names)
         self.bucket.batch(ops)
+
+
+if __name__ == '__main__':
+    bucket_name = 'rail'
+    qiniuyun = Qiniuyun(qiniu_ak, qiniu_sk, bucket_name)
+    print(qiniuyun.delete(['station_img/万州.jpg']))
