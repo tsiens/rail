@@ -61,7 +61,7 @@ def get_timetable(old=[]):
         [pool.putRequest(r) for r in rs]
         pool.wait()
         mysql.execute(*sqls)
-        return get_timetable(lines_list)
+        get_timetable(lines_list)
 if __name__ == '__main__':
     get_timetable()
 

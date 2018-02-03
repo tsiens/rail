@@ -38,7 +38,7 @@ def get_line():
         get_city(citys)
     else:
         codes = re.findall('{"station_train_code":"([^\)]+)\(([^-]+)-([^\)]+)\)","train_no":"([^\"]+)"}', get[0])
-    codes.sort(key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))
+    codes.sort(key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
     insert_line, update_line = [], []
     for line in codes:
         name, start, arrive, code = line

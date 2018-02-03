@@ -28,6 +28,7 @@
 <script>
     {% block script %}
         $("a:contains('车站')").addClass('active');
+        $("title").text('{{ data.cn }}');
         loading.show();
         var station = '{{ data.cn }}';
         new Vue({

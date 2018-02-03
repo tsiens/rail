@@ -17,6 +17,7 @@ def val(request):
     amap_bak = key.amap_bak
     return locals()
 
+
 def index(request):
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
     stations = [station['station'] for station in Timetable.objects.values('station').distinct()]
@@ -24,6 +25,7 @@ def index(request):
                 Station.objects.filter(Q(cn__in=stations), ~Q(image=None)).values('cn')]
     stations = random.sample(stations, 10)
     return render(request, 'index.html', locals())
+
 
 def station(request, station):
     if station == 'index':
@@ -34,6 +36,7 @@ def station(request, station):
         data = Station.objects.get(cn=station)
         return render(request, 'station.html', locals())
 
+
 def line(request, line):
     if line == 'index':
         line_codes = [line['line'][0] for line in Line.objects.values('line')]
@@ -43,6 +46,7 @@ def line(request, line):
         data = Line.objects.get(line=line)
         line, arrive, start = data.line, data.start, data.arrive
         return render(request, 'line.html', locals())
+
 
 def city(request, city):
     if city == 'index':
@@ -59,6 +63,7 @@ def city(request, city):
             else:
                 citys[province][city][county] = [cn]
         return render(request, 'city.html', locals())
+
 
 def data(request):
     type = request.POST.get('type')
@@ -83,7 +88,7 @@ def data(request):
         code = request.POST.get('code')
         for line in Line.objects.filter(line__startswith=code).values('line', 'start', 'arrive'):
             data.append([line['line'], line['start'], line['arrive']])
-        data = sorted(data, key=lambda x: int(x[0]) if x[0].isdigit() else int(x[0][1:]))
+        data = sorted(data, key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
     elif type == 'station':
         name = request.POST.get('station')
         lines = [line.line for line in Timetable.objects.filter(station=name).order_by('leavetime')]
@@ -148,11 +153,13 @@ def data(request):
                 data['城市'].append(row_data)
         for row in Line.objects.filter(line__contains=key.upper())[:10]:
             data['车次'].append(row.line)
-        for k, v in data.items():
-            data[k] = sorted(v)
+        data['车次'] = sorted(data['车次'], key=lambda x: (x[0], int(x[1:]) if len(x) > 1 else 0))
+        data['城市'] = sorted(data['城市'])
+        data['车站'] = sorted(data['车站'])
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
+
 
 def log(request):
     return render(request, 'log.html')

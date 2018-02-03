@@ -28,6 +28,7 @@
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
+        $("title").text('{{ line}}');
         loading.show();
         new Vue({
             el: '#time_table',
