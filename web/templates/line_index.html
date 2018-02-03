@@ -21,9 +21,11 @@
         </ul>
         <div id="line_content" class="tab-content">
             <div v-for="content in contents" :id="content.id" class="tab-pane" v-bind:class="{ active: content.active}">
-                <button v-for="line in content.lines" class="btn btn-dark" type="button" style="margin: 3px;"><a
-                        target="_blank" :href="line.href">[[ line.text ]]<span
-                        class="badge badge-light">[[ line.info ]]</span></a></button>
+                <a v-for="line in content.lines" target="_blank" :href="line.href">
+                    <span class="badge badge-dark" style="font-size: 14px;margin: 5px;padding: 5px">
+                        [[ line.text ]]<span class="badge badge-light" style="margin: 0 0 0 3px;padding: 3px">[[ line.info ]]</span>
+                    </span>
+                </a>
             </div>
         </div>
     </div>
