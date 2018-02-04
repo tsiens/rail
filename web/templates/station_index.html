@@ -22,15 +22,16 @@
     </style>
 {% endblock %}
 {% block content %}
+    <div style="text-align: center">
     <div id="imgs">
         <template v-for="img in imgs">
-            <a class="img-thumbnail" :href="img.href"
-               style="display: none;width: 210px; margin: 4px">
-                <img :alt="img.text" :src="img.src">
+            <a class="img-thumbnail" :href="img.href" style="display: none;padding: 5px; margin: 3px">
+                <img :alt="img.text" :src="img.src" style="width: 200px">
                 <h5>[[ img.text ]]</h5>
-                <p>[[ img.info ]]</p>
+                <p style="width: 200px">[[ img.info ]]</p>
             </a>
         </template>
+    </div>
     </div>
 {% endblock %}
 <script>
@@ -51,7 +52,7 @@
                 imgs: [],
                 start: 0,
                 end: {{ count }},
-                num: 10,
+                num: 20,
                 ispost: false
             },
             methods: {

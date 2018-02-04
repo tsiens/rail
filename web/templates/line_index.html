@@ -13,11 +13,13 @@
 {% block content %}
     <div id="lines">
         <ul id="line_tab" class="nav nav-tabs" role="tablist">
-            <li v-for="tab in tabs" class="nav-item">
-                <a class="nav-link" v-bind:class="{ active: tab.active}" :href="tab.href" data-toggle="tab">
-                    <span class="badge badge-pill badge-dark">[[ tab.text ]]</span>
-                </a>
-            </li>
+            <template v-for="tab in tabs">
+                <li v-if="tab.show" class="nav-item">
+                    <a class="nav-link" v-bind:class="{ active: tab.active}" :href="tab.href" data-toggle="tab">
+                        <span class="badge badge-pill badge-dark">[[ tab.text ]]</span>
+                    </a>
+                </li>
+            </template>
         </ul>
         <div id="line_content" class="tab-content">
             <div v-for="content in contents" :id="content.id" class="tab-pane" v-bind:class="{ active: content.active}">
@@ -47,7 +49,7 @@
                 get: function () {
                     var _this = this;
                     $.each({{ line_codes|safe }}, function (n, text) {
-                        var tab = {'active': false, 'href': '#line_' + text, 'text': text};
+                        var tab = {'active': false, 'href': '#line_' + text, 'text': text, 'show': false};
                         var content = {'id': 'line_' + text, 'active': false, 'lines': []};
                         if (n === 0) {
                             tab.active = true;
@@ -62,6 +64,7 @@
                                     'info': this[1] + '-' + this[2]
                                 })
                             });
+                            _this.tabs[n].show = true;
                             _this.contents.push(content);
                         })
                     })
