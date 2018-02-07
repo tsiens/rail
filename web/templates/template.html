@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load staticfiles %}
-<html lang="en">
+<html lang="en" style="height: 100%">
 <head>
     <title>Rail</title>
     <link rel="shortcut icon" type="image/x-icon" href="http://www.12306.cn/mormhweb/images/favicon.ico"/>
@@ -27,6 +27,10 @@
             100% {
                 opacity: 0;
             }
+        }
+
+        #map {
+            margin: 10px 0 0 0
         }
 
         a:hover {
@@ -83,7 +87,7 @@
     {% block head %}
     {% endblock %}
 </head>
-<body style="background-color: #F0F0F0">
+<body style="background-color: #F0F0F0;min-height: 100%;display: flex;flex-direction: column;justify-content:space-between">
 <nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a>
@@ -103,7 +107,7 @@
     </div>
 </nav>
 <div class="container">
-    <div id="loading" style="position: relative;width:100%">
+    <div id="loading" style="position: relative">
         <span v-for="style in styles" v-bind:style="style"></span>
     </div>
     {% block content %}
@@ -144,7 +148,6 @@
     </div>
 </nav>
 <script>
-    $('.container').css('min-height', $(window).height() - $('#header').height() - $('#footer').height() - 32);
     new Vue({
         el: '#header',
         delimiters: ['[[', ']]'],
@@ -240,6 +243,7 @@
         object.height(object.height() - 1);
         return object.height()
     }
+
     function map_area(map_div, data) {
         var map_hidden = 50;
         var zoom = 8;

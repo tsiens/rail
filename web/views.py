@@ -138,7 +138,8 @@ def data(request):
                                                                                       'arrivetime', 'leavedate',
                                                                                       'leavetime',
                                                                                       'staytime'):
-            data.append([str(i) for i in item])
+            item, item[3], item[5] = list(item), str(item[3]), str(item[5])
+            data.append(item)
             stations.append(item[1])
         for item in Station.objects.filter(cn__in=stations).values_list('cn', 'x', 'y', 'province', 'city', 'county'):
             n = stations.index(item[0])

@@ -35,6 +35,7 @@
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
+        $(".container").css('flex', 1);
         new Vue({
             el: '#lines',
             delimiters: ['[[', ']]'],

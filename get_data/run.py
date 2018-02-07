@@ -15,9 +15,9 @@ def get():
         get_timetable()
         get_location()
         get_img()
+        log('数据爬取完成')
     except:
         logger.error(traceback.format_exc())
-    log('数据爬取完成')
 
 if __name__ == '__main__':
     get()
