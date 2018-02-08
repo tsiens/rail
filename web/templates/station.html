@@ -27,9 +27,8 @@
 <script>
     {% block script %}
         $("a:contains('车站')").addClass('active');
-        $("title").text('{{ data.cn }}');
+        $("title").text('{{ station }}');
         loading.show();
-        var station = '{{ data.cn }}';
         new Vue({
             el: '#line_table',
             delimiters: ['[[', ']]'],
@@ -43,10 +42,10 @@
             methods: {
                 get: function () {
                     var _this = this;
-                    $.post('{% url 'data' %}', {'type': 'station', 'station': station}, function (res) {
+                    $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, function (res) {
                         loading.hide();
-                        set_map(res[1]);
-                        $.each(res[0], function () {
+                        set_map(res.车站, res.车次.length);
+                        $.each(res.车次, function () {
                             var items = [];
                             $.each(this, function (n, text) {
                                 var item = {'text': text};
@@ -66,17 +65,17 @@
                 }
             }
         });
-        function set_map(data) {
+        function set_map(data, lines_num) {
             var map_div = $('#map');
             [center, zoom] = map_area(map_div, data);
             var map = echarts.init(map_div.get(0));
             var option = {
                 title: {
-                    text: station,
+                    text: '{{ station }}',
                     textStyle: {
                         color: 'white'
                     },
-                    subtext: '{{data.province}} {{data.city}} {{data.county}}',
+                    subtext: '{{province}} {{city}} {{county}}',
                     left: 'center'
                 },
                 tooltip: {
@@ -140,6 +139,7 @@
                             formatter: function () {
                                 return station + '<br/>'
                                     + '连通车站：' + (data.length - 1) + ' 座<br/>'
+                                    + '经过车次：' + lines_num + ' 次'
                             }
                         }
                     },
@@ -164,8 +164,8 @@
                             formatter: function (params) {
                                 params = params.value;
                                 return params[2] + '<br/>'
-                                    + '最快：' + params[7] + ' 小时<br/>'
-                                    + '数量：' + params[6] + ' 车次<br/>'
+                                    + '最快可达：' + params[7] + ' 小时<br/>'
+                                    + '连接车次：' + params[6] + ' 车次'
                             }
                         },
                         itemStyle: {

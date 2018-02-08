@@ -32,9 +32,13 @@ def station(request, station):
         count = Timetable.objects.values('station').distinct().count()
         return render(request, 'station_index.html', locals())
     else:
-        data = Station.objects.get(cn=station)
-        return render(request, 'station.html', locals())
-
+        if Timetable.objects.filter(station=station):
+            station, province, city, county = \
+                Station.objects.filter(cn=station).values_list('cn', 'province', 'city', 'county')[0]
+            return render(request, 'station.html', locals())
+        else:
+            err = '%s站不存在或暂未开通客运服务' % station
+            return render(request, '404.html', locals())
 
 def line(request, line):
     if line == 'index':
@@ -42,9 +46,12 @@ def line(request, line):
         line_codes = sorted(list(set([line[0] for line in line_codes])))
         return render(request, 'line_index.html', locals())
     else:
-        data = Line.objects.get(line=line)
-        line, arrive, start = data.line, data.start, data.arrive
-        return render(request, 'line.html', locals())
+        if Timetable.objects.filter(line=line):
+            line, arrive, start = Line.objects.filter(line=line).values_list('line', 'arrive', 'start')[0]
+            return render(request, 'line.html', locals())
+        else:
+            err = '%s次不存在或无详细时刻信息' % line
+            return render(request, '404.html', locals())
 
 
 def city(request, city):
@@ -130,7 +137,7 @@ def data(request):
         timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[-2])
         stations = [stations_locations[k] + v for k, v in stations_data.items()]
         stations.insert(0, stations_locations[name] + [0, 0])
-        data = [timetable, stations]
+        data = {'车次': timetable, '车站': stations}
     elif type == 'line':
         name = request.POST.get('line').upper()
         stations = []

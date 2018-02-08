@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-from key import *
 import pymysql
+
+from key import *
 
 pymysql.install_as_MySQLdb()
 import os
@@ -132,9 +133,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-import platform
-
-DEBUG = True  # if platform.system()=='Windows' else False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
@@ -143,3 +142,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+import platform, time
+
+if platform.system() == 'Linux':
+    time.sleep(60)
+    DEBUG = False
