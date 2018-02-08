@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Rail</title>
-</head>
-<body>
-<h1>Not Found</h1>
-<p>{{ err }}</p>
-</body>
-</html>
+{% extends 'template.html' %}
+{% block content %}
+    <div style="flex:1">
+        <h1>Not Found</h1>
+        <p>{{ err }}</p>
+    </div>
+{% endblock %}

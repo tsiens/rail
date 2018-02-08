@@ -146,5 +146,5 @@ STATICFILES_DIRS = (
 import platform, time
 
 if platform.system() == 'Linux':
-    time.sleep(60)
+    time.sleep(1)
     DEBUG = False
