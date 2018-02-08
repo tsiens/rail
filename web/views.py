@@ -69,6 +69,9 @@ def city(request, city):
             else:
                 citys[province][city][county] = [cn]
         return render(request, 'city.html', locals())
+    else:
+        err = '建设中'
+        return render(request, '404.html', locals())
 
 
 def data(request):
