@@ -1,3 +1,5 @@
+from datetime import *
+
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from wechatpy import *
@@ -8,7 +10,8 @@ from wechatpy.utils import *
 from key import wx_token
 from web.models import *
 
-qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim'
+qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim&time=' + str(
+    datetime.now().date())
 @csrf_exempt  # 去除csrf认证
 def wx(request):
     if request.method == 'GET':

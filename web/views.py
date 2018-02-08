@@ -1,6 +1,6 @@
 import json
 import random
-from datetime import datetime
+from datetime import *
 
 from django.db.models import Q, Count
 # Create your views here.
@@ -19,7 +19,8 @@ def val(request):
 
 
 def index(request):
-    format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim'
+    format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
+        datetime.now().date())
     line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
     image_stations = list(Station.objects.filter(Q(cn__in=line_stations), ~Q(image=None)).values_list('cn', flat=True))
     stations = random.sample(image_stations, 10)
@@ -28,7 +29,8 @@ def index(request):
 
 def station(request, station):
     if station == 'index':
-        format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/interlace/1/blur/1x0/quality/75|imageslim'
+        format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
+            datetime.now().date())
         count = Timetable.objects.values('station').distinct().count()
         return render(request, 'station_index.html', locals())
     else:

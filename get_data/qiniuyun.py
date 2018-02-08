@@ -8,7 +8,8 @@ from key import *
 class Qiniuyun():
     def __init__(self, ak, sk, bucket_name):
         self.bucket_name = bucket_name
-        self.bucket = BucketManager(Auth(ak, sk))
+        self.auth = Auth(ak, sk)
+        self.bucket = BucketManager(self.auth)
 
     def fetch(self, url, name):
         self.bucket.fetch(url, self.bucket_name, name)
@@ -31,8 +32,6 @@ class Qiniuyun():
         ops = build_batch_delete(self.bucket_name, names)
         self.bucket.batch(ops)
 
-
 if __name__ == '__main__':
     bucket_name = 'rail'
     qiniuyun = Qiniuyun(qiniu_ak, qiniu_sk, bucket_name)
-    print(qiniuyun.delete(['station_img/万州.jpg']))
