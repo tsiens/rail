@@ -219,7 +219,6 @@
             url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
             input: '',
             suggest: {},
-            urls: {'line': '{% url "line" "*"%}', 'station': '{% url "station" "*"%}'}
         },
         methods: {
             blur: function () {
@@ -249,8 +248,8 @@
             },
             random: function () {
                 var _this = this;
-                $.post('{% url 'data' %}', {'type': 'index_random'}, function (data) {
-                    window.location.href = _this.urls[data[0]].replace('*', data[1]);
+                $.post('{% url 'data' %}', {'type': 'random'}, function (data) {
+                    window.location.href = _this.url[data[0]].replace('*', data[1]);
                 })
             }
         }
@@ -261,9 +260,9 @@
         data: {
             items1: [
                 {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
-                {'href': '{% url 'station' 'index' %}', 'fa': 'fa fa-train', 'text': '车站'},
-                {'href': '{% url 'line' 'index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
-                {'href': '{% url 'city' 'index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
+                {'href': '{% url 'station_index' %}', 'fa': 'fa fa-train', 'text': '车站'},
+                {'href': '{% url 'line_index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
+                {'href': '{% url 'city_index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
             ],
             items2: [
                 {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},

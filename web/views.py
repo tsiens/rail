@@ -58,29 +58,7 @@ def line(request, line):
 
 
 def city(request, city):
-    citys = {}
-    levels = ['cn', 'province', 'city', 'county']
-    stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-    info = city.split('-') if city != 'index' else []
-    name = info[-1] if city != 'index' else '全国'
-    province, city, county = info + [''] * (3 - len(info))
-    print(province, city, county)
-    for item in Station.objects.filter(cn__in=stations, province__contains=province, city__contains=city,
-                                       county__contains=county).values_list(*levels):
-        cn, province, city, county = item
-        if province not in citys:
-            citys[province] = {}
-        if city not in citys[province]:
-            citys[province][city] = {}
-        if county in citys[province][city]:
-            citys[province][city][county].append(cn)
-        else:
-            citys[province][city][county] = [cn]
-    if citys == {}:
-        err = '%s不存在开通客运服务的车站' % city
-        return render(request, '404.html', locals())
-    else:
-        return render(request, 'city.html', locals())
+    return render(request, 'city.html', locals())
 
 
 def data(request):
@@ -105,6 +83,26 @@ def data(request):
                                                                                                 'arrive'):
             data.append(line)
         data = sorted(data, key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
+    elif type == 'city':
+        city = request.POST.get('city')
+
+        def conversion(new, old):
+            item = old
+            if len(new) > 1:
+                item[new[0]] = conversion(new[1:], old.get(new[0], {} if len(new) > 2 else 0))
+            else:
+                item += 1
+            return item
+
+        citys = {}
+        levels = ['province', 'city', 'county', 'cn']
+        stations = list(Timetable.objects.values_list('station', flat=True).distinct())
+        info = city.split('-') if city != 'index' else []
+        province, city, county = info + [''] * (3 - len(info))
+        for item in Station.objects.filter(cn__in=stations, province__contains=province, city__contains=city,
+                                           county__contains=county).values_list(*levels[:len(info) + 1], 'cn'):
+            citys = conversion(item, citys)
+        data = [len(info), citys]
     elif type == 'station':
         name = request.POST.get('station')
         lines = list(Timetable.objects.filter(station=name).order_by('leavetime').values_list('line', flat=True))
@@ -186,11 +184,17 @@ def data(request):
                                                                                                       flat=True)[:10]],
                             key=lambda x: (x[0], int(x[1:]) if len(x) > 1 else 0))
         data['城市'] = sorted(data['城市'])
-    elif type == 'index_random':
+    elif type == 'random':
         choice = random.randint(0, Timetable.objects.count() - 1)
-        items = ['line', 'station']
-        key = random.randint(0, len(items) - 1)
-        data = [items[key], Timetable.objects.all().values_list(*items)[choice][key]]
+        items = {'line': '车次', 'station': '车站', 'city': '城市'}
+        item = random.sample(items.keys(), 1)[0]
+        if item == 'city':
+            station = Timetable.objects.values_list('station', flat=True)[choice]
+            keys = ['province', 'city', 'county']
+            key = random.randint(1, len(keys))
+            data = [items[item], '-'.join(Station.objects.filter(cn=station).values_list(*keys[:key])[0])]
+        else:
+            data = [items[item], Timetable.objects.values_list(item, flat=True)[choice]]
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
