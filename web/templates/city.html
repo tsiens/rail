@@ -21,7 +21,7 @@
                     }
                 },
                 series: [{
-                    name: '全国',
+                    name: '{{ name }}',
                     type: 'treemap',
                     label: {
                         normal: {
@@ -36,7 +36,7 @@
                     drillDownIcon: '',
                     nodeClick: 'link',
                     slient: true,
-                    data: conversion({{ citys|safe }}, 0)
+                    data: conversion({{ citys|safe }}['全国'], 0)
                 }]
             };
             var charts = echarts.init(document.getElementById(div));

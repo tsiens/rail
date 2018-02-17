@@ -58,23 +58,29 @@ def line(request, line):
 
 
 def city(request, city):
-    if city == 'index':
-        citys = {}
-        stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-        for item in Station.objects.filter(cn__in=stations).values_list('cn', 'province', 'city', 'county'):
-            cn, province, city, county = item
-            if province not in citys:
-                citys[province] = {}
-            if city not in citys[province]:
-                citys[province][city] = {}
-            if county in citys[province][city]:
-                citys[province][city][county].append(cn)
-            else:
-                citys[province][city][county] = [cn]
-        return render(request, 'city.html', locals())
-    else:
-        err = '建设中'
+    citys = {}
+    levels = ['cn', 'province', 'city', 'county']
+    stations = list(Timetable.objects.values_list('station', flat=True).distinct())
+    info = city.split('-') if city != 'index' else []
+    name = info[-1] if city != 'index' else '全国'
+    province, city, county = info + [''] * (3 - len(info))
+    print(province, city, county)
+    for item in Station.objects.filter(cn__in=stations, province__contains=province, city__contains=city,
+                                       county__contains=county).values_list(*levels):
+        cn, province, city, county = item
+        if province not in citys:
+            citys[province] = {}
+        if city not in citys[province]:
+            citys[province][city] = {}
+        if county in citys[province][city]:
+            citys[province][city][county].append(cn)
+        else:
+            citys[province][city][county] = [cn]
+    if citys == {}:
+        err = '%s不存在开通客运服务的车站' % city
         return render(request, '404.html', locals())
+    else:
+        return render(request, 'city.html', locals())
 
 
 def data(request):
