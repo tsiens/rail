@@ -15,14 +15,14 @@
         <ul id="line_tab" class="nav nav-tabs" role="tablist">
             <template v-for="tab in tabs">
                 <li v-if="tab.show" class="nav-item">
-                    <a class="nav-link" v-bind:class="{ active: tab.active}" :href="tab.href" data-toggle="tab">
+                    <a class="nav-link" :class="{ active: tab.active}" :href="tab.href" data-toggle="tab">
                         <span class="badge badge-pill badge-dark">[[ tab.text ]]</span>
                     </a>
                 </li>
             </template>
         </ul>
         <div id="line_content" class="tab-content">
-            <div v-for="content in contents" :id="content.id" class="tab-pane" v-bind:class="{ active: content.active}">
+            <div v-for="content in contents" :id="content.id" class="tab-pane" :class="{ active: content.active}">
                 <a v-for="line in content.lines" target="_blank" :href="line.href">
                     <span class="badge badge-dark" style="font-size: 14px;margin: 5px;padding: 5px">
                         [[ line.text ]]<span class="badge badge-light" style="margin: 0 0 0 3px;padding: 3px">[[ line.info ]]</span>
@@ -36,9 +36,8 @@
     {% block script %}
         $("a:contains('车次')").addClass('active');
         $(".container").css('flex', 1);
-        new Vue({
+        var lines = new Vue({
             el: '#lines',
-            delimiters: ['[[', ']]'],
             mounted: function () {
                 setTimeout(this.get, 0)
             },

@@ -29,9 +29,8 @@
         $("a:contains('车站')").addClass('active');
         $("title").text('{{ station }}');
         loading.show();
-        new Vue({
+        var line_table = new Vue({
             el: '#line_table',
-            delimiters: ['[[', ']]'],
             mounted: function () {
                 setTimeout(this.get, 0)
             },

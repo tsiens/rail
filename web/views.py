@@ -42,6 +42,7 @@ def station(request, station):
             err = '%s站不存在或暂未开通客运服务' % station
             return render(request, '404.html', locals())
 
+
 def line(request, line):
     if line == 'index':
         line_codes = list(Line.objects.values_list('line', flat=True))
@@ -86,9 +87,8 @@ def data(request):
     elif type == 'station_index':
         start, end = int(request.POST.get('start')), int(request.POST.get('end'))
         image_stations = list(Station.objects.exclude(image=None).values_list('cn', flat=True))
-        line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
         sort_stations = list(
-            Timetable.objects.filter(station__in=image_stations + line_stations).values('station').annotate(
+            Timetable.objects.filter(station__in=image_stations).values('station').annotate(
                 count=Count('line')).order_by('-count')[start:end].values_list('station', flat=True))
         stations = list(Station.objects.filter(cn__in=sort_stations).values_list('cn', 'province', 'city', 'county'))
         data = sorted(stations, key=lambda x: sort_stations.index(x[0]))
@@ -180,6 +180,11 @@ def data(request):
                                                                                                       flat=True)[:10]],
                             key=lambda x: (x[0], int(x[1:]) if len(x) > 1 else 0))
         data['城市'] = sorted(data['城市'])
+    elif type == 'index_random':
+        choice = random.randint(0, Timetable.objects.count() - 1)
+        items = ['line', 'station']
+        key = random.randint(0, len(items) - 1)
+        data = [items[key], Timetable.objects.all().values_list(*items)[choice][key]]
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')

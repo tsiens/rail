@@ -22,9 +22,8 @@
 <script>
     {% block script %}
         loading.show();
-        new Vue({
+        var log_table = new Vue({
             el: '#log_table',
-            delimiters: ['[[', ']]'],
             mounted: function () {
                 setTimeout(this.get, 0);
             },

@@ -29,9 +29,8 @@
         $("a:contains('车次')").addClass('active');
         $("title").text('{{ line}}');
         loading.show();
-        new Vue({
+        var time_table = new Vue({
             el: '#time_table',
-            delimiters: ['[[', ']]'],
             mounted: function () {
                 setTimeout(this.get, 0)
             },

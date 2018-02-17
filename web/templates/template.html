@@ -38,7 +38,7 @@
         }
 
         #footer a {
-            color: #868E96
+            color: #999C9F
         }
 
         *:focus {
@@ -51,36 +51,27 @@
 
         .container div {
             text-align: center;
-            margin: 0 auto
+            margin: 0 auto;
         }
 
-        input {
-            box-shadow: 1px 1px 1px #888888
-        }
-
-        input:hover {
-            box-shadow: 3px 3px 2px #888888
-        }
-
-        #search div {
+        .search div {
             text-align: left;
             padding: 0 6px;
             width: 100%;
             background-color: #FFF
         }
 
-        #search p {
+        .search p {
             padding: 0 6px;
             font-size: 10px;
         }
 
-        #search a {
+        .search a {
             color: black;
-            padding: 0 6px;
             font-size: 10px;
         }
 
-        #search a:hover {
+        .search a:hover {
             background-color: #EEE;
         }
     </style>
@@ -97,18 +88,39 @@
     </button>
     <div id="header_ul" class="collapse navbar-collapse justify-content-end">
         <ul class="navbar-nav">
-            <li v-for="item in items1" class="nav-item"><a class="nav-link" :href="item.href"><i
-                    :class="item.fa"></i>[[ item.text ]]</a>
+            <template v-for="item in items1">
+                <li class="nav-item"><a class="nav-link" :href="item.href"><i
+                        :class="item.fa"></i>&nbsp[[ item.text ]]</a>
+                </li>
+            </template>
+            <template v-for="item in items2">
+                <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal"
+                                        :data-target="item.href"><i
+                        :class="item.fa"></i>&nbsp[[ item.text ]]</a></li>
+            </template>
+            <li v-if="search_show" class="nav-item" style="display: flex;align-items:center">
+                <span class="search" style="position:relative">
+                    <span class="input-group">
+                        <input class="form-control" style="padding: 1px 8px" v-model="input" @input="search"
+                               @blur="blur" placeholder="search">
+                        <span class="input-group-addon" style="background: #999C9F"><a @click="random" class="nav-link"><i
+                                class="fa fa-random"></i></a></span>
+                    </span>
+                    <div style="position:absolute;z-index:10;word-wrap:break-word">
+                        <template v-for="(vs, k, n) in suggest">
+                            <div v-if="n>0" class="dropdown-divider"></div>
+                            <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                            <a v-for="v in vs" :href="v[0]">&nbsp[[ v[1] ]]&nbsp</a>
+                        </template>
+                    </div>
+                </span>
             </li>
-            <li v-for="item in items2" class="nav-item"><a class="nav-link" href="#" data-toggle="modal"
-                                                           :data-target="item.href"><i
-                    :class="item.fa"></i>[[ item.text ]]</a></li>
         </ul>
     </div>
 </nav>
 <div class="container">
     <div id="loading" style="position: relative">
-        <span v-for="style in styles" v-bind:style="style"></span>
+        <span v-for="style in styles" :style="style"></span>
     </div>
     {% block content %}
     {% endblock %}
@@ -148,45 +160,11 @@
     </div>
 </nav>
 <script>
-    new Vue({
-        el: '#header',
-        delimiters: ['[[', ']]'],
-        data: {
-            items1: [
-                {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
-                {'href': '{% url 'station' 'index' %}', 'fa': 'fa fa-train', 'text': '车站'},
-                {'href': '{% url 'line' 'index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
-                {'href': '{% url 'city' 'index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
-            ],
-            items2: [
-                {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
-                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'}
-            ]
-        }
+    Vue.mixin({
+        delimiters: ['[[', ']]']
     });
-    new Vue({
-        el: '#modal',
-        delimiters: ['[[', ']]'],
-        data: {
-            items: [
-                {
-                    'id': 'modal_wechat',
-                    'fa': 'fa fa-wechat',
-                    'text': '12308',
-                    'src': '{% static 'image/wechat.jpg' %}'
-                },
-                {
-                    'id': 'modal_contact',
-                    'fa': 'fa fa-user',
-                    'text': '吐槽我吧',
-                    'src': '{% static 'image/qq.jpg' %}'
-                }
-            ]
-        }
-    });
-    loading = new Vue({
+    var loading = new Vue({
         el: '#loading',
-        delimiters: ['[[', ']]'],
         data: {
             div: '#loading',
             size: 16,
@@ -233,6 +211,83 @@
                 $(this.div).height(0);
                 this.styles = [];
             }
+        }
+    });
+    var search = {
+        data: {
+            search_show: true,
+            url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
+            input: '',
+            suggest: {},
+            urls: {'line': '{% url "line" "*"%}', 'station': '{% url "station" "*"%}'}
+        },
+        methods: {
+            blur: function () {
+                var _this = this;
+                setTimeout(function () {
+                    _this.input = '';
+                    _this.suggest = {}
+                }, 200)
+            },
+            search: function () {
+                this.suggest = {};
+                if (this.input) {
+                    var _this = this;
+                    var suggest = {};
+                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
+                        $.each(res, function (k, v) {
+                            if (v.length > 0) {
+                                suggest[k] = [];
+                                $.each(v, function (n, text) {
+                                    suggest[k].push([_this.url[k].replace('*', text), text])
+                                });
+                            }
+                        });
+                        _this.suggest = suggest
+                    })
+                }
+            },
+            random: function () {
+                var _this = this;
+                $.post('{% url 'data' %}', {'type': 'index_random'}, function (data) {
+                    window.location.href = _this.urls[data[0]].replace('*', data[1]);
+                })
+            }
+        }
+    };
+    var header = new Vue({
+        el: '#header',
+        mixins: [search],
+        data: {
+            items1: [
+                {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
+                {'href': '{% url 'station' 'index' %}', 'fa': 'fa fa-train', 'text': '车站'},
+                {'href': '{% url 'line' 'index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
+                {'href': '{% url 'city' 'index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
+            ],
+            items2: [
+                {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
+                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'}
+            ]
+        }
+    });
+    var modal = new Vue({
+        el: '#modal',
+        data: {
+            items: [
+                {
+                    'id': 'modal_wechat',
+                    'fa': 'fa fa-wechat',
+                    'text': '12308',
+                    'src': '{% static 'image/wechat.jpg' %}'
+                },
+                {
+                    'id': 'modal_contact',
+                    'fa': 'fa fa-user',
+                    'text': '吐槽我吧',
+                    'src': '{% static 'image/qq.jpg' %}'
+                }
+            ]
         }
     });
 

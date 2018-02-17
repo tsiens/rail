@@ -37,9 +37,8 @@
 <script>
     {% block script %}
         $("a:contains('车站')").addClass('active');
-        new Vue({
+        var station_imgs = new Vue({
             el: '#imgs',
-            delimiters: ['[[', ']]'],
             mounted: function () {
                 var _this = this;
                 $(window).scroll(function () {

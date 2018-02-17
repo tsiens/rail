@@ -27,10 +27,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '708ns9@b75q%!(o^y!ynxkczk-qfz3t#!0=)fz_lrjynin2e1*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -119,10 +115,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
 USE_I18N = True
 
 USE_L10N = True
@@ -142,9 +134,3 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-
-import platform, time
-
-if platform.system() == 'Linux':
-    time.sleep(10)
-    DEBUG = False
