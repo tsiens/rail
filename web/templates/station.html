@@ -26,9 +26,9 @@
 {% endblock %}
 <script>
     {% block script %}
+        loading.show();
         $("a:contains('车站')").addClass('active');
         $("title").text('{{ station }}');
-        loading.show();
         var line_table = new Vue({
             el: '#line_table',
             mounted: function () {
@@ -43,7 +43,7 @@
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, function (res) {
                         loading.hide();
-                        set_map(res.车站, res.车次.length);
+                        map(res.车站, res.车次.length);
                         $.each(res.车次, function () {
                             var items = [];
                             $.each(this, function (n, text) {
@@ -64,10 +64,9 @@
                 }
             }
         });
-        function set_map(data, lines_num) {
-            var map_div = $('#map');
-            [center, zoom] = map_area(map_div, data);
-            var map = echarts.init(map_div.get(0));
+        function map(data, lines_num) {
+            [center, zoom] = map_area($('#map'), data);
+            var echarts_map = echarts.init($('#map').get(0));
             var option = {
                 title: {
                     text: '{{ station }}',
@@ -181,10 +180,10 @@
                     }
                 ]
             };
-            map.on('click', function (param) {
+            echarts_map.on('click', function (param) {
                 document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][2])
             });
-            map.setOption(option);
+            echarts_map.setOption(option);
         }
     {% endblock %}
 </script>

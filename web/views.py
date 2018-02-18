@@ -84,25 +84,18 @@ def data(request):
             data.append(line)
         data = sorted(data, key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
     elif type == 'city':
-        city = request.POST.get('city')
-
-        def conversion(new, old):
-            item = old
-            if len(new) > 1:
-                item[new[0]] = conversion(new[1:], old.get(new[0], {} if len(new) > 2 else 0))
-            else:
-                item += 1
-            return item
-
-        citys = {}
-        levels = ['province', 'city', 'county', 'cn']
+        data = {}
         stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-        info = city.split('-') if city != 'index' else []
-        province, city, county = info + [''] * (3 - len(info))
-        for item in Station.objects.filter(cn__in=stations, province__contains=province, city__contains=city,
-                                           county__contains=county).values_list(*levels[:len(info) + 1], 'cn'):
-            citys = conversion(item, citys)
-        data = [len(info), citys]
+        for item in Station.objects.filter(cn__in=stations).values_list('cn', 'province', 'city', 'county'):
+            cn, province, city, county = item
+            if province not in data:
+                data[province] = {}
+            if city not in data[province]:
+                data[province][city] = {}
+            if county in data[province][city]:
+                data[province][city][county].append(cn)
+            else:
+                data[province][city][county] = [cn]
     elif type == 'station':
         name = request.POST.get('station')
         lines = list(Timetable.objects.filter(station=name).order_by('leavetime').values_list('line', flat=True))

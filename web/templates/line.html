@@ -26,9 +26,9 @@
 {% endblock %}
 <script>
     {% block script %}
+        loading.show();
         $("a:contains('车次')").addClass('active');
         $("title").text('{{ line}}');
-        loading.show();
         var time_table = new Vue({
             el: '#time_table',
             mounted: function () {
@@ -43,7 +43,7 @@
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
                         loading.hide();
-                        set_map(res);
+                        map(res);
                         $.each(res, function () {
                             var items = [];
                             $.each(this, function (n, text) {
@@ -73,10 +73,9 @@
                 }
             }
         });
-        function set_map(data) {
-            var map_div = $('#map');
-            [center, zoom] = map_area(map_div, data);
-            var map = echarts.init(map_div.get(0));
+        function map(data) {
+            [center, zoom] = map_area($('#map'), data);
+            var echarts_map = echarts.init($('#map').get(0));
             option = {
                 title: {
                     text: '{{ line }}',
@@ -153,10 +152,10 @@
                     }
                 }
             };
-            map.on('click', function (param) {
+            echarts_map.on('click', function (param) {
                 document.location.href = '{% url 'station' '*' %}'.replace('*', param['data'][6])
             });
-            map.setOption(option);
+            echarts_map.setOption(option);
         }
     {% endblock %}
 </script>

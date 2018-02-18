@@ -1,90 +1,115 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="treemap" class="echarts"></div>
+    <div id="treemap">
+        <ol class="breadcrumb" style="margin-bottom: 5px;">
+            <template v-for="(v,k) in city">
+                <li v-if="k==city.length-1" class="active">[[ v ]]</li>
+                <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
+            </template>
+        </ol>
+        <div class="echarts"></div>
+    </div>
 {% endblock %}
 <script>
     {% block script %}
-        $("a:contains('城市')").addClass('active');
-        $('.echarts').height($(window).height() / 2);
-        get_city('{{ city }}');
         loading.show();
-        function get_city(city) {
-            $.post('{% url 'data' %}', {'type': 'city', 'city': city}, function (res) {
-                loading.hide();
-                [level, data] = res;
-                treemap('treemap', level, data);
-            })
-        }
-        function treemap(div, level, data) {
-            var option = {
-                tooltip: {
-                    formatter: function (paramer) {
-                        if (paramer.treePathInfo.length < 5) {
-                            return paramer.name + '</br>'
-                                + '车站 ' + paramer.value + ' 座'
+        $("a:contains('城市')").addClass('active');
+        $("title").text('城市');
+        var treemap_header = new Vue({
+            el: '#treemap',
+            mounted: function () {
+                setTimeout(this.post, 0)
+            },
+            data: {
+                city: [],
+                citys: {},
+                data: {}
+            },
+            methods: {
+                post: function () {
+                    var _this = this;
+                    $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
+                        loading.hide();
+                        $('.echarts').height($(window).height() / 2);
+                        echarts_treemap = echarts.init($('#treemap div').get(0));
+                        _this.citys = res;
+                        _this.data = res;
+                        if ('{{ city }}' !== 'index') {
+                            _this.city = ['全国'].concat('{{ city }}'.split('-'));
                         }
                         else {
-                            return paramer.name + '站</br>'
-                                + '点击跳转'
+                            _this.city = ['全国']
                         }
-                    }
+                        _this.jump(_this.city.length);
+                    });
+                },
+                jump: function (n) {
+                    var _this = this;
+                    _this.city = _this.city.slice(0, n + 1);
+                    _this.data = _this.citys;
+                    $.each(_this.city.slice(1), function (k, v) {
+                        _this.data = _this.data[v]
+                    });
+                    treemap()
+                }
+            }
+        });
+        function treemap() {
+            var option;
+            option = {
+                tooltip: {
+                    trigger: 'item'
                 },
                 series: [{
-                    name: '全国',
                     type: 'treemap',
-                    label: {
-                        normal: {
-                            show: true,
-                            formatter: '{b}'
-                        }
-                    },
                     width: '100%',
                     height: '100%',
                     itemStyle: {
                         normal: {
                             borderColor: 'rgba(255,255,255,0)',
-                            borderWidth: 1
+                            borderWidth: 2
                         }
                     },
                     drillDownIcon: '',
+                    breadcrumb: false,
                     nodeClick: 'link',
                     slient: true,
-                    data: conversion(level, data, 0)
+                    leafDepth: 1,
+                    data: conversion(treemap_header.data, 0)
                 }]
             };
-            var charts = echarts.init(document.getElementById(div));
-            charts.on('click', function (params) {
-                if (params.treePathInfo.length < 5) {
-                    var city = [];
-                    $.each(params.treePathInfo.slice(1), function () {
-                        city.push(this.name)
-                    });
-                    if (city.length > 0) {
-                        city = city.join('-')
+            echarts_treemap.on('click', function (params) {
+                if (treemap_header.city.length < 4) {
+                    var name = params.treePathInfo.reverse().slice(0, 1)[0].name;
+                    if ((name !== '') && (treemap_header.city.indexOf(name) === -1)) {
+                        treemap_header.city.push(name);
                     }
-                    else {
-                        city = 'index'
-                    }
-                    get_city(city);
-                }
-                else {
-                    window.open('{% url "station" "*" %}'.replace('*', params.treePathInfo[4].name));
                 }
             });
-            charts.setOption(option);
+            echarts_treemap.setOption(option);
         }
-
-        function conversion(level, data_old, n) {
+        function conversion(data_old, n) {
             var data_new = [];
             $.each(data_old, function (k, v) {
                 var item = '';
-                if (n < level) {
-                    item = {'name': k, 'children': conversion(level, v, n + 1)}
+                if (n < 4 - treemap_header.city.length) {
+                    item = {
+                        name: k,
+                        children: conversion(v, n + 1),
+                        tooltip: {
+                            formatter: '<div>{b}<br>车站{c}座<div>'
+                        }
+                    }
                 }
                 else {
                     item = {
-                        'name': k,
-                        'value': v
+                        name: v + '站',
+                        value: 1,
+                        link: '{% url 'station' '*' %}'.replace('*', v),
+                        target: 'self',
+                        tooltip: {
+                            formatter: '点击跳转{b}'
+                        }
                     }
                 }
                 data_new.push(item)
