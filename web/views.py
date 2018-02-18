@@ -2,13 +2,13 @@ import json
 import random
 from datetime import *
 
-from django.db.models import Q, Count
+from django.db.models import Count
 # Create your views here.
 from django.http import HttpResponse
 from django.shortcuts import render
 
 import key
-from web.models import *
+from web.search import *
 
 
 def val(request):
@@ -51,7 +51,12 @@ def line(request, line):
     else:
         line = line.upper()
         if Timetable.objects.filter(line__contains=line):
-            line, arrive, start = Line.objects.filter(line__contains=line).values_list('line', 'arrive', 'start')[0]
+            lines = list(Line.objects.filter(line=line).values_list('line', 'arrive',
+                                                                    'start')) + list(Line.objects.filter(
+                line__contains=line + '/')[:1].values_list('line', 'arrive', 'start')) + list(Line.objects.filter(
+                line__contains='/' + line)[:1].values_list('line', 'arrive', 'start')) + list(Line.objects.filter(
+                line__contains=line)[:1].values_list('line', 'arrive', 'start'))
+            line, arrive, start = lines[0]
             return render(request, 'line.html', locals())
         else:
             err = '%s次不存在或无详细时刻信息' % line
@@ -155,29 +160,7 @@ def data(request):
             n = stations.index(item[0])
             data[n] = list(item[1:]) + data[n]
     elif type == 'search':
-        key = request.POST.get('key').upper()
-        data = {'车站': [], '城市': [], '车次': []}
-        for item in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
-                    :10].values_list('province', 'city', 'county'):
-            province, city, county = item
-            if key in county:
-                item_data = province + '-' + city + '-' + county
-            elif key in city:
-                item_data = province + '-' + city
-            else:
-                item_data = province
-            if item_data not in data['城市']:
-                data['城市'].append(item_data)
-        line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-        data['车站'] = sorted([item for item in
-                             Station.objects.filter(Q(cn__contains=key), Q(cn__in=line_stations)).values_list('cn',
-                                                                                                              flat=True)[
-                             :10]])
-        data['车次'] = sorted([item for item in
-                             Line.objects.filter(Q(line__contains=key), ~Q(runtime=None)).values_list('line',
-                                                                                                      flat=True)[:10]],
-                            key=lambda x: (x[0], int(x.split('/')[0][1:]) if len(x) > 1 else 0))
-        data['城市'] = sorted(data['城市'])
+        data = search(request.POST.get('key'))[1]
     elif type == 'random':
         choice = random.randint(0, Timetable.objects.count() - 1)
         items = {'line': '车次', 'station': '车站', 'city': '城市'}
