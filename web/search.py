@@ -18,8 +18,9 @@ def search(key):
         if item_data not in data['城市']:
             data['城市'].append(item_data)
     line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-    data['车站'] = Station.objects.filter(Q(cn__contains=key), Q(cn__in=line_stations)).order_by('cn')[:10].values_list(
-        'cn', flat=True)
+    data['车站'] = list(
+        Station.objects.filter(Q(cn__contains=key), Q(cn__in=line_stations)).order_by('cn')[:10].values_list(
+            'cn', flat=True))
     data['车次'] = list(Line.objects.filter(Q(line=key), ~Q(runtime=None)).values_list('line', flat=True)) + list(
         Line.objects.filter(Q(line__contains=key), ~Q(runtime=None)).order_by('line')[:10].values_list('line',
                                                                                                        flat=True))
