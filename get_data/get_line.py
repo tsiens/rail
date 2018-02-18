@@ -39,7 +39,7 @@ def get_line():
     else:
         codes = re.findall('{"station_train_code":"([^\)]+)\(([^-]+)-([^\)]+)\)","train_no":"([^\"]+)"}', get[0])
     codes.sort(key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
-    insert_line, update_line = [], []
+    insert_line, update_line = {}, []
     for line in codes:
         name, start, arrive, code = line
         if start not in stations_cn or arrive not in stations_cn:
@@ -48,11 +48,15 @@ def get_line():
             if lines[code] < today:
                 update_line.append(code)
                 lines[code] = today
+            else:
+                if name not in insert_line.get(code, [name])[0]:
+                    insert_line[code][0] = insert_line[code][0] + '/' + name
         else:
-            insert_line.append((name, code, start, stations_cn[start], arrive, stations_cn[arrive]))
+            insert_line[code] = [name, code, start, stations_cn[start], arrive, stations_cn[arrive]]
             lines[code] = today
     mysql.execute(
-        ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,null,null)" % line_table, insert_line),
+        ("INSERT INTO %s VALUE (null,%%s,%%s,%%s,%%s,%%s,%%s,null,null)" % line_table,
+         [line for line in insert_line.values()]),
         "UPDATE %s SET date='%s' WHERE code in ('%s')" % (line_table, today, "','".join(update_line)))
     log('插入 车次 %s ' % len(insert_line))
     log('更新 车次 %s ' % len(update_line))

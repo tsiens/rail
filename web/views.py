@@ -49,8 +49,9 @@ def line(request, line):
         line_codes = sorted(list(set([line[0] for line in line_codes])))
         return render(request, 'line_index.html', locals())
     else:
-        if Timetable.objects.filter(line=line):
-            line, arrive, start = Line.objects.filter(line=line).values_list('line', 'arrive', 'start')[0]
+        line = line.upper()
+        if Timetable.objects.filter(line__contains=line):
+            line, arrive, start = Line.objects.filter(line__contains=line).values_list('line', 'arrive', 'start')[0]
             return render(request, 'line.html', locals())
         else:
             err = '%s次不存在或无详细时刻信息' % line
@@ -82,7 +83,7 @@ def data(request):
         for line in Line.objects.filter(Q(line__startswith=code), ~Q(runtime=None)).values_list('line', 'start',
                                                                                                 'arrive'):
             data.append(line)
-        data = sorted(data, key=lambda x: (x[0][0], int(x[0][1:]) if len(x[0]) > 1 else 0))
+        data = sorted(data, key=lambda x: (x[0][0], int(x[0].split('/')[0][1:]) if len(x[0]) > 1 else 0))
     elif type == 'city':
         data = {}
         stations = list(Timetable.objects.values_list('station', flat=True).distinct())
@@ -141,7 +142,7 @@ def data(request):
         stations.insert(0, stations_locations[name] + [0, 0])
         data = {'车次': timetable, '车站': stations}
     elif type == 'line':
-        name = request.POST.get('line').upper()
+        name = request.POST.get('line')
         stations = []
         for item in Timetable.objects.filter(line=name).order_by('order').values_list('order', 'station', 'arrivedate',
                                                                                       'arrivetime', 'leavedate',
@@ -175,7 +176,7 @@ def data(request):
         data['车次'] = sorted([item for item in
                              Line.objects.filter(Q(line__contains=key), ~Q(runtime=None)).values_list('line',
                                                                                                       flat=True)[:10]],
-                            key=lambda x: (x[0], int(x[1:]) if len(x) > 1 else 0))
+                            key=lambda x: (x[0], int(x.split('/')[0][1:]) if len(x) > 1 else 0))
         data['城市'] = sorted(data['城市'])
     elif type == 'random':
         choice = random.randint(0, Timetable.objects.count() - 1)
