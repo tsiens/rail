@@ -50,7 +50,9 @@
                     $.each(_this.city.slice(1), function (k, v) {
                         _this.data = _this.data[v]
                     });
-                    treemap()
+                    if (_this.data) {
+                        treemap()
+                    }
                 }
             }
         });
