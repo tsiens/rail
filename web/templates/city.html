@@ -12,6 +12,7 @@
     {% block script %}
         $("a:contains('城市')").addClass('active');
         $("title").text('全国');
+        ids = [];
         var treemap_header = new Vue({
             el: '.breadcrumb',
             mounted: function () {
@@ -27,8 +28,7 @@
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
                         loading.hide();
-                        $('#treemap').height($(window).height() / 2);
-                        echarts_treemap = echarts.init($('#treemap').get(0));
+                        creat_treemap($('#treemap'));
                         _this.citys = res;
                         _this.data = res;
                         if ('{{ city }}' !== 'index') {
@@ -47,24 +47,29 @@
                     $.each(_this.city.slice(1), function (k, v) {
                         _this.data = _this.data[v]
                     });
-                    if (_this.data) {
-                        if (this.city.length === 1) {
-                            $("title").text('全国')
-                        }
-                        else {
-                            $("title").text(this.city.slice(1).join('-'));
-                        }
-                        treemap()
+                    if (this.city.length === 1) {
+                        $("title").text('全国')
                     }
+                    else {
+                        $("title").text(this.city.slice(1).join('-'));
+                    }
+                    treemap()
                 }
             }
         });
+        function creat_treemap(div) {
+            div.height($(window).height() / 2);
+            echarts_treemap = echarts.init(div.get(0));
+            echarts_treemap.on('click', function (params) {
+                if ((params.name) && ((treemap_header.city.length < 4))) {
+                    treemap_header.city.push(params.name);
+                    treemap_header.jump(treemap_header.city.length);
+                }
+            });
+        }
         function treemap() {
             var option;
             option = {
-                tooltip: {
-                    trigger: 'item'
-                },
                 series: [{
                     type: 'treemap',
                     top: 0,
@@ -77,27 +82,14 @@
                         }
                     },
                     drillDownIcon: '',
+                    colorMappingBy: 'id',
                     breadcrumb: false,
                     nodeClick: 'link',
-                    slient: true,
                     leafDepth: 1,
                     data: conversion(treemap_header.data, 0)
                 }]
             };
-            echarts_treemap.on('click', function (params) {
-                if (treemap_header.city.length < 4) {
-                    var name = params.treePathInfo.reverse().slice(0, 1)[0].name;
-                    if ((name !== '') && (treemap_header.city.indexOf(name) === -1)) {
-                        treemap_header.city.push(name);
-                        if (treemap_header.city.length === 1) {
-                            $("title").text('全国')
-                        }
-                        else {
-                            $("title").text(treemap_header.city.slice(1).join('-'));
-                        }
-                    }
-                }
-            });
+            echarts_treemap.clear();
             echarts_treemap.setOption(option);
         }
         function conversion(data_old, n) {
@@ -106,20 +98,28 @@
                 var item = '';
                 if (n < 4 - treemap_header.city.length) {
                     item = {
+                        id: Math.floor(Math.random() * 30),
                         name: k,
                         children: conversion(v, n + 1),
-                        tooltip: {
-                            formatter: '<div>{b}<br>车站{c}座<div>'
+                        label: {
+                            normal: {
+                                show: true,
+                                formatter: '{b} {c}'
+                            }
                         }
                     }
                 }
                 else {
                     item = {
-                        name: v + '站',
+                        id: Math.floor(Math.random() * 30),
+                        name: v,
                         value: 1,
                         link: '{% url 'station' '*' %}'.replace('*', v),
-                        tooltip: {
-                            formatter: '点击跳转{b}'
+                        label: {
+                            normal: {
+                                show: true,
+                                formatter: '{b}站'
+                            }
                         }
                     }
                 }

@@ -34,7 +34,7 @@ def get_location():
         ("INSERT INTO %s VALUE (null,%%s,null,null,null,null,null,null,null,null,null)" % station_table, data))
     stations = [station[0] for station in mysql.execute(
         "SELECT cn FROM %s WHERE cn in (SELECT station FROM %s) and ((x=125 and y=30) or (x IS NULL and y IS NULL)) and (date IS NULL or date<'%s')" % (
-                                  station_table, timetable_table, today))]
+            station_table, timetable_table, today))]
     global sqls
     sqls = []
     rs = threadpool.makeRequests(get_location_thread, stations)
@@ -76,12 +76,22 @@ def get_location_thread(station):
             code = getjson(geogv_url1 % station)['data'][0][0]
             info = getjson(geogv_url2 % code)['location'].split(' ')
             province, city = info[:2]
-            provinces = ['重庆市', '北京市', '上海市', '天津市']
-            citys = ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市', '济源市']
+            provinces = ['重庆市', '北京市', '上海市', '天津市']  # 直辖市
+            citys = ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市']  # 直筒子市
+            countys = [
+                '济源市',  # 河南
+                '仙桃市', '潜江市', '天门市', '神农架林区',  # 湖北
+                '五指山市', '文昌市', '琼海市', '万宁市', '东方市', '定安县', '屯昌县', '澄迈县', '临高县', '琼中黎族苗族自治县', '保亭黎族苗族自治县', '白沙黎族自治县',
+                '昌江黎族自治县', '乐东黎族自治县', '陵水黎族自治县',
+                # 海南
+                '石河子市', '阿拉尔市', '图木舒克市', '五家渠市', '北屯市', '铁门关市', '双河市', '可克达拉市', '昆玉市',  # 新疆
+            ]  # 省直管
             if province in provinces:
-                county, city = city, province
+                county, city = city, '直属'
             elif city in citys:
-                county = city
+                county = '直属'
+            elif city in countys:
+                city = '直属'
             else:
                 county = info[2]
         except:
