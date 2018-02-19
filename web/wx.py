@@ -8,7 +8,7 @@ from wechatpy.replies import *
 from wechatpy.utils import *
 
 from key import wx_token
-from web.search import *
+from web.module import *
 
 qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim&time=' + str(
     datetime.now().date())
@@ -28,9 +28,7 @@ def wx(request):
         response = HttpResponse(echo_str, content_type="text/plain")
     else:
         msg = parse_message(request.body)
-        if msg.type == 'event' and msg.event == 'subscribe':
-            reply = create_reply('日出东方,唯我不败\n东方教主,文成武德\n千秋万载,一统江湖\n12308,咔咔就是发\n扣“神功”可得武林秘籍', msg)
-        elif msg.type == 'text':
+        if msg.type == 'text':
             txt = msg.content.upper()
             n, data = search(txt)
             if txt == '日志':
@@ -38,34 +36,53 @@ def wx(request):
                     'title': '日志',
                     'url': 'http://rail.qiangs.tech/log'
                 }])
-            elif txt == '神功':
-                reply = create_reply('吸尘大法：\n车站 扣“杭州东”\n车次 敲“D1”', msg)
             elif n > 0:
                 articles = []
-                for city in data['城市'][:5]:
+                for station in data['station'][:5]:
                     articles.append({
-                        'title': '%s' % city,
-                        'url': 'http://rail.qiangs.tech/city/%s' % city
-                    })
-                for station in data['车站'][:5 - len(articles) if len(articles) < 5 else 0]:
-                    articles.append({
-                        'title': '%s站' % station,
+                        'title': '%s' % station,
                         'image': qiniu_img_url % station,
                         'url': 'http://rail.qiangs.tech/station/%s' % station
                     })
-                for line in data['车次'][:5 - len(articles) if len(articles) < 5 else 0]:
+                for line in data['line'][:5 - len(articles) if len(articles) < 5 else 0]:
                     start, arrive = Line.objects.filter(line=line).values_list('start', 'arrive')[0]
                     articles.append({
                         'title': '%s次 %s-%s' % (line, start, arrive),
                         'image': qiniu_img_url % start,
                         'url': 'http://rail.qiangs.tech/line/%s' % line
                     })
+                for city in data['city'][:5 - len(articles) if len(articles) < 5 else 0]:
+                    articles.append({
+                        'title': '%s' % city,
+                        'url': 'http://rail.qiangs.tech/city/%s' % city
+                    })
                 reply = ArticlesReply(message=msg, articles=articles)
             else:
-                reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % txt, msg)
+                k, v = luck()
+                if k == 'city':
+                    articles = [{
+                        'title': '推荐 %s' % v,
+                        'url': 'http://rail.qiangs.tech/city/%s' % v
+                    }]
+                elif k == 'station':
+                    articles = [{
+                        'title': '推荐 %s' % v,
+                        'image': qiniu_img_url % v,
+                        'url': 'http://rail.qiangs.tech/station/%s' % v
+                    }]
+                else:
+                    start, arrive = Line.objects.filter(line=v).values_list('start', 'arrive')[0]
+                    articles = [{
+                        'title': '推荐 %s次 %s-%s' % (v, start, arrive),
+                        'image': qiniu_img_url % start,
+                        'url': 'http://rail.qiangs.tech/line/%s' % v
+                    }]
+                if txt != '推荐':
+                    articles.append({'title': '小的不才，无法识别 “%s”' % txt})
+                reply = ArticlesReply(message=msg, articles=articles)
         else:
             types = {'image': '图片', 'voice': '语音', 'video': '视频', 'music': '音乐', 'shortvideo': '小视频', 'location': '位置',
                      'link': '链接'}
-            reply = create_reply('小的不才，无法识别 “%s”\n回复“神功”可解锁更多姿势哦\nヾ(×× ) ﾂ' % types.get(msg.type, '消息'), msg)
+            reply = create_reply('小的不才，无法识别 “%s”\nヾ(×× ) ﾂ' % types.get(msg.type, '消息'), msg)
         response = HttpResponse(reply.render(), content_type="application/xml")
     return response

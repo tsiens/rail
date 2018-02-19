@@ -26,9 +26,9 @@
             <span class="carousel-control-next-icon"></span>
         </a>
     </div>
-    <div id="search" class="search" style="position:relative;max-width: 500px">
+    <div id="search" class="search" style="position:relative;width: 100%;max-width: 500px">
         <br/>
-        <input class="form-control" style="width: 100%" v-model="input" @input="search"
+        <input class="form-control" v-model="input" @input="search"
                @blur="blur"
                title="search">
         <div style="position:absolute;z-index:10;word-wrap:break-word">
@@ -39,13 +39,14 @@
             </template>
         </div>
         <br/>
-        <button type="button" class="btn btn-secondary" @click="random">手气不错</button>
+        <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
     </div>
 {% endblock %}
 <script>
     {% block script %}
         $("a:contains('主页')").addClass('active');
         header.search_show = false;
+        loading.hide();
         var index_search = new Vue({
             el: '#search',
             mixins: [search]

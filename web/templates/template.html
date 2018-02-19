@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 <html lang="en" style="height: 100%">
-<head>
     <title>Rail</title>
-    <link rel="shortcut icon" type="image/x-icon" href="http://www.12306.cn/mormhweb/images/favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'image/favicon.ico' %}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
@@ -29,8 +28,12 @@
             }
         }
 
-        #map {
-            margin: 10px 0 0 0
+        *:focus {
+            outline: none;
+        }
+
+        td {
+            word-break: break-all
         }
 
         a:hover {
@@ -41,19 +44,13 @@
             color: #999C9F
         }
 
-        *:focus {
-            outline: none;
-        }
-
         #footer a:hover {
             color: #CCCDCF
         }
 
         .container div {
             text-align: center;
-            margin: 0 auto;
         }
-
         .search div {
             text-align: left;
             padding: 0 6px;
@@ -74,12 +71,21 @@
         .search a:hover {
             background-color: #EEE;
         }
+
+        .echarts {
+            margin: 5px 0 0 0;
+            width: 100%;
+        }
     </style>
+    <script>
+        {#    console.log('{% static 'image/icon.svg' %}')#}
+        {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
+    </script>
     {% block head %}
     {% endblock %}
 </head>
-<body style="background-color: #F0F0F0;min-height: 100%;display: flex;flex-direction: column;justify-content:space-between">
-<nav id="header" class="navbar navbar-expand-md bg-dark navbar-dark">
+    <body style="background-color: #F0F0F0;height: 100%;display: flex;flex-direction: column">
+    <nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a>
     <a class="navbar-brand" href="/">Rail</a>
@@ -103,7 +109,7 @@
                     <span class="input-group">
                         <input class="form-control" style="padding: 1px 8px" v-model="input" @input="search"
                                @blur="blur" placeholder="search">
-                        <span class="input-group-addon" style="background: #999C9F"><a @click="random" class="nav-link"><i
+                        <span class="input-group-addon" style="background: #999C9F"><a @click="luck" class="nav-link"><i
                                 class="fa fa-random"></i></a></span>
                     </span>
                     <div style="position:absolute;z-index:10;word-wrap:break-word">
@@ -118,12 +124,17 @@
         </ul>
     </div>
 </nav>
-<div class="container">
-    <div id="loading" style="position: relative">
-        <span v-for="style in styles" :style="style"></span>
+    <div class="container" style="flex:1">
+        <div id="loading" style="height:100%;justify-content: center;align-items: center" :style="{display:display}">
+            <div style=";position: relative" :style="{width:radius*2+'px',height:radius*2+'px'}">
+                <span v-for="style in styles" :style="style"></span>
+            </div>
     </div>
-    {% block content %}
-    {% endblock %}
+        <div id="index"
+             style="height:100%;display:none;flex-direction: column;justify-content: center;align-items: center">
+        {% block content %}
+        {% endblock %}
+    </div>
 </div>
 <nav id="modal">
     <div v-for="item in items" class="modal fade" :id="item.id">
@@ -140,7 +151,7 @@
         </div>
     </div>
 </nav>
-<nav id="footer" class="navbar navbar-expand-md bg-dark navbar-dark">
+    <nav id="footer" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footer_ul">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -166,34 +177,29 @@
     var loading = new Vue({
         el: '#loading',
         data: {
-            div: '#loading',
             size: 16,
             radius: 50,
             speed: 0.5,
-            styles: []
+            display: 'flex'
         },
-        methods: {
-            show: function () {
+        computed: {
+            styles: function () {
                 var set = [
-                    [-1, 0],
-                    [-Math.sqrt(2) / 2, Math.sqrt(2) / 2],
-                    [0, 1],
-                    [Math.sqrt(2) / 2, Math.sqrt(2) / 2],
                     [1, 0],
-                    [Math.sqrt(2) / 2, -Math.sqrt(2) / 2],
-                    [0, -1],
-                    [-Math.sqrt(2) / 2, -Math.sqrt(2) / 2]
+                    [1 + Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2],
+                    [2, 1],
+                    [1 + Math.sqrt(2) / 2, 1 + Math.sqrt(2) / 2],
+                    [1, 2],
+                    [1 - Math.sqrt(2) / 2, 1 + Math.sqrt(2) / 2],
+                    [0, 1],
+                    [1 - Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2]
                 ];
-                var div = $(this.div);
-                set_height(div);
-                var height = div.height() * 0.5;
-                var width = div.width() * 0.5;
                 var styles = [];
                 var _this = this;
                 $.each(set, function (k, v) {
                     styles.push({
-                        'top': height + _this.radius * v[0] + 'px',
-                        'left': width + _this.radius * v[1] + 'px',
+                        'left': _this.radius * v[0] + 'px',
+                        'top': _this.radius * v[1] + 'px',
                         'margin-left': '-' + _this.size / 2 + 'px',
                         '-webkit-animation': 'load ' + _this.speed + 's ease infinite',
                         '-webkit-animation-delay': _this.speed / set.length * k + 's',
@@ -205,20 +211,27 @@
                         'position': 'absolute'
                     })
                 });
-                this.styles = styles
+                return styles
+            }
+        },
+        methods: {
+            show: function () {
+                this.display = 'flex';
+                $('#index').css('display', 'none')
             },
             hide: function () {
-                $(this.div).height(0);
-                this.styles = [];
+                this.display = 'none';
+                $('#index').css('display', 'flex')
             }
         }
     });
     var search = {
         data: {
             search_show: true,
-            url: {'车站': '{% url 'station' '*' %}', '车次': '{% url 'line' '*' %}', '城市': '{% url 'city' '*' %}'},
+            name: {'city': '城市', 'station': '车站', 'line': '车次'},
+            url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
             input: '',
-            suggest: {},
+            suggest: {}
         },
         methods: {
             blur: function () {
@@ -235,10 +248,11 @@
                     var suggest = {};
                     $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
                         $.each(res, function (k, v) {
+                            var name = _this.name[k];
                             if (v.length > 0) {
-                                suggest[k] = [];
+                                suggest[name] = [];
                                 $.each(v, function (n, text) {
-                                    suggest[k].push([_this.url[k].replace('*', text), text])
+                                    suggest[name].push([_this.url[k].replace('*', text), text])
                                 });
                             }
                         });
@@ -246,9 +260,9 @@
                     })
                 }
             },
-            random: function () {
+            luck: function () {
                 var _this = this;
-                $.post('{% url 'data' %}', {'type': 'random'}, function (data) {
+                $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
                     window.location.href = _this.url[data[0]].replace('*', data[1]);
                 })
             }
@@ -278,7 +292,7 @@
                     'id': 'modal_wechat',
                     'fa': 'fa fa-wechat',
                     'text': '12308',
-                    'src': '{% static 'image/wechat.jpg' %}'
+                    'src': '{% static 'image/wx.jpg' %}'
                 },
                 {
                     'id': 'modal_contact',
@@ -290,19 +304,11 @@
         }
     });
 
-    function set_height(object) {
-        while ($('body').height() <= $(window).height()) {
-            object.height(object.height() + 1)
-        }
-        object.height(object.height() - 1);
-        return object.height()
-    }
-
     function map_area(map_div, data) {
         var map_hidden = 50;
         var zoom = 8;
         var center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
-        var height = set_height(map_div) - 3 * map_hidden;
+        var height = $(window).height() / 2;
         if (data.length > 1) {
             var x_list = [];
             var y_list = [];
@@ -317,7 +323,7 @@
             zoom = Math.log(2.048 / (x_max - x_min) * (map_div.width())) / Math.log(2);
             center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
             height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
-            while (height > map_div.height()) {
+            while (height > $(window).height() / 1.5) {
                 zoom = zoom - 1;
                 height = height / 2
             }

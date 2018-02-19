@@ -115,10 +115,15 @@ def get_img():
 
 
 def get_img_thread(station):
-    url = pq(requests.get(wiki_url + '/wiki/%s站' % station, headers=headers).text)('.vcard [colspan="2"] a')
-    if url and 'Missing' not in str(url) and 'No' not in str(url):
-        src = pq(requests.get(wiki_url + url.attr('href'), headers=headers).text)('.fullMedia a').attr('href')
-    else:
+    try:
+        src = None
+        url = pq(requests.get(wiki_url + '/wiki/%s站' % station, headers=headers, timeout=5).text)(
+            '.vcard [colspan="2"] a')
+        if url and 'Missing' not in str(url) and 'No' not in str(url):
+            src = pq(requests.get(wiki_url + url.attr('href'), headers=headers, timeout=5).text)('.fullMedia a').attr(
+                'href')
+        test = len(src)
+    except:
         src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
         if src:
             src = re.findall(r'src=(.+)', src)[0]
@@ -141,6 +146,6 @@ if __name__ == '__main__':
     sqls = []
     # get_station()
     # get_location()
-    get_location_thread('昭通南')
+    # get_location_thread('昭通南')
     # get_img()
-    # get_img_thread('阿城')
+    get_img_thread('重庆西')

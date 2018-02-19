@@ -11,12 +11,12 @@ class Qiniuyun():
         self.bucket = BucketManager(Auth(ak, sk))
 
     def fetch(self, url, name):
+        print(url, name)
         self.bucket.fetch(url, self.bucket_name, name)
 
     def stat(self, names):
         ops = build_batch_stat(self.bucket_name, names)
         ret, info = self.bucket.batch(ops)
-        print(info)
         data = {}
         n = 0
         for info in eval(info.text_body):
@@ -35,4 +35,4 @@ class Qiniuyun():
 if __name__ == '__main__':
     bucket_name = 'rail'
     qiniuyun = Qiniuyun(qiniu_ak, qiniu_sk, bucket_name)
-    print(qiniuyun.delete(['station_img/万州.jpg']))
+    print(qiniuyun.stat(['station_img/重庆西.jpg']))

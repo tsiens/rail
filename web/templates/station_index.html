@@ -22,7 +22,6 @@
     </style>
 {% endblock %}
 {% block content %}
-    <div style="text-align: center">
     <div id="imgs">
         <template v-for="img in imgs">
             <a class="img-thumbnail" :href="img.href" style="display: none;padding: 5px; margin: 3px">
@@ -32,19 +31,21 @@
             </a>
         </template>
     </div>
-    </div>
 {% endblock %}
 <script>
     {% block script %}
         $("a:contains('车站')").addClass('active');
+        $("title").text('车站');
+        loading.hide();
+        $('#index').css({'display': '', 'flex-direction': '', 'justify-content': ''});
         var station_imgs = new Vue({
             el: '#imgs',
             mounted: function () {
                 var _this = this;
                 $(window).scroll(function () {
-                    _this.get()
+                    _this.get($(document).height())
                 });
-                setTimeout(_this.get(), 0);
+                setTimeout(_this.get(0), 0);
             },
             data: {
                 imgs_div: '#imgs',
@@ -55,8 +56,8 @@
                 ispost: false
             },
             methods: {
-                get: function () {
-                    if ((!this.ispost) && ($('body').height() < $(window).height() * 3 + $(window).scrollTop()) && (this.start <= this.end)) {
+                get: function (height) {
+                    if ((!this.ispost) && (height < $(window).height() * 3 + $(window).scrollTop()) && (this.start <= this.end)) {
                         this.ispost = true;
                         this.post()
                     }
@@ -88,7 +89,7 @@
                                 $imgs.imagesLoaded(function () {
                                     $imgs.masonry({itemSelector: 'a'});
                                     _this.ispost = false;
-                                    _this.get()
+                                    _this.get($(document).height())
                                 })
                             }, 0
                         );

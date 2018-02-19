@@ -1,22 +1,19 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="treemap">
-        <ol class="breadcrumb" style="margin-bottom: 5px;">
-            <template v-for="(v,k) in city">
-                <li v-if="k==city.length-1" class="active">[[ v ]]</li>
-                <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
-            </template>
-        </ol>
-        <div class="echarts"></div>
-    </div>
+    <ol class="breadcrumb" style="margin: 5px;">
+        <template v-for="(v,k) in city">
+            <li v-if="k==city.length-1" class="active">[[ v ]]</li>
+            <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
+        </template>
+    </ol>
+    <div id="treemap" class="echarts" style="flex:1"></div>
 {% endblock %}
 <script>
     {% block script %}
-        loading.show();
         $("a:contains('城市')").addClass('active');
-        $("title").text('城市');
+        $("title").text('全国');
         var treemap_header = new Vue({
-            el: '#treemap',
+            el: '.breadcrumb',
             mounted: function () {
                 setTimeout(this.post, 0)
             },
@@ -30,8 +27,8 @@
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
                         loading.hide();
-                        $('.echarts').height($(window).height() / 2);
-                        echarts_treemap = echarts.init($('#treemap div').get(0));
+                        $('#treemap').height($(window).height() / 2);
+                        echarts_treemap = echarts.init($('#treemap').get(0));
                         _this.citys = res;
                         _this.data = res;
                         if ('{{ city }}' !== 'index') {
@@ -51,6 +48,12 @@
                         _this.data = _this.data[v]
                     });
                     if (_this.data) {
+                        if (this.city.length === 1) {
+                            $("title").text('全国')
+                        }
+                        else {
+                            $("title").text(this.city.slice(1).join('-'));
+                        }
                         treemap()
                     }
                 }
@@ -64,8 +67,9 @@
                 },
                 series: [{
                     type: 'treemap',
+                    top: 0,
+                    height: '95%',
                     width: '100%',
-                    height: '100%',
                     itemStyle: {
                         normal: {
                             borderColor: 'rgba(255,255,255,0)',
@@ -85,6 +89,12 @@
                     var name = params.treePathInfo.reverse().slice(0, 1)[0].name;
                     if ((name !== '') && (treemap_header.city.indexOf(name) === -1)) {
                         treemap_header.city.push(name);
+                        if (treemap_header.city.length === 1) {
+                            $("title").text('全国')
+                        }
+                        else {
+                            $("title").text(treemap_header.city.slice(1).join('-'));
+                        }
                     }
                 }
             });
@@ -108,7 +118,6 @@
                         name: v + '站',
                         value: 1,
                         link: '{% url 'station' '*' %}'.replace('*', v),
-                        target: 'self',
                         tooltip: {
                             formatter: '点击跳转{b}'
                         }

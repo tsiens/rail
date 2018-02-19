@@ -23,7 +23,7 @@
         </ul>
         <div id="line_content" class="tab-content">
             <div v-for="content in contents" :id="content.id" class="tab-pane" :class="{ active: content.active}">
-                <a v-for="line in content.lines" target="_blank" :href="line.href">
+                <a v-for="line in content.lines" :href="line.href">
                     <span class="badge badge-dark" style="font-size: 14px;margin: 5px;padding: 5px">
                         [[ line.text ]]<span class="badge badge-light" style="margin: 0 0 0 3px;padding: 3px">[[ line.info ]]</span>
                     </span>
@@ -35,7 +35,8 @@
 <script>
     {% block script %}
         $("a:contains('车次')").addClass('active');
-        $(".container").css('flex', 1);
+        $("title").text('车次');
+        $('#index').css('justify-content', '');
         var lines = new Vue({
             el: '#lines',
             mounted: function () {
@@ -57,6 +58,7 @@
                         }
                         _this.tabs.push(tab);
                         $.post('{% url 'data' %}', {'type': 'line_index', 'code': text}, function (data) {
+                            loading.hide();
                             $.each(data, function () {
                                 content.lines.push({
                                     'href': '{% url 'line' '*' %}'.replace('*', this[0]),

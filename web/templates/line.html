@@ -1,28 +1,26 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div>
+    <div class="echarts">
         <div id="map"></div>
     </div>
-    <div style="overflow:auto">
-        <table id='time_table' class='table table-hover table-bordered'>
-            <thead>
-            <template>
-                <tr v-if="table.length>0">
-                    <th v-for="th in ths">[[ th ]]</th>
-                </tr>
-            </template>
-            </thead>
-            <tbody>
-            <tr v-for="items in table">
-                <template v-for="item in items">
-                    <td v-if="'href' in item"><a :href="item.href">[[ item.text ]]</a></td>
-                    <td v-else if="'span' in item"><span :class="item.span">[[ item.text ]]</span></td>
-                    <td v-else>[[ item.text ]]</td>
-                </template>
+    <table id='time_table' class='table table-hover table-bordered'>
+        <thead>
+        <template>
+            <tr v-if="table.length>0">
+                <th v-for="th in ths">[[ th ]]</th>
             </tr>
-            </tbody>
-        </table>
-    </div>
+        </template>
+        </thead>
+        <tbody>
+        <tr v-for="items in table">
+            <template v-for="item in items">
+                <td v-if="'href' in item"><a :href="item.href">[[ item.text ]]</a></td>
+                <td v-else if="'span' in item"><span :class="item.span">[[ item.text ]]</span></td>
+                <td v-else>[[ item.text ]]</td>
+            </template>
+        </tr>
+        </tbody>
+    </table>
 {% endblock %}
 <script>
     {% block script %}

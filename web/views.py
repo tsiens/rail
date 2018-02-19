@@ -1,5 +1,4 @@
 import json
-import random
 from datetime import *
 
 from django.db.models import Count
@@ -8,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 import key
-from web.search import *
+from web.module import *
 
 
 def val(request):
@@ -121,7 +120,7 @@ def data(request):
                 timetable[line][1] = station
                 timetable[line][-1] = order
             if station == name:
-                timetable[line][2:5] = [str(arrivetime), str(leavetime), staytime]
+                timetable[line][2:5] = [str(arrivetime)[:-3], str(leavetime)[:-3], staytime]
         for station, station_data in stations_line.items():
             if station != name:
                 stations_data[station] = [0, 10000]
@@ -153,7 +152,7 @@ def data(request):
                                                                                       'arrivetime', 'leavedate',
                                                                                       'leavetime',
                                                                                       'staytime'):
-            item, item[3], item[5] = list(item), str(item[3]), str(item[5])
+            item, item[3], item[5] = list(item), str(item[3])[:-3], str(item[5])[:-3]
             data.append(item)
             stations.append(item[1])
         for item in Station.objects.filter(cn__in=stations).values_list('cn', 'x', 'y', 'province', 'city', 'county'):
@@ -161,17 +160,8 @@ def data(request):
             data[n] = list(item[1:]) + data[n]
     elif type == 'search':
         data = search(request.POST.get('key'))[1]
-    elif type == 'random':
-        choice = random.randint(0, Timetable.objects.count() - 1)
-        items = {'line': '车次', 'station': '车站', 'city': '城市'}
-        item = random.sample(items.keys(), 1)[0]
-        if item == 'city':
-            station = Timetable.objects.values_list('station', flat=True)[choice]
-            keys = ['province', 'city', 'county']
-            key = random.randint(1, len(keys))
-            data = [items[item], '-'.join(Station.objects.filter(cn=station).values_list(*keys[:key])[0])]
-        else:
-            data = [items[item], Timetable.objects.values_list(item, flat=True)[choice]]
+    elif type == 'luck':
+        data = luck()
     else:
         data = 'ERROR'
     return HttpResponse(json.dumps(data), content_type='application/json')
