@@ -1,11 +1,19 @@
 {% extends 'template.html' %}
 {% block content %}
-    <ol class="breadcrumb" style="margin: 10px 0 0 0">
-        <template v-for="(v,k) in city">
-            <li v-if="k==city.length-1" class="active">[[ v ]]</li>
-            <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
-        </template>
-    </ol>
+    <div id="nav">
+        <ol class="breadcrumb" style="margin: 10px 0 0 0">
+            <template v-for="(v,k) in city">
+                <li v-if="k==city.length-1" class="active">[[ v ]]</li>
+                <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
+            </template>
+            &nbsp|&nbsp
+            <div v-for="level in levels" class="checkbox">
+                <label>
+                    <input type="checkbox" v-model="level[1]" :disabled="level[2]">[[ level[0] ]]
+                </label>
+            </div>
+        </ol>
+    </div>
     <div id="treemap" class="echarts" style="flex:1"></div>
 {% endblock %}
 <script>
@@ -13,15 +21,64 @@
         $("a:contains('城市')").addClass('active');
         $("title").text('全国');
         ids = [];
-        var treemap_header = new Vue({
-            el: '.breadcrumb',
+        var nav = new Vue({
+            el: '#nav',
             mounted: function () {
                 setTimeout(this.post, 0)
             },
             data: {
+                levels: [['省', true, false], ['市', true, false], ['县', true, false]],
                 city: ['全国'],
                 citys: {},
                 data: {}
+            },
+            watch: {
+                levels: function (levels) {
+                    level = [];
+                    var _this = this;
+                    var disabled = 0;
+                    $.each(levels, function (k, v) {
+                        if (v[1]) {
+                            level.push(v);
+                            disabled = k
+                        }
+                    });
+                    if (level.length === 1) {
+                        _this.levels[disabled][2] = true
+                    }
+                    else {
+                        $.each(_this.levels, function (k, v) {
+                            _this.levels[k][2] = false
+                        })
+                    }
+                    var data = {};
+                    $.each(this.citys, function (p, cis) {
+                        if (_this.levels['省'][1]) {
+                            data[p] = {};
+                        }
+                        $.each(cis, function (ci, cos) {
+                            if (_this.levels['省'][1]) {
+                                data[p][ci] = {};
+                            }
+                            else if (_this.levels['市'][1]) {
+                                data[ci] = {};
+                            }
+                            $.each(cos, function (co, ss) {
+                                if ((_this.levels['省'][1]) && _this.levels['市'][1]) {
+                                    data[p][ci][co] = {};
+                                }
+                                if ((_this.levels['省'][1]) && _this.levels['市'][1]) {
+                                    data[p][ci][co] = {};
+                                }
+                                $.each(ss, function (k, s) {
+                                    n_ss.push(s)
+                                });
+                            });
+                        });
+                    });
+                    _this.data = data;
+                    treemap()
+                }
             },
             methods: {
                 post: function () {
@@ -45,7 +102,9 @@
                     _this.city = _this.city.slice(0, n + 1);
                     _this.data = _this.citys;
                     $.each(_this.city.slice(1), function (k, v) {
-                        _this.data = _this.data[v]
+                        if (_this.level.indexOf(k) > -1) {
+                            _this.data = _this.data[v]
+                        }
                     });
                     if (this.city.length === 1) {
                         $("title").text('全国')
@@ -61,9 +120,9 @@
             div.height($(window).height() / 2);
             echarts_treemap = echarts.init(div.get(0));
             echarts_treemap.on('click', function (params) {
-                if ((params.name) && ((treemap_header.city.length < 4))) {
-                    treemap_header.city.push(params.name);
-                    treemap_header.jump(treemap_header.city.length);
+                if ((params.name) && ((nav.city.length < nav.level.length + 1))) {
+                    nav.city.push(params.name);
+                    nav.jump(nav.city.length);
                 }
             });
         }
@@ -85,7 +144,7 @@
                     breadcrumb: false,
                     nodeClick: 'link',
                     leafDepth: 1,
-                    data: conversion(treemap_header.data, 0)
+                    data: conversion(nav.data, 0)
                 }]
             };
             echarts_treemap.clear();
@@ -95,7 +154,7 @@
             var data_new = [];
             $.each(data_old, function (k, v) {
                 var item = '';
-                if (n < 4 - treemap_header.city.length) {
+                if (n < nav.level.length + 1 - nav.city.length) {
                     item = {
                         id: Math.floor(Math.random() * 30),
                         name: k,

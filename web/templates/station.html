@@ -90,20 +90,15 @@
                     }
                 },
                 visualMap: {
-                    show: false,
-                    top: 0,
-                    right: 0,
-                    orient: 'horizontal',
-                    pieces: [
-                        {lte: 1, label: '1小时'},
-                        {gt: 1, lte: 3, label: '3小时'},
-                        {gt: 3, lte: 8, label: '8小时'},
-                        {gt: 8, lte: 20, label: '20小时'},
-                        {gt: 20, label: '20小时以上'}
-                    ],
-                    color: ['#50a3ba', '#eac736', '#d94e5d'],
+                    min: 0,
+                    max: 10,
+                    bottom: '50px',
+                    inRange: {
+                        color: ['#50a3ba', '#eac736', '#d94e5d'].reverse()
+                    },
+                    inverse: true,
                     textStyle: {
-                        color: '#FFF'
+                        color: '#fff'
                     },
                     dimension: 7
                 },

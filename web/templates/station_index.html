@@ -7,6 +7,7 @@
         }
 
         #imgs p {
+            width: 100%;
             margin: 0;
             color: #AAA;
             font-size: 10px
@@ -25,9 +26,9 @@
     <div id="imgs">
         <template v-for="img in imgs">
             <a class="img-thumbnail" :href="img.href" style="display: none;padding: 5px; margin: 3px">
-                <img :alt="img.text" :src="img.src" style="width: 200px">
+                <img :alt="img.text" :src="img.src" :style="{width: width}">
                 <h5>[[ img.text ]]</h5>
-                <p style="width: 200px">[[ img.info ]]</p>
+                <p>[[ img.info ]]</p>
             </a>
         </template>
     </div>
@@ -54,6 +55,12 @@
                 end: {{ count }},
                 num: 10,
                 ispost: false
+            },
+            computed: {
+                width: function () {
+                    var n = Math.round($(this.imgs_div).width() / 220);
+                    return $(this.imgs_div).width() / n - 18 + 'px'
+                }
             },
             methods: {
                 get: function (height) {

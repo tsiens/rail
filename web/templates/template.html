@@ -6,6 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/lodash.js/4.17.5/lodash.min.js"></script>
 <script src="https://cdn.bootcss.com/popper.js/1.12.6/umd/popper.min.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
 <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
@@ -228,6 +229,7 @@
     });
     var search = {
         data: {
+            search_show: true,
             name: {'city': '城市', 'station': '车站', 'line': '车次'},
             url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
             input: '',
@@ -241,25 +243,26 @@
                 {#                    _this.suggest = {}#}
                 {#                }, 200)#}
             },
-            search: function () {
-                this.suggest = {};
-                if (this.input) {
-                    var _this = this;
-                    var suggest = {};
-                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
-                        $.each(res, function (k, v) {
-                            var name = _this.name[k];
-                            if (v.length > 0) {
-                                suggest[name] = [];
-                                $.each(v, function (n, text) {
-                                    suggest[name].push([_this.url[k].replace('*', text), text])
-                                });
-                            }
-                        });
-                        _this.suggest = suggest
-                    })
-                }
-            },
+            search: _.debounce(
+                function () {
+                    this.suggest = {};
+                    if (this.input) {
+                        var _this = this;
+                        var suggest = {};
+                        $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
+                            $.each(res, function (k, v) {
+                                var name = _this.name[k];
+                                if (v.length > 0) {
+                                    suggest[name] = [];
+                                    $.each(v, function (n, text) {
+                                        suggest[name].push([_this.url[k].replace('*', text), text])
+                                    });
+                                }
+                            });
+                            _this.suggest = suggest
+                        })
+                    }
+                }, 500),
             luck: function () {
                 var _this = this;
                 $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
@@ -280,7 +283,7 @@
             items2: [
                 {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
                 {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'},
-                {'href': '#modal_search', 'fa': 'fa fa-search', 'text': '搜索'}
+                {'href': '#modal_search', 'fa': 'fa fa-user', 'text': '搜索'}
             ]
         }
     });
