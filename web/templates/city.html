@@ -1,6 +1,6 @@
 {% extends 'template.html' %}
 {% block content %}
-    <ol class="breadcrumb" style="margin: 5px;">
+    <ol class="breadcrumb" style="margin: 10px 0 0 0">
         <template v-for="(v,k) in city">
             <li v-if="k==city.length-1" class="active">[[ v ]]</li>
             <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
@@ -19,7 +19,7 @@
                 setTimeout(this.post, 0)
             },
             data: {
-                city: [],
+                city: ['全国'],
                 citys: {},
                 data: {}
             },
@@ -68,12 +68,11 @@
             });
         }
         function treemap() {
-            var option;
-            option = {
+            var option = {
                 series: [{
+                    name: '全国',
                     type: 'treemap',
-                    top: 0,
-                    height: '95%',
+                    height: '100%',
                     width: '100%',
                     itemStyle: {
                         normal: {

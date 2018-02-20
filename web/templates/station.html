@@ -1,6 +1,6 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div class="echarts">
+    <div class="echarts" style="overflow:hidden">
         <div id="map"></div>
     </div>
     <table id='line_table' class='table table-hover table-bordered'>
@@ -63,8 +63,9 @@
             }
         });
         function map(data, lines_num) {
-            [center, zoom] = map_area($('#map'), data);
-            var echarts_map = echarts.init($('#map').get(0));
+            var map_div = $('#map');
+            [center, zoom] = map_area(map_div, data);
+            var echarts_map = echarts.init(map_div.get(0));
             var option = {
                 title: {
                     text: '{{ station }}',

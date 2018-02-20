@@ -16,6 +16,7 @@ def luck():
     else:
         return [item, Timetable.objects.values_list(item, flat=True)[choice]]
 
+
 def search(key):
     key = key.upper()
     data = {'station': [], 'city': [], 'line': []}
@@ -34,13 +35,14 @@ def search(key):
     data['station'] = list(
         Station.objects.filter(Q(cn__contains=key), Q(cn__in=line_stations)).order_by('cn')[:10].values_list(
             'cn', flat=True))
-    data['line'] = list(Line.objects.filter(Q(line=key), ~Q(runtime=None)).values_list('line', flat=True)) + list(
-        Line.objects.filter(Q(line__contains=key), ~Q(runtime=None)).order_by('line')[:10].values_list('line',
-                                                                                                       flat=True))
-    n = 0
-    for k, v in data.items():
-        n += len(v)
-    return [n, data]
+    data['line'] = list(Line.objects.filter(
+        Q(line=key) | Q(line__startswith=key + '/') | Q(line__endswith='/' + key) | Q(line__contains='/' + key + '/'),
+        ~Q(runtime=None))[:1].values_list('line', flat=True))
+    for line in list(Line.objects.filter(Q(line__contains=key), ~Q(runtime=None)).order_by(
+            'line')[:10].values_list('line', flat=True)):
+        if line not in data['line']:
+            data['line'].append(line)
+    return [sum([len(v) for k, v in data.items()]), data]
 
 
 if __name__ == '__main__':

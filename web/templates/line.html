@@ -1,6 +1,6 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div class="echarts">
+    <div class="echarts" style="overflow:hidden">
         <div id="map"></div>
     </div>
     <table id='time_table' class='table table-hover table-bordered'>
@@ -12,12 +12,16 @@
         </template>
         </thead>
         <tbody>
-        <tr v-for="items in table">
-            <template v-for="item in items">
-                <td v-if="'href' in item"><a :href="item.href">[[ item.text ]]</a></td>
-                <td v-else if="'span' in item"><span :class="item.span">[[ item.text ]]</span></td>
-                <td v-else>[[ item.text ]]</td>
-            </template>
+        <tr v-for="item in table">
+            <td>[[ item[0].text ]]</td>
+            <td><a :href="item[1].href">[[ item[1].text ]]</a></td>
+            <td><span v-if="item[2].text>1"><span class="badge badge-secondary">第[[ item[2].text ]]天</span><br/></span>[[
+                item[3].text ]]
+            </td>
+            <td><span v-if="item[4].text>1"><span class="badge badge-secondary">第[[ item[4].text ]]天</span><br/></span>[[
+                item[5].text ]]
+            </td>
+            <td><span :class="item[6].span">[[ item[6].text ]]</span></td>
         </tr>
         </tbody>
     </table>
@@ -33,7 +37,7 @@
                 setTimeout(this.get, 0)
             },
             data: {
-                ths: ['站序', '车站', '到日', '到时', '发日', '发时', '停留'],
+                ths: ['站序', '车站', '到达', '出发', '停留'],
                 table: []
             },
             methods: {
@@ -72,8 +76,9 @@
             }
         });
         function map(data) {
-            [center, zoom] = map_area($('#map'), data);
-            var echarts_map = echarts.init($('#map').get(0));
+            var map_div = $('#map');
+            [center, zoom] = map_area(map_div, data);
+            var echarts_map = echarts.init(map_div.get(0));
             option = {
                 title: {
                     text: '{{ line }}',

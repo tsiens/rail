@@ -50,11 +50,13 @@ def line(request, line):
     else:
         line = line.upper()
         if Timetable.objects.filter(line__contains=line):
-            lines = list(Line.objects.filter(line=line).values_list('line', 'arrive',
-                                                                    'start')) + list(Line.objects.filter(
-                line__contains=line + '/')[:1].values_list('line', 'arrive', 'start')) + list(Line.objects.filter(
-                line__contains='/' + line)[:1].values_list('line', 'arrive', 'start')) + list(Line.objects.filter(
-                line__contains=line)[:1].values_list('line', 'arrive', 'start'))
+            lines = list(Line.objects.filter(
+                Q(line=line) | Q(line__startswith=line + '/') | Q(line__endswith='/' + line) | Q(
+                    line__contains='/' + line + '/'), ~Q(runtime=None))[:1].values_list('line', 'arrive',
+                                                                                        'start')) + list(
+                Line.objects.filter(Q(line__contains=line), ~Q(runtime=None)).order_by('line')[:1].values_list('line',
+                                                                                                               'arrive',
+                                                                                                               'start'))
             line, arrive, start = lines[0]
             return render(request, 'line.html', locals())
         else:

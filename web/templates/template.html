@@ -1,91 +1,92 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 <html lang="en" style="height: 100%">
-    <title>Rail</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'image/favicon.ico' %}">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdn.bootcss.com/popper.js/1.12.6/umd/popper.min.js"></script>
-    <script src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
-    <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
-    <script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
-    <script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
-    <script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
-    <script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
-    <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
-    <script src="{% static '/echarts/mapStyle.js' %}"></script>
-    <style>
-        @-webkit-keyframes load {
-            0% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
-            }
+<title>Rail</title>
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'image/favicon.ico' %}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/popper.js/1.12.6/umd/popper.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
+<link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
+<script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+<script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
+<script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+<script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
+<script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
+<script src="{% static '/echarts/mapStyle.js' %}"></script>
+<style>
+    @-webkit-keyframes load {
+        0% {
+            opacity: 1;
         }
+        100% {
+            opacity: 0;
+        }
+    }
 
-        *:focus {
-            outline: none;
-        }
+    *:focus {
+        outline: none;
+    }
 
-        td {
-            word-break: break-all
-        }
+    td {
+        word-break: break-all
+    }
 
-        a:hover {
-            text-decoration: none;
-        }
+    a:hover {
+        text-decoration: none;
+    }
 
-        #footer a {
-            color: #999C9F
-        }
+    #footer a {
+        color: #999C9F
+    }
 
-        #footer a:hover {
-            color: #CCCDCF
-        }
+    #footer a:hover {
+        color: #CCCDCF
+    }
 
-        .container div {
-            text-align: center;
-        }
-        .search div {
-            text-align: left;
-            padding: 0 6px;
-            width: 100%;
-            background-color: #FFF
-        }
+    .container div {
+        text-align: center;
+    }
 
-        .search p {
-            padding: 0 6px;
-            font-size: 10px;
-        }
+    .search div {
+        text-align: left;
+        padding: 0 6px;
+        width: 100%;
+        background-color: #FFF
+    }
 
-        .search a {
-            color: black;
-            font-size: 10px;
-        }
+    .search p {
+        padding: 0 6px;
+        font-size: 10px;
+    }
 
-        .search a:hover {
-            background-color: #EEE;
-        }
+    .search span {
+        font-weight: normal;
+        margin: 0 1px;
+    }
 
-        .echarts {
-            margin: 5px 0 0 0;
-            width: 100%;
-        }
-    </style>
-    <script>
-        {#    console.log('{% static 'image/icon.svg' %}')#}
-        {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
-    </script>
-    {% block head %}
-    {% endblock %}
+    .search span:hover {
+        font-weight: bold;
+    }
+
+    .echarts {
+        margin: 5px 0 0 0;
+        width: 100%;
+    }
+</style>
+<script>
+    {#    console.log('{% static 'image/icon.svg' %}')#}
+    {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
+</script>
+{% block head %}
+{% endblock %}
 </head>
-    <body style="background-color: #F0F0F0;height: 100%;display: flex;flex-direction: column">
-    <nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
+<body style="background-color: #F0F0F0;height: 100%;display: flex;flex-direction: column">
+<nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
     <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
             class="fa fa-github"></i></a>
     <a class="navbar-brand" href="/">Rail</a>
@@ -104,34 +105,17 @@
                                         :data-target="item.href"><i
                         :class="item.fa"></i>&nbsp[[ item.text ]]</a></li>
             </template>
-            <li v-if="search_show" class="nav-item" style="display: flex;align-items:center">
-                <span class="search" style="position:relative">
-                    <span class="input-group">
-                        <input class="form-control" style="padding: 1px 8px" v-model="input" @input="search"
-                               @blur="blur" placeholder="search">
-                        <span class="input-group-addon" style="background: #999C9F"><a @click="luck" class="nav-link"><i
-                                class="fa fa-random"></i></a></span>
-                    </span>
-                    <div style="position:absolute;z-index:10;word-wrap:break-word">
-                        <template v-for="(vs, k, n) in suggest">
-                            <div v-if="n>0" class="dropdown-divider"></div>
-                            <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                            <a v-for="v in vs" :href="v[0]">&nbsp[[ v[1] ]]&nbsp</a>
-                        </template>
-                    </div>
-                </span>
-            </li>
         </ul>
     </div>
 </nav>
-    <div class="container" style="flex:1">
-        <div id="loading" style="height:100%;justify-content: center;align-items: center" :style="{display:display}">
-            <div style=";position: relative" :style="{width:radius*2+'px',height:radius*2+'px'}">
-                <span v-for="style in styles" :style="style"></span>
-            </div>
+<div class="container" style="flex:1">
+    <div id="loading" style="height:100%;justify-content: center;align-items: center" :style="{display:display}">
+        <div style=";position: relative" :style="{width:radius*2+'px',height:radius*2+'px'}">
+            <span v-for="style in styles" :style="style"></span>
+        </div>
     </div>
-        <div id="index"
-             style="height:100%;display:none;flex-direction: column;justify-content: center;align-items: center">
+    <div id="index"
+         style="height:100%;display:none;flex-direction: column;justify-content: center;align-items: center">
         {% block content %}
         {% endblock %}
     </div>
@@ -145,13 +129,30 @@
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
-                    <img :src="item.src" alt="item.text">
+                    <img v-if="item.text!='搜索'" :src="item.src" alt="item.text">
+                    <div v-else class="search" style="text-align: center">
+                        <br/>
+                        <input class="form-control" v-model="input" @input="search"
+                               @blur="blur"
+                               title="search">
+                        <div style="word-wrap:break-word">
+                            <template v-for="(vs, k, n) in suggest">
+                                <div v-if="n>0" class="dropdown-divider"></div>
+                                <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                                <a v-for="v in vs" :href="v[0]">
+                                    <span class="badge badge-light">[[ v[1] ]]</span>
+                                </a>
+                            </template>
+                        </div>
+                        <br/>
+                        <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </nav>
-    <nav id="footer" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
+<nav id="footer" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footer_ul">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -227,7 +228,6 @@
     });
     var search = {
         data: {
-            search_show: true,
             name: {'city': '城市', 'station': '车站', 'line': '车次'},
             url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
             input: '',
@@ -236,10 +236,10 @@
         methods: {
             blur: function () {
                 var _this = this;
-                setTimeout(function () {
-                    _this.input = '';
-                    _this.suggest = {}
-                }, 200)
+                {#                setTimeout(function () {#}
+                {#                    _this.input = '';#}
+                {#                    _this.suggest = {}#}
+                {#                }, 200)#}
             },
             search: function () {
                 this.suggest = {};
@@ -270,7 +270,6 @@
     };
     var header = new Vue({
         el: '#header',
-        mixins: [search],
         data: {
             items1: [
                 {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
@@ -280,12 +279,14 @@
             ],
             items2: [
                 {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
-                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'}
+                {'href': '#modal_contact', 'fa': 'fa fa-user', 'text': '交流'},
+                {'href': '#modal_search', 'fa': 'fa fa-search', 'text': '搜索'}
             ]
         }
     });
     var modal = new Vue({
         el: '#modal',
+        mixins: [search],
         data: {
             items: [
                 {
@@ -299,6 +300,11 @@
                     'fa': 'fa fa-user',
                     'text': '吐槽我吧',
                     'src': '{% static 'image/qq.jpg' %}'
+                },
+                {
+                    'id': 'modal_search',
+                    'fa': 'fa fa-search',
+                    'text': '搜索'
                 }
             ]
         }
@@ -320,7 +326,7 @@
             var x_max = Math.max.apply(null, x_list);
             var y_min = Math.min.apply(null, y_list);
             var y_max = Math.max.apply(null, y_list);
-            zoom = Math.log(2.048 / (x_max - x_min) * (map_div.width())) / Math.log(2);
+            zoom = Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2);
             center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
             height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
             while (height > $(window).height() / 1.5) {
@@ -329,7 +335,7 @@
             }
         }
         map_div.height(height + 3 * map_hidden);
-        map_div.parent().css({'height': height + 2 * map_hidden, 'overflow': 'hidden'});
+        map_div.parent().height(height + 2 * map_hidden);
         return [center, zoom]
     }
     {% block script %}

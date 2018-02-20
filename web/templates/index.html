@@ -1,17 +1,17 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="carousel" class="carousel slide" data-ride="carousel" style="height:300px">
+    <div id="carousel" class="carousel slide" data-ride="carousel" style="height:50%">
         <!-- 指示符 -->
         <ul class="carousel-indicators">
             <li v-for="item in items" data-target="#carousel" :data-slide-to="item.n"
                 :class="{ active: item.active}"></li>
         </ul>
         <!-- 轮播图片 -->
-        <div class="carousel-inner">
+        <div class="carousel-inner" style="height: 100%;">
             <div v-for="item in items" class="carousel-item" :class="{ active: item.active}"
-                 style="overflow: auto;">
+                 style="overflow: auto;height:100%">
                 <a :href="item.href">
-                    <img :src="item.src" :alt="item.text" class="img-fluid img-thumbnail" style="height: 300px;">
+                    <img :src="item.src" :alt="item.text" class="img-fluid img-thumbnail" style="height: 100%">
                 </a>
                 <div class="carousel-caption">
                     <strong>[[ item.text ]]</strong>
@@ -35,7 +35,9 @@
             <template v-for="(vs, k, n) in suggest">
                 <div v-if="n>0" class="dropdown-divider"></div>
                 <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                <a v-for="v in vs" :href="v[0]">&nbsp[[ v[1] ]]&nbsp</a>
+                <a v-for="v in vs" :href="v[0]">
+                    <span class="badge badge-light">[[ v[1] ]]</span>
+                </a>
             </template>
         </div>
         <br/>
@@ -45,7 +47,6 @@
 <script>
     {% block script %}
         $("a:contains('主页')").addClass('active');
-        header.search_show = false;
         loading.hide();
         var index_search = new Vue({
             el: '#search',
