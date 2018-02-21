@@ -1,18 +1,33 @@
 {% extends 'template.html' %}
 {% block content %}
     <div id="nav">
-        <ol class="breadcrumb" style="margin: 10px 0 0 0">
-            <template v-for="(v,k) in city">
-                <li v-if="k==city.length-1" class="active">[[ v ]]</li>
-                <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
-            </template>
-            &nbsp|&nbsp
-            <div v-for="level in levels" class="checkbox">
-                <label>
-                    <input type="checkbox" v-model="level[1]" :disabled="level[2]">[[ level[0] ]]
-                </label>
-            </div>
-        </ol>
+        <label>
+            <select class="form-control" v-model="city[0]" :disabled="disabled[0]" style="width:200px">
+                <option>全国</option>
+                <template v-if="!disabled[0]">
+                    <option v-for="v,k in data">[[ k ]]</option>
+                </template>
+            </select>
+        </label>
+        <label>
+            <select class="form-control" v-model="city[1]" :disabled="disabled[1]||(city[0]=='全国'&&!disabled[0])"
+                    style="width:200px">
+                <option v-if="city[0]=='全国'">全国</option>
+                <option v-else>[[ city[0] ]]</option>
+                <template v-if="!disabled[0]">
+                    <option v-for="v,k in data[city[0]]">[[ k ]]</option>
+                </template>
+                <template v-else>
+                    <option v-for="v,k in data">[[ k ]]</option>
+                </template>
+            </select>
+        </label>
+        <br/>
+        [[ city ]]
+        <br/>
+        [[ disabled ]]
+        <br/>
+        [[ data ]]
     </div>
     <div id="treemap" class="echarts" style="flex:1"></div>
 {% endblock %}
@@ -20,170 +35,50 @@
     {% block script %}
         $("a:contains('城市')").addClass('active');
         $("title").text('全国');
-        ids = [];
         var nav = new Vue({
             el: '#nav',
             mounted: function () {
                 setTimeout(this.post, 0)
             },
             data: {
-                levels: [['省', true, false], ['市', true, false], ['县', true, false]],
-                city: ['全国'],
+                city: ['全国', '全国'],
+                disabled: [true, false],
                 citys: {},
-                data: {}
+                show: []
             },
-            watch: {
-                levels: function (levels) {
-                    level = [];
-                    var _this = this;
-                    var disabled = 0;
-                    $.each(levels, function (k, v) {
-                        if (v[1]) {
-                            level.push(v);
-                            disabled = k
-                        }
-                    });
-                    if (level.length === 1) {
-                        _this.levels[disabled][2] = true
-                    }
-                    else {
-                        $.each(_this.levels, function (k, v) {
-                            _this.levels[k][2] = false
-                        })
-                    }
-                    var data = {};
-                    $.each(this.citys, function (p, cis) {
-                        if (_this.levels['省'][1]) {
-                            data[p] = {};
-                        }
-                        $.each(cis, function (ci, cos) {
-                            if (_this.levels['省'][1]) {
-                                data[p][ci] = {};
-                            }
-                            else if (_this.levels['市'][1]) {
-                                data[ci] = {};
-                            }
-                            $.each(cos, function (co, ss) {
-                                if ((_this.levels['省'][1]) && _this.levels['市'][1]) {
-                                    data[p][ci][co] = {};
-                                }
-                                if ((_this.levels['省'][1]) && _this.levels['市'][1]) {
-                                    data[p][ci][co] = {};
-                                }
-                                $.each(ss, function (k, s) {
-                                    n_ss.push(s)
-                                });
-                            });
-                        });
-                    });
-                    _this.data = data;
-                    treemap()
+            computed: {
+                data: function () {
+                    return this.format(this.citys, 0);
                 }
             },
             methods: {
+                format: function (old_data, n) {
+                    var _this = this;
+                    if (n === 2) {
+                        return old_data
+                    }
+                    var new_data = {};
+                    $.each(old_data, function (k, v) {
+                        var data = _this.format(v, n + 1);
+                        if (_this.disabled[n]) {
+                            $.each(data, function (k, v) {
+                                new_data[k] = v
+                            })
+                        }
+                        else {
+                            new_data[k] = data
+                        }
+                    });
+                    return new_data
+                },
                 post: function () {
                     var _this = this;
                     $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
                         loading.hide();
-                        creat_treemap($('#treemap'));
                         _this.citys = res;
-                        _this.data = res;
-                        if ('{{ city }}' !== 'index') {
-                            _this.city = ['全国'].concat('{{ city }}'.split('-'));
-                        }
-                        else {
-                            _this.city = ['全国']
-                        }
-                        _this.jump(_this.city.length);
                     });
-                },
-                jump: function (n) {
-                    var _this = this;
-                    _this.city = _this.city.slice(0, n + 1);
-                    _this.data = _this.citys;
-                    $.each(_this.city.slice(1), function (k, v) {
-                        if (_this.level.indexOf(k) > -1) {
-                            _this.data = _this.data[v]
-                        }
-                    });
-                    if (this.city.length === 1) {
-                        $("title").text('全国')
-                    }
-                    else {
-                        $("title").text(this.city.slice(1).join('-'));
-                    }
-                    treemap()
                 }
             }
         });
-        function creat_treemap(div) {
-            div.height($(window).height() / 2);
-            echarts_treemap = echarts.init(div.get(0));
-            echarts_treemap.on('click', function (params) {
-                if ((params.name) && ((nav.city.length < nav.level.length + 1))) {
-                    nav.city.push(params.name);
-                    nav.jump(nav.city.length);
-                }
-            });
-        }
-        function treemap() {
-            var option = {
-                series: [{
-                    name: '全国',
-                    type: 'treemap',
-                    height: '100%',
-                    width: '100%',
-                    itemStyle: {
-                        normal: {
-                            borderColor: 'rgba(255,255,255,0)',
-                            borderWidth: 2
-                        }
-                    },
-                    drillDownIcon: '',
-                    colorMappingBy: 'id',
-                    breadcrumb: false,
-                    nodeClick: 'link',
-                    leafDepth: 1,
-                    data: conversion(nav.data, 0)
-                }]
-            };
-            echarts_treemap.clear();
-            echarts_treemap.setOption(option);
-        }
-        function conversion(data_old, n) {
-            var data_new = [];
-            $.each(data_old, function (k, v) {
-                var item = '';
-                if (n < nav.level.length + 1 - nav.city.length) {
-                    item = {
-                        id: Math.floor(Math.random() * 30),
-                        name: k,
-                        children: conversion(v, n + 1),
-                        label: {
-                            normal: {
-                                show: true,
-                                formatter: '{b} {c}'
-                            }
-                        }
-                    }
-                }
-                else {
-                    item = {
-                        id: Math.floor(Math.random() * 30),
-                        name: v,
-                        value: 1,
-                        link: '{% url 'station' '*' %}'.replace('*', v),
-                        label: {
-                            normal: {
-                                show: true,
-                                formatter: '{b}站'
-                            }
-                        }
-                    }
-                }
-                data_new.push(item)
-            });
-            return data_new
-        }
     {% endblock %}
 </script>
