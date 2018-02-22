@@ -87,11 +87,11 @@ def get_location_thread(station):
                 '石河子市', '阿拉尔市', '图木舒克市', '五家渠市', '北屯市', '铁门关市', '双河市', '可克达拉市', '昆玉市',  # 新疆
             ]  # 省直管
             if province in provinces:
-                county, city = city, '直属'
+                county, city = city, province + '属'
             elif city in citys:
-                county = '直属'
+                county = city + '属'
             elif city in countys:
-                city = '直属'
+                city = province + '属'
             else:
                 county = info[2]
         except:

@@ -1,31 +1,22 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="nav">
+    <div id="nav" style="text-align: left">
         <label>
-            <select class="form-control" v-model="city[0]" :disabled="disabled[0]" style="width:200px">
+            <select class="form-control" v-model="city[0]" style="width:200px">
                 <option>全国</option>
-                <template v-if="!disabled[0]">
-                    <option v-for="v,k in data">[[ k ]]</option>
-                </template>
+                <option>跨省</option>
+                <option v-for="s in data.省">[[ s ]]</option>
             </select>
         </label>
         <label>
-            <select class="form-control" v-model="city[1]" :disabled="disabled[1]||(city[0]=='全国'&&!disabled[0])"
+            <select class="form-control" v-model="city[1]" :disabled="city[0]=='全国'||data[city[0]].length==0"
                     style="width:200px">
-                <option v-if="city[0]=='全国'">全国</option>
-                <option v-else>[[ city[0] ]]</option>
-                <template v-if="!disabled[0]">
-                    <option v-for="v,k in data[city[0]]">[[ k ]]</option>
-                </template>
-                <template v-else>
-                    <option v-for="v,k in data">[[ k ]]</option>
-                </template>
+                <option v-if="city[0]!='全国'&&data[city[0]].length>1">[[ city[0] ]]</option>
+                <option v-for="d in data[city[0]]">[[ d ]]</option>
             </select>
         </label>
         <br/>
         [[ city ]]
-        <br/>
-        [[ disabled ]]
         <br/>
         [[ data ]]
     </div>
@@ -34,49 +25,42 @@
 <script>
     {% block script %}
         $("a:contains('城市')").addClass('active');
-        $("title").text('全国');
+        $("title").text('全国', -1);
         var nav = new Vue({
             el: '#nav',
             mounted: function () {
-                setTimeout(this.post, 0)
+                var _this = this;
+                setTimeout(function () {
+                    _this.post('省')
+                }, 0)
             },
             data: {
-                city: ['全国', '全国'],
-                disabled: [true, false],
-                citys: {},
-                show: []
+                city: ['全国', '无'],
+                data: {'全国': []}
             },
-            computed: {
-                data: function () {
-                    return this.format(this.citys, 0);
+            watch: {
+                'city.0': function (city0) {
+                    this.post(city0, 0);
+                    this.city[1] = city0
+                },
+                data: function (n, o) {
+                    console.log(n, o)
                 }
             },
             methods: {
-                format: function (old_data, n) {
+                post: function (data, n) {
                     var _this = this;
-                    if (n === 2) {
-                        return old_data
+                    if (!_this.data[data]) {
+                        _this.data[data] = [];
+                        $.post('{% url 'data' %}', {'type': 'city', 'data': data}, function (res) {
+                            loading.hide();
+                            _this.data[data] = res;
+                            if ((n === 1) && res.length === 1) {
+                                _this.city[1] = res[0]
+                            }
+                            _this.$forceUpdate()
+                        });
                     }
-                    var new_data = {};
-                    $.each(old_data, function (k, v) {
-                        var data = _this.format(v, n + 1);
-                        if (_this.disabled[n]) {
-                            $.each(data, function (k, v) {
-                                new_data[k] = v
-                            })
-                        }
-                        else {
-                            new_data[k] = data
-                        }
-                    });
-                    return new_data
-                },
-                post: function () {
-                    var _this = this;
-                    $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
-                        loading.hide();
-                        _this.citys = res;
-                    });
                 }
             }
         });
