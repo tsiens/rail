@@ -42,11 +42,11 @@
         var station_imgs = new Vue({
             el: '#imgs',
             mounted: function () {
-                var _this = this;
+                var self = this;
                 $(window).scroll(function () {
-                    _this.get($(document).height())
+                    self.get($(document).height())
                 });
-                setTimeout(_this.get(0), 0);
+                setTimeout(self.get(0), 0);
             },
             data: {
                 imgs_div: '#imgs',
@@ -70,22 +70,22 @@
                     }
                 },
                 post: function () {
-                    var _this = this;
+                    var self = this;
                     var $imgs = $(this.imgs_div);
                     $imgs.masonry();
                     $.post('{% url 'data' %}', {
                         'type': 'station_index',
-                        'start': _this.start,
-                        'end': _this.start + _this.num
+                        'start': self.start,
+                        'end': self.start + self.num
                     }, function (data) {
                         $.each(data, function () {
-                            _this.imgs.push({
+                            self.imgs.push({
                                 'href': '{% url 'station' '*' %}'.replace('*', this[0]),
                                 'src': '{{ qiniu }}' + this[0] + '{{ format }}',
                                 'text': this[0],
                                 'info': this[1] + ' ' + this[2] + ' ' + this[3]
                             });
-                            _this.start = _this.start + 1;
+                            self.start = self.start + 1;
                         });
                         setTimeout(
                             function () {
@@ -95,8 +95,8 @@
                                 );
                                 $imgs.imagesLoaded(function () {
                                     $imgs.masonry({itemSelector: 'a'});
-                                    _this.ispost = false;
-                                    _this.get($(document).height())
+                                    self.ispost = false;
+                                    self.get($(document).height())
                                 })
                             }, 0
                         );

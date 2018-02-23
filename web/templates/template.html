@@ -1,90 +1,90 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 <html lang="en" style="height: 100%">
-<title>Rail</title>
-<link rel="shortcut icon" type="image/x-icon" href="{% static 'image/favicon.ico' %}">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/lodash.js/4.17.5/lodash.min.js"></script>
-<script src="https://cdn.bootcss.com/popper.js/1.12.6/umd/popper.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
-<link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-<script src="https://cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
-<script src="https://cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
-<script src="https://cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
-<script src="https://cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
-<script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
-<script src="https://api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
-<script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
-<script src="{% static '/echarts/mapStyle.js' %}"></script>
-<style>
-    @-webkit-keyframes load {
-        0% {
-            opacity: 1;
+<head>
+    <title>Rail</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{% static 'image/favicon.ico' %}" type="image/x-icon" rel="shortcut icon">
+    <link href="//cdn.bootcss.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/lodash.js/4.17.5/lodash.min.js"></script>
+    <script src="//cdn.bootcss.com/popper.js/1.12.6/umd/popper.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
+    <script src="//cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+    <script src="//cdn.bootcss.com/echarts/4.0.2/echarts.min.js"></script>
+    <script src="//cdn.bootcss.com/echarts/4.0.2/extension/bmap.min.js"></script>
+    <script src="//cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+    <script src="//api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
+    <script src="{% static '/echarts/mapStyle.js' %}"></script>
+    <script>
+        $.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}});
+        Vue.mixin({delimiters: ['[[', ']]']});
+    </script>
+    <style>
+        @-webkit-keyframes load {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
         }
-        100% {
-            opacity: 0;
+
+        *:focus {
+            outline: none;
         }
-    }
 
-    *:focus {
-        outline: none;
-    }
+        td {
+            word-break: break-all
+        }
 
-    td {
-        word-break: break-all
-    }
+        a:hover {
+            text-decoration: none;
+        }
 
-    a:hover {
-        text-decoration: none;
-    }
+        #footer a {
+            color: #999C9F
+        }
 
-    #footer a {
-        color: #999C9F
-    }
+        #footer a:hover {
+            color: #CCCDCF
+        }
 
-    #footer a:hover {
-        color: #CCCDCF
-    }
+        .container div {
+            text-align: center;
+        }
 
-    .container div {
-        text-align: center;
-    }
+        .search div {
+            text-align: left;
+            padding: 0 6px;
+            width: 100%;
+            background-color: #FFF
+        }
 
-    .search div {
-        text-align: left;
-        padding: 0 6px;
-        width: 100%;
-        background-color: #FFF
-    }
+        .search p {
+            padding: 0 6px;
+            font-size: 10px;
+        }
 
-    .search p {
-        padding: 0 6px;
-        font-size: 10px;
-    }
+        .search span {
+            font-weight: normal;
+            margin: 0 1px;
+        }
 
-    .search span {
-        font-weight: normal;
-        margin: 0 1px;
-    }
+        .search span:hover {
+            font-weight: bold;
+        }
 
-    .search span:hover {
-        font-weight: bold;
-    }
-
-    .echarts {
-        margin: 5px 0 0 0;
-        width: 100%;
-    }
-</style>
-<script>
-    {#    console.log('{% static 'image/icon.svg' %}')#}
-    {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
-</script>
-{% block head %}
-{% endblock %}
+        .echarts {
+            margin: 5px 0 0 0;
+            width: 100%;
+        }
+    </style>
+    {% block head %}
+    {% endblock %}
 </head>
 <body style="background-color: #F0F0F0;height: 100%;display: flex;flex-direction: column">
 <nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
@@ -173,9 +173,6 @@
     </div>
 </nav>
 <script>
-    Vue.mixin({
-        delimiters: ['[[', ']]']
-    });
     var loading = new Vue({
         el: '#loading',
         data: {
@@ -197,17 +194,17 @@
                     [1 - Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2]
                 ];
                 var styles = [];
-                var _this = this;
+                var self = this;
                 $.each(set, function (k, v) {
                     styles.push({
-                        'left': _this.radius * v[0] + 'px',
-                        'top': _this.radius * v[1] + 'px',
-                        'margin-left': '-' + _this.size / 2 + 'px',
-                        '-webkit-animation': 'load ' + _this.speed + 's ease infinite',
-                        '-webkit-animation-delay': _this.speed / set.length * k + 's',
+                        'left': self.radius * v[0] + 'px',
+                        'top': self.radius * v[1] + 'px',
+                        'margin-left': '-' + self.size / 2 + 'px',
+                        '-webkit-animation': 'load ' + self.speed + 's ease infinite',
+                        '-webkit-animation-delay': self.speed / set.length * k + 's',
                         'display': 'inline-block',
-                        'width': _this.size + 'px',
-                        'height': _this.size + 'px',
+                        'width': self.size + 'px',
+                        'height': self.size + 'px',
                         'border-radius': '50%',
                         'background': '#343a40',
                         'position': 'absolute'
@@ -237,36 +234,36 @@
         },
         methods: {
             blur: function () {
-                var _this = this;
+                var self = this;
                 {#                setTimeout(function () {#}
-                {#                    _this.input = '';#}
-                {#                    _this.suggest = {}#}
+                {#                    self.input = '';#}
+                {#                    self.suggest = {}#}
                 {#                }, 200)#}
             },
             search: _.debounce(
                 function () {
                     this.suggest = {};
                     if (this.input) {
-                        var _this = this;
+                        var self = this;
                         var suggest = {};
-                        $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
+                        $.post('{% url 'data' %}', {'type': 'search', 'key': self.input}, function (res) {
                             $.each(res, function (k, v) {
-                                var name = _this.name[k];
+                                var name = self.name[k];
                                 if (v.length > 0) {
                                     suggest[name] = [];
                                     $.each(v, function (n, text) {
-                                        suggest[name].push([_this.url[k].replace('*', text), text])
+                                        suggest[name].push([self.url[k].replace('*', text), text])
                                     });
                                 }
                             });
-                            _this.suggest = suggest
+                            self.suggest = suggest
                         })
                     }
                 }, 500),
             luck: function () {
-                var _this = this;
+                var self = this;
                 $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
-                    window.location.href = _this.url[data[0]].replace('*', data[1]);
+                    window.location.href = self.url[data[0]].replace('*', data[1]);
                 })
             }
         }
@@ -312,7 +309,6 @@
             ]
         }
     });
-
     function map_area(map_div, data) {
         var map_hidden = 50;
         var zoom = 8;

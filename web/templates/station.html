@@ -38,7 +38,7 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, function (res) {
                         loading.hide();
                         map(res.车站, res.车次.length);
@@ -56,7 +56,7 @@
                                 }
                                 items.push(item)
                             });
-                            _this.table.push(items)
+                            self.table.push(items)
                         })
                     })
                 }

@@ -48,7 +48,7 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     $.each({{ line_codes|safe }}, function (n, text) {
                         var tab = {'active': false, 'href': '#line_' + text, 'text': text, 'show': false};
                         var content = {'id': 'line_' + text, 'active': false, 'lines': []};
@@ -56,7 +56,7 @@
                             tab.active = true;
                             content.active = true
                         }
-                        _this.tabs.push(tab);
+                        self.tabs.push(tab);
                         $.post('{% url 'data' %}', {'type': 'line_index', 'code': text}, function (data) {
                             loading.hide();
                             $.each(data, function () {
@@ -66,8 +66,8 @@
                                     'info': this[1] + '-' + this[2]
                                 })
                             });
-                            _this.tabs[n].show = true;
-                            _this.contents.push(content);
+                            self.tabs[n].show = true;
+                            self.contents.push(content);
                         })
                     })
                 }

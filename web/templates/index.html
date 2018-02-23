@@ -63,7 +63,7 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     var items = [];
                     $.each(this.data, function (n, station) {
                         var item = {
@@ -78,7 +78,7 @@
                         }
                         items.push(item)
                     });
-                    _this.items = items
+                    self.items = items
                 }
             }
         });

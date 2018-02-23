@@ -42,7 +42,7 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
                         loading.hide();
                         map(res);
@@ -69,7 +69,7 @@
                                     items.push(item)
                                 }
                             });
-                            _this.table.push(items)
+                            self.table.push(items)
                         })
                     })
                 }
