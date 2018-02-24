@@ -33,12 +33,12 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     $.post('{% url 'data' %}', {'type': 'log'}, function (res) {
                         loading.hide();
-                        _this.table = [];
+                        self.table = [];
                         $.each(res, function () {
-                            _this.table.push(this)
+                            self.table.push(this)
                         })
                     })
                 }

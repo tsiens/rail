@@ -10,7 +10,7 @@ def luck():
     item = random.sample(['line', 'station', 'city'], 1)[0]
     if item == 'city':
         station = Timetable.objects.values_list('station', flat=True)[choice]
-        keys = ['province', 'city', 'county']
+        keys = ['province', 'city']
         key = random.randint(1, len(keys))
         return [item, '-'.join(Station.objects.filter(cn=station).values_list(*keys[:key])[0])]
     else:
@@ -20,12 +20,10 @@ def luck():
 def search(key):
     key = key.upper()
     data = {'station': [], 'city': [], 'line': []}
-    for item in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key) | Q(county__contains=key))[
-                :10].values_list('province', 'city', 'county'):
-        province, city, county = item
-        if key in county:
-            item_data = province + '-' + city + '-' + county
-        elif key in city:
+    for item in Station.objects.filter(Q(province__contains=key) | Q(city__contains=key))[:10].values_list('province',
+                                                                                                           'city'):
+        province, city = item
+        if key in city:
             item_data = province + '-' + city
         else:
             item_data = province

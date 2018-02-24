@@ -15,11 +15,11 @@
         <tr v-for="item in table">
             <td>[[ item[0].text ]]</td>
             <td><a :href="item[1].href">[[ item[1].text ]]</a></td>
-            <td><span v-if="item[2].text>1"><span class="badge badge-secondary">第[[ item[2].text ]]天</span><br/></span>[[
-                item[3].text ]]
+            <td><span v-if="item[2].text>1"><span class="badge badge-secondary">第[[ item[2].text ]]天</span></span><span
+                    style="white-space:nowrap">&nbsp[[ item[3].text ]]&nbsp</span>
             </td>
-            <td><span v-if="item[4].text>1"><span class="badge badge-secondary">第[[ item[4].text ]]天</span><br/></span>[[
-                item[5].text ]]
+            <td><span v-if="item[4].text>1"><span class="badge badge-secondary">第[[ item[4].text ]]天</span></span><span
+                    style="white-space:nowrap">&nbsp[[ item[5].text ]]&nbsp</span>
             </td>
             <td><span :class="item[6].span">[[ item[6].text ]]</span></td>
         </tr>
@@ -42,7 +42,7 @@
             },
             methods: {
                 get: function () {
-                    var _this = this;
+                    var self = this;
                     $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
                         loading.hide();
                         map(res);
@@ -69,7 +69,7 @@
                                     items.push(item)
                                 }
                             });
-                            _this.table.push(items)
+                            self.table.push(items)
                         })
                     })
                 }
