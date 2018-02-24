@@ -12,12 +12,14 @@
         </template>
         </thead>
         <tbody>
-        <tr v-for="items in table">
-            <template v-for="item in items">
-                <td v-if="'href' in item"><a :href="item.href">[[ item.text ]]</a></td>
-                <td v-else if="'span' in item"><span :class="item.span">[[ item.text ]]</span></td>
-                <td v-else>[[ item.text ]]</td>
-            </template>
+        <tr v-for="item in table">
+            <td style="word-break: break-all"><a :href="item[0].href">[[ item[0].text ]]</a></td>
+            <td><a :href="item[1].href">[[ item[1].text ]]</a></td>
+            <td><a :href="item[2].href">[[ item[2].text ]]</a></td>
+            <td>[[ item[3].text ]]</td>
+            <td>[[ item[4].text ]]</td>
+            <td v-if="'span' in item[5]"><span :class="item[5].span">[[ item[5].text ]]</span></td>
+            <td v-else>[[ item[5].text ]]</td>
         </tr>
         </tbody>
     </table>

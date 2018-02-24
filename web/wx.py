@@ -10,10 +10,15 @@ from wechatpy.utils import *
 from key import wx_token
 from web.module import *
 
-qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim&time=' + str(
-    datetime.now().date())
 
-
+def img(cn):
+    qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim&time=' + str(
+        datetime.now().date())
+    err_img_url = 'http://rail.qiangs.tech/static/image/favicon.ico'
+    if Station.objects.filter(cn=cn).exclude(image=None):
+        return qiniu_img_url % cn
+    else:
+        return err_img_url
 @csrf_exempt  # 去除csrf认证
 def wx(request):
     if request.method == 'GET':
@@ -41,14 +46,14 @@ def wx(request):
                 for station in data['station'][:5]:
                     articles.append({
                         'title': '%s' % station,
-                        'image': qiniu_img_url % station,
+                        'image': img(station),
                         'url': 'http://rail.qiangs.tech/station/%s' % station
                     })
                 for line in data['line'][:5 - len(articles) if len(articles) < 5 else 0]:
                     start, arrive = Line.objects.filter(line=line).values_list('start', 'arrive')[0]
                     articles.append({
                         'title': '%s次 %s-%s' % (line, start, arrive),
-                        'image': qiniu_img_url % start,
+                        'image': img(start),
                         'url': 'http://rail.qiangs.tech/line/%s' % line
                     })
                 for city in data['city'][:5 - len(articles) if len(articles) < 5 else 0]:
@@ -67,14 +72,14 @@ def wx(request):
                 elif k == 'station':
                     articles = [{
                         'title': '推荐 %s' % v,
-                        'image': qiniu_img_url % v,
+                        'image': img(v),
                         'url': 'http://rail.qiangs.tech/station/%s' % v
                     }]
                 else:
                     start, arrive = Line.objects.filter(line=v).values_list('start', 'arrive')[0]
                     articles = [{
                         'title': '推荐 %s次 %s-%s' % (v, start, arrive),
-                        'image': qiniu_img_url % start,
+                        'image': img(start),
                         'url': 'http://rail.qiangs.tech/line/%s' % v
                     }]
                 if txt != '推荐':

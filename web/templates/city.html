@@ -1,92 +1,73 @@
 {% extends 'template.html' %}
 {% block content %}
-    <div id="nav">
-        <template v-for="level,n in levels">
-            <label>
-                <select class="form-control" v-model="select[n]" style="width:200px">
-                    <option value="">-----[[ level ]]-----</option>
-                    <option v-for="city in citys_tmp[n]">[[ city.split('-').reverse()[0] ]]</option>
-                </select>
-            </label>
+    <ol class="breadcrumb" style="margin: 10px 0 0 0">
+        <template v-for="(v,k) in city">
+            <li v-if="k==city.length-1" class="active">[[ v ]]</li>
+            <li v-else><a href="#" @click="jump(k)">[[ v ]]</a><span class="divider">&nbsp-&nbsp</span></li>
         </template>
-        <br/>
-        [[ select ]]
-    </div>
-    <div id="treemap" class="echarts" style="width: 500px;height: 300px"></div>
+    </ol>
+    <div id="treemap" class="echarts" style="flex:1"></div>
 {% endblock %}
 <script>
     {% block script %}
         $("a:contains('城市')").addClass('active');
         $("title").text('全国');
-        var treemap = echarts.init($('#treemap').get(0));
-        var nav = new Vue({
-            el: '#nav',
-            created: function () {
-                var self = this;
-                $.post('{% url 'data' %}', {'type': 'city_index', 'level': self.levels.length}, function (res) {
-                    loading.hide();
-                    $.each(self.levels, function (n, v) {
-                        self.citys.push([]);
-                        self.select.push('');
-                        self.select_tmp.push('')
-                    });
-                    $.each(self.format_data(res, []), function (m, city) {
-                        $.each(self.levels, function (n, v) {
-                            if ($.inArray(city.slice(0, n + 1).join('-'), self.citys[n]) === -1) {
-                                self.citys[n].push(city.slice(0, n + 1).join('-'))
-                            }
-                        })
-                    });
-                    self.citys_tmp = self.citys.slice();
-                    self.$forceUpdate()
-                })
+        ids = [];
+        var treemap_header = new Vue({
+            el: '.breadcrumb',
+            mounted: function () {
+                setTimeout(this.post, 0)
             },
             data: {
-                levels: ['省', '市', '县'],
-                citys: [],
-                citys_tmp: [],
-                select: [],
-                select_tmp: []
-            },
-            watch: {
-                select: function () {
-                    var self = this;
-                    $.each(self.levels, function (x, xv) {
-                        if (self.select[x] !== self.select_tmp[x]) {
-                            $.each(self.levels.slice(x + 1), function (y, yv) {
-                                self.select[x + y + 1] = '';
-                                self.citys_tmp[x + y + 1] = [];
-                                $.each(self.citys[x + y + 1], function (z, zv) {
-                                    if (zv.split('-')[x].indexOf(self.select[x]) > -1) {
-                                        self.citys_tmp[x + y + 1].push(zv)
-                                    }
-                                })
-                            })
-                        }
-                    });
-                    this.select_tmp = this.select.slice()
-                }
+                city: ['全国'],
+                citys: {},
+                data: {}
             },
             methods: {
-                format_data: function (old_data, old_city) {
-                    var self = this;
-                    var new_data = [];
-                    $.each(old_data, function (k, v) {
-                        var new_city = old_city.slice();
-                        if (typeof v === 'object') {
-                            new_city.push(v[0]);
-                            new_data = new_data.concat(self.format_data(v[1], new_city))
+                post: function () {
+                    var _this = this;
+                    $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
+                        loading.hide();
+                        creat_treemap($('#treemap'));
+                        _this.citys = res;
+                        _this.data = res;
+                        if ('{{ city }}' !== 'index') {
+                            _this.city = ['全国'].concat('{{ city }}'.split('-'));
                         }
                         else {
-                            new_city.push(v);
-                            new_data.push(new_city)
+                            _this.city = ['全国']
                         }
+                        _this.jump(_this.city.length);
                     });
-                    return new_data
+                },
+                jump: function (n) {
+                    var _this = this;
+                    _this.city = _this.city.slice(0, n + 1);
+                    _this.data = _this.citys;
+                    $.each(_this.city.slice(1), function (k, v) {
+                        _this.data = _this.data[v]
+                    });
+                    if (this.city.length === 1) {
+                        $("title").text('全国')
+                    }
+                    else {
+                        $("title").text(this.city.slice(1).join('-'));
+                    }
+                    treemap()
                 }
             }
         });
-        function set_treemap() {
+        function creat_treemap(div) {
+            div.height($(window).height() / 2);
+            echarts_treemap = echarts.init(div.get(0));
+            echarts_treemap.on('click', function (params) {
+                if ((params.name) && ((treemap_header.city.length < 4))) {
+                    treemap_header.city.push(params.name);
+                    treemap_header.jump(treemap_header.city.length);
+                }
+            });
+        }
+        function treemap() {
             var option = {
                 series: [{
                     name: '全国',
@@ -99,20 +80,51 @@
                             borderWidth: 2
                         }
                     },
-                    label: {
-                        normal: {
-                            show: true,
-                            formatter: '{b} {c}'
-                        }
-                    },
+                    drillDownIcon: '',
                     colorMappingBy: 'id',
                     breadcrumb: false,
-                    nodeClick: false,
-                    data: data
+                    nodeClick: 'link',
+                    leafDepth: 1,
+                    data: conversion(treemap_header.data, 0)
                 }]
             };
-            treemap.clear();
-            treemap.setOption(option);
+            echarts_treemap.clear();
+            echarts_treemap.setOption(option);
+        }
+        function conversion(data_old, n) {
+            var data_new = [];
+            $.each(data_old, function (k, v) {
+                var item = '';
+                if (n < 4 - treemap_header.city.length) {
+                    item = {
+                        id: Math.floor(Math.random() * 30),
+                        name: k,
+                        children: conversion(v, n + 1),
+                        label: {
+                            normal: {
+                                show: true,
+                                formatter: '{b} {c}'
+                            }
+                        }
+                    }
+                }
+                else {
+                    item = {
+                        id: Math.floor(Math.random() * 30),
+                        name: v,
+                        value: 1,
+                        link: '{% url 'station' '*' %}'.replace('*', v),
+                        label: {
+                            normal: {
+                                show: true,
+                                formatter: '{b}站'
+                            }
+                        }
+                    }
+                }
+                data_new.push(item)
+            });
+            return data_new
         }
     {% endblock %}
 </script>
