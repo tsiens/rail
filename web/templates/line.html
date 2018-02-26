@@ -31,55 +31,44 @@
         loading.show();
         $("a:contains('车次')").addClass('active');
         $("title").text('{{ line}}');
-        var time_table = new Vue({
+        let time_table = new Vue({
             el: '#time_table',
-            mounted: function () {
-                setTimeout(this.get, 0)
+            created: function () {
+                $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, (res) => {
+                    let table = [];
+                    $.each(res, function () {
+                        let tr = [];
+                        $.each(this, function (n, text) {
+                            if (n > 4) {
+                                let td = {'text': text};
+                                if (n === 6) {
+                                    td.href = '{% url 'station' '*' %}'.replace('*', text)
+                                }
+                                else if ($.inArray(text, [0, -1, -2]) > -1) {
+                                    td.span = 'badge badge-pill badge-' + ['warning', 'success', 'danger'][0 - text];
+                                    td.text = ['乘降所', '始发', '终到'][0 - text];
+                                    [tr[-text * 2].text, tr[-text * 2 + 1].text] = ['-', '-']
+                                }
+                                tr.push(td)
+                            }
+                        });
+                        table.push(tr)
+                    });
+                    loading.hide();
+                    map(res);
+                    this.table = table;
+                })
             },
             data: {
                 ths: ['站序', '车站', '到达', '出发', '停留'],
                 table: []
-            },
-            methods: {
-                get: function () {
-                    var self = this;
-                    $.post('{% url 'data' %}', {'type': 'line', 'line': '{{ line}}'}, function (res) {
-                        loading.hide();
-                        map(res);
-                        $.each(res, function () {
-                            var items = [];
-                            $.each(this, function (n, text) {
-                                if (n > 4) {
-                                    var item = {'text': text};
-                                    if (n === 6) {
-                                        item.href = '{% url 'station' '*' %}'.replace('*', text)
-                                    }
-                                    else if ($.inArray(text, [0, -1, -2]) > -1) {
-                                        item.span = 'badge badge-pill badge-' + ['warning', 'success', 'danger'][0 - text];
-                                        item.text = ['乘降所', '始发', '终到'][0 - text];
-                                        if (text === -1) {
-                                            items[2].text = '-';
-                                            items[3].text = '-'
-                                        }
-                                        else if (text === -2) {
-                                            items[4].text = '-';
-                                            items[5].text = '-'
-                                        }
-                                    }
-                                    items.push(item)
-                                }
-                            });
-                            self.table.push(items)
-                        })
-                    })
-                }
             }
         });
         function map(data) {
-            var map_div = $('#map');
-            [center, zoom] = map_area(map_div, data);
-            var echarts_map = echarts.init(map_div.get(0));
-            option = {
+            let map_div = $('#map');
+            let [center, zoom] = map_area(map_div, data);
+            let echarts_map = echarts.init(map_div.get(0));
+            let option = {
                 title: {
                     text: '{{ line }}',
                     textStyle: {
@@ -100,22 +89,22 @@
                         }
                     },
                     formatter: function (params) {
-                        params = params.value;
-                        var a = '';
-                        var b = '';
-                        if (params[5] === 1) {
+                        let value = params.value;
+                        let a = '';
+                        let b = '';
+                        if (value[5] === 1) {
                             a = '始发站：';
-                            b = '出发：' + params[10] + '<br/>'
+                            b = '出发：' + value[10] + '<br/>'
                         }
-                        else if (params[5] === data.length) {
+                        else if (value[5] === data.length) {
                             a = '终点站：';
-                            b = '到达：' + params[8] + '<br/>'
+                            b = '到达：' + value[8] + '<br/>'
                         }
                         else {
-                            a = '第' + params[5] + '站：';
-                            b = '到达：' + params[8] + '<br/>出发：' + params[10] + '<br/>';
+                            a = '第' + value[5] + '站：';
+                            b = '到达：' + value[8] + '<br/>出发：' + value[10] + '<br/>';
                         }
-                        return a + params[6] + '<br/>' + b
+                        return a + value[6] + '<br/>' + b
                     }
                 },
                 bmap: {

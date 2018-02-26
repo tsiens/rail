@@ -37,40 +37,38 @@
         $("a:contains('车次')").addClass('active');
         $("title").text('车次');
         $('#index').css('justify-content', '');
-        var lines = new Vue({
+        let lines = new Vue({
             el: '#lines',
-            mounted: function () {
-                setTimeout(this.get, 0)
+            created: function () {
+                let tabs = [];
+                let contents = [];
+                $.each({{ line_codes|safe }}, (n, code) => {
+                    let tab = {'active': false, 'href': '#line_' + code, 'text': code, 'show': false};
+                    let content = {'id': 'line_' + code, 'active': false, 'lines': []};
+                    if (n === 0) {
+                        tab.active = true;
+                        content.active = true
+                    }
+                    tabs.push(tab);
+                    $.post('{% url 'data' %}', {'type': 'line_index', 'code': code}, (line) => {
+                        loading.hide();
+                        $.each(line, function () {
+                            content.lines.push({
+                                'href': '{% url 'line' '*' %}'.replace('*', this[0]),
+                                'text': this[0],
+                                'info': this[1] + '-' + this[2]
+                            })
+                        });
+                        tabs[n].show = true;
+                        contents.push(content);
+                    })
+                });
+                this.tabs = tabs;
+                this.contents = contents
             },
             data: {
                 tabs: [],
                 contents: []
-            },
-            methods: {
-                get: function () {
-                    var self = this;
-                    $.each({{ line_codes|safe }}, function (n, text) {
-                        var tab = {'active': false, 'href': '#line_' + text, 'text': text, 'show': false};
-                        var content = {'id': 'line_' + text, 'active': false, 'lines': []};
-                        if (n === 0) {
-                            tab.active = true;
-                            content.active = true
-                        }
-                        self.tabs.push(tab);
-                        $.post('{% url 'data' %}', {'type': 'line_index', 'code': text}, function (data) {
-                            loading.hide();
-                            $.each(data, function () {
-                                content.lines.push({
-                                    'href': '{% url 'line' '*' %}'.replace('*', this[0]),
-                                    'text': this[0],
-                                    'info': this[1] + '-' + this[2]
-                                })
-                            });
-                            self.tabs[n].show = true;
-                            self.contents.push(content);
-                        })
-                    })
-                }
             }
         });
     {% endblock %}

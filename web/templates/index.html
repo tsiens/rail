@@ -48,38 +48,32 @@
     {% block script %}
         $("a:contains('主页')").addClass('active');
         loading.hide();
-        var index_search = new Vue({
+        let index_search = new Vue({
             el: '#search',
             mixins: [search]
         });
-        var carousel = new Vue({
+        let carousel = new Vue({
             el: '#carousel',
-            mounted: function () {
-                setTimeout(this.get, 0)
+            created: function () {
+                let items = [];
+                $.each(this.data, function (n, station) {
+                    let item = {
+                        'href': '{% url 'station' '*' %}'.replace('*', station),
+                        'src': '{{ qiniu }}' + station + '{{ format }}',
+                        'text': station,
+                        'n': n,
+                        'active': false
+                    };
+                    if (n === 0) {
+                        item.active = true
+                    }
+                    items.push(item)
+                });
+                this.items = items
             },
             data: {
                 data:{{ stations|safe }},
                 items: []
-            },
-            methods: {
-                get: function () {
-                    var self = this;
-                    var items = [];
-                    $.each(this.data, function (n, station) {
-                        var item = {
-                            'href': '{% url 'station' '*' %}'.replace('*', station),
-                            'src': '{{ qiniu }}' + station + '{{ format }}',
-                            'text': station,
-                            'n': n,
-                            'active': false
-                        };
-                        if (n === 0) {
-                            item.active = true
-                        }
-                        items.push(item)
-                    });
-                    self.items = items
-                }
             }
         });
     {% endblock %}

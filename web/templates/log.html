@@ -22,26 +22,19 @@
 <script>
     {% block script %}
         loading.show();
-        var log_table = new Vue({
+        let log_table = new Vue({
             el: '#log_table',
-            mounted: function () {
-                setTimeout(this.get, 0);
+            created: function () {
+                $.post('{% url 'data' %}', {'type': 'log'}, (res) => {
+                    loading.hide();
+                    $.each(res, (n, tr) => {
+                        this.table.push(tr)
+                    })
+                })
             },
             data: {
                 ths: ['时间', '日志'],
                 table: []
-            },
-            methods: {
-                get: function () {
-                    var self = this;
-                    $.post('{% url 'data' %}', {'type': 'log'}, function (res) {
-                        loading.hide();
-                        self.table = [];
-                        $.each(res, function () {
-                            self.table.push(this)
-                        })
-                    })
-                }
             }
         });
     {% endblock %}

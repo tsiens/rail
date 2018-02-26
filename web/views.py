@@ -72,7 +72,7 @@ def data(request):
     type = request.POST.get('type')
     data = []
     if type == 'log':
-        with open('get_data/data.log', 'r') as f:
+        with open('get_data/data.log', 'r', encoding='utf-8') as f:
             logs = f.read()
         data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
     elif type == 'station_index':

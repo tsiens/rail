@@ -74,10 +74,6 @@
         width: 100%;
     }
 </style>
-<script>
-    {#    console.log('{% static 'image/icon.svg' %}')#}
-    {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
-</script>
 {% block head %}
 {% endblock %}
 </head>
@@ -171,7 +167,7 @@
     Vue.mixin({
         delimiters: ['[[', ']]']
     });
-    var loading = new Vue({
+    let loading = new Vue({
         el: '#loading',
         data: {
             size: 16,
@@ -181,7 +177,7 @@
         },
         computed: {
             styles: function () {
-                var set = [
+                let set = [
                     [1, 0],
                     [1 + Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2],
                     [2, 1],
@@ -191,8 +187,8 @@
                     [0, 1],
                     [1 - Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2]
                 ];
-                var styles = [];
-                var _this = this;
+                let styles = [];
+                let _this = this;
                 $.each(set, function (k, v) {
                     styles.push({
                         'left': _this.radius * v[0] + 'px',
@@ -222,7 +218,7 @@
             }
         }
     });
-    var search = {
+    let search = {
         data: {
             name: {'city': '城市', 'station': '车站', 'line': '车次'},
             url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
@@ -231,7 +227,7 @@
         },
         methods: {
             blur: function () {
-                var _this = this;
+                let _this = this;
                 {#                setTimeout(function () {#}
                 {#                    _this.input = '';#}
                 {#                    _this.suggest = {}#}
@@ -240,11 +236,11 @@
             search: function () {
                 this.suggest = {};
                 if (this.input) {
-                    var _this = this;
-                    var suggest = {};
+                    let _this = this;
+                    let suggest = {};
                     $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
                         $.each(res, function (k, v) {
-                            var name = _this.name[k];
+                            let name = _this.name[k];
                             if (v.length > 0) {
                                 suggest[name] = [];
                                 $.each(v, function (n, text) {
@@ -257,14 +253,14 @@
                 }
             },
             luck: function () {
-                var _this = this;
+                let _this = this;
                 $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
                     window.location.href = _this.url[data[0]].replace('*', data[1]);
                 })
             }
         }
     };
-    var header = new Vue({
+    let header = new Vue({
         el: '#header',
         data: {
             items1: [
@@ -280,7 +276,7 @@
             ]
         }
     });
-    var modal = new Vue({
+    let modal = new Vue({
         el: '#modal',
         mixins: [search],
         data: {
@@ -307,24 +303,25 @@
     });
 
     function map_area(map_div, data) {
-        var map_hidden = 50;
-        var zoom = 8;
-        var center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
-        var height = $(window).height() / 2;
+        let map_hidden = 50;
+        let zoom = 8;
+        let center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
+        let height = $(window).height() / 2;
         if (data.length > 1) {
-            var x_list = [];
-            var y_list = [];
+            let x_list = [];
+            let y_list = [];
             $.each(data, function () {
                 x_list.push(this[0]);
                 y_list.push(this[1]);
             });
-            var x_min = Math.min.apply(null, x_list);
-            var x_max = Math.max.apply(null, x_list);
-            var y_min = Math.min.apply(null, y_list);
-            var y_max = Math.max.apply(null, y_list);
+            let x_min = Math.min.apply(null, x_list);
+            let x_max = Math.max.apply(null, x_list);
+            let y_min = Math.min.apply(null, y_list);
+            let y_max = Math.max.apply(null, y_list);
             zoom = Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2);
             center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
             height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
+
             while (height > $(window).height() / 1.5) {
                 zoom = zoom - 1;
                 height = height / 2
