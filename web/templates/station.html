@@ -26,8 +26,6 @@
 {% endblock %}
 <script>
     {% block script %}
-        loading.show();
-        $("a:contains('车站')").addClass('active');
         $("title").text('{{ station }}');
         let line_table = new Vue({
             el: '#line_table',

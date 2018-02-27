@@ -35,9 +35,8 @@
 {% endblock %}
 <script>
     {% block script %}
-        $("a:contains('车站')").addClass('active');
-        $("title").text('车站');
         loading.hide();
+        $("title").text('车站');
         $('#index').css({'display': '', 'flex-direction': '', 'justify-content': ''});
         let station_imgs = new Vue({
             el: '#imgs',

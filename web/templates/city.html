@@ -10,9 +10,7 @@
 {% endblock %}
 <script>
     {% block script %}
-        $("a:contains('城市')").addClass('active');
         $("title").text('全国');
-        ids = [];
         let treemap_header = new Vue({
             el: '.breadcrumb',
             mounted: function () {
