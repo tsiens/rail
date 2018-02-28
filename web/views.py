@@ -69,27 +69,25 @@ def city(request, city):
 
 
 def data(request):
-    type = request.POST.get('type')
-    data = []
-    if type == 'log':
+    def log():
         with open('get_data/data.log', 'r') as f:
             logs = f.read()
-        data = [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
-    elif type == 'station_index':
-        start, end = int(request.POST.get('start')), int(request.POST.get('end'))
+        return [log.split('-|-')[1:] for log in logs.split('||') if 'ERROR' in log and '-|-' in log][-100:][::-1]
+
+    def station_index(start, end):
         sort_stations = list(
             Timetable.objects.values('station').annotate(
-                count=Count('line')).order_by('-count')[start:end].values_list('station', flat=True))
+                count=Count('line')).order_by('-count')[int(start):int(end)].values_list('station', flat=True))
         stations = list(Station.objects.filter(cn__in=sort_stations).values_list('cn', 'province', 'city', 'county'))
-        data = sorted(stations, key=lambda x: sort_stations.index(x[0]))
-    elif type == 'line_index':
-        data = []
-        code = request.POST.get('code')
-        for line in Line.objects.filter(Q(line__startswith=code), ~Q(runtime=None)).values_list('line', 'start',
-                                                                                                'arrive'):
-            data.append(line)
-        data = sorted(data, key=lambda x: (x[0][0], int(x[0].split('/')[0][1:]) if len(x[0]) > 1 else 0))
-    elif type == 'city':
+        return sorted(stations, key=lambda x: sort_stations.index(x[0]))
+
+    def line_index(code):
+        data = [line for line in
+                Line.objects.filter(Q(line__startswith=code), ~Q(runtime=None)).values_list('line', 'start',
+                                                                                            'arrive')]
+        return sorted(data, key=lambda x: (x[0][0], int(x[0].split('/')[0][1:]) if len(x[0]) > 1 else 0))
+
+    def city():
         data = {}
         stations = list(Timetable.objects.values_list('station', flat=True).distinct())
         for item in Station.objects.filter(cn__in=stations).values_list('cn', 'province', 'city', 'county'):
@@ -102,41 +100,42 @@ def data(request):
                 data[province][city][county].append(cn)
             else:
                 data[province][city][county] = [cn]
-    elif type == 'station':
-        name = request.POST.get('station')
-        lines = list(Timetable.objects.filter(station=name).order_by('leavetime').values_list('line', flat=True))
+        return data
+
+    def station(station):
+        lines = list(Timetable.objects.filter(station=station).order_by('leavetime').values_list('line', flat=True))
         timetable, stations_line, stations_data, stations_locations = {}, {}, {}, {}
         for item in Timetable.objects.filter(line__in=lines).values_list('line', 'station', 'order', 'arrivedate',
                                                                          'arrivetime', 'leavedate', 'leavetime',
                                                                          'staytime'):
-            line, station, order, arrivedate, arrivetime, leavedate, leavetime, staytime = item
-            if station not in stations_line:
-                stations_line[station] = {}
-            stations_line[station][line] = item[2:]
+            line, cn, order, arrivedate, arrivetime, leavedate, leavetime, staytime = item
+            if cn not in stations_line:
+                stations_line[cn] = {}
+            stations_line[cn][line] = item[2:]
             if line not in timetable:
                 timetable[line] = [None, None, None, None, None, 1]
             if order == 1:
-                timetable[line][:2] = [station, station]
+                timetable[line][:2] = [cn, cn]
             elif order > timetable[line][-1]:
-                timetable[line][1] = station
+                timetable[line][1] = cn
                 timetable[line][-1] = order
-            if station == name:
+            if cn == station:
                 timetable[line][2:5] = [str(arrivetime)[:-3], str(leavetime)[:-3], staytime]
-        for station, station_data in stations_line.items():
-            if station != name:
-                stations_data[station] = [0, 10000]
+        for cn, station_data in stations_line.items():
+            if cn != station:
+                stations_data[cn] = [0, 10000]
                 for line, line_data in station_data.items():
-                    station_line = stations_line[name][line]
+                    station_line = stations_line[station][line]
                     a, b = [station_line, line_data] if line_data[0] < station_line[0] else [line_data, station_line]
                     runtime = round((datetime(1970, 1, a[1], a[2].hour, a[2].minute, 0) - datetime(1970, 1, b[3],
                                                                                                    b[4].hour,
                                                                                                    b[4].minute,
                                                                                                    0)).total_seconds() / 3600,
                                     1)
-                    if runtime < stations_data[station][1]:
-                        stations_data[station][1] = runtime
-                    stations_data[station][0] += 1
-        for item in Station.objects.filter(cn__in=[station for station in stations_data] + [name]).values_list('x', 'y',
+                    if runtime < stations_data[cn][1]:
+                        stations_data[cn][1] = runtime
+                    stations_data[cn][0] += 1
+        for item in Station.objects.filter(cn__in=[cn for cn in stations_data] + [station]).values_list('x', 'y',
                                                                                                                'cn',
                                                                                                                'province',
                                                                                                                'city',
@@ -144,12 +143,13 @@ def data(request):
             stations_locations[item[2]] = list(item)
         timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[-2])
         stations = [stations_locations[k] + v for k, v in stations_data.items()]
-        stations.insert(0, stations_locations[name] + [0, 0])
+        stations.insert(0, stations_locations[station] + [0, 0])
         data = {'车次': timetable, '车站': stations}
-    elif type == 'line':
-        name = request.POST.get('line')
-        stations = []
-        for item in Timetable.objects.filter(line=name).order_by('order').values_list('order', 'station', 'arrivedate',
+        return data
+
+    def line(line):
+        data, stations = [], []
+        for item in Timetable.objects.filter(line=line).order_by('order').values_list('order', 'station', 'arrivedate',
                                                                                       'arrivetime', 'leavedate',
                                                                                       'leavetime',
                                                                                       'staytime'):
@@ -159,12 +159,17 @@ def data(request):
         for item in Station.objects.filter(cn__in=stations).values_list('cn', 'x', 'y', 'province', 'city', 'county'):
             n = stations.index(item[0])
             data[n] = list(item[1:]) + data[n]
-    elif type == 'search':
-        data = search(request.POST.get('key'))[1]
-    elif type == 'luck':
-        data = luck()
-    else:
-        data = 'ERROR'
+        return data
+
+    def err():
+        return 'ERROR'
+
+    post = dict(request.POST.items())
+    post.pop('csrfmiddlewaretoken')
+    type = post.pop('type', '')
+    methods = {'log': log, 'station_index': station_index, 'line_index': line_index, 'city': city, 'station': station,
+               'line': line, 'search': search, 'luck': luck}
+    data = methods.get(type, err)(**post)
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 

@@ -40,23 +40,8 @@ def search(key):
             'line')[:10].values_list('line', flat=True)):
         if line not in data['line']:
             data['line'].append(line)
-    return [sum([len(v) for k, v in data.items()]), data]
+    return data
 
 
 if __name__ == '__main__':
-    # print(search('杭州'))
-    k, v = luck()
-    if k in ['城市', '车站']:
-        articles = [{
-            'title': '推荐 %s' % v,
-            'url': 'http://rail.qiangs.tech/%s/%s' % (k, v)
-        }]
-    else:
-        start, arrive = Line.objects.filter(line=v).values_list('start', 'arrive')[0]
-        articles = [{
-            'title': '%s次 %s-%s' % (v, start, arrive),
-            'image': qiniu_img_url % start,
-            'url': 'http://rail.qiangs.tech/line/%s' % v
-        }]
-    if txt != '运气':
-        articles.append({'title': '小的不才，无法识别 “%s”' % txt})
+    print(search('杭州'))

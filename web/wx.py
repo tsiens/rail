@@ -35,7 +35,10 @@ def wx(request):
         msg = parse_message(request.body)
         if msg.type == 'text':
             txt = msg.content.upper()
-            n, data = search(txt)
+            data = search(txt)
+            n = 0
+            for k, v in data.items():
+                n += len(v)
             if txt == '日志':
                 reply = ArticlesReply(message=msg, articles=[{
                     'title': '日志',
