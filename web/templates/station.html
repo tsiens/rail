@@ -26,49 +26,44 @@
 {% endblock %}
 <script>
     {% block script %}
-        loading.show();
-        $("a:contains('车站')").addClass('active');
         $("title").text('{{ station }}');
-        var line_table = new Vue({
+        let line_table = new Vue({
             el: '#line_table',
             mounted: function () {
-                setTimeout(this.get, 0)
+                $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, (res) => {
+                    let table = [];
+                    $.each(res.车次, function () {
+                        let items = [];
+                        $.each(this, function (n, text) {
+                            let item = {'text': text};
+                            if (n < 3) {
+                                item.href = ['{% url 'line' '*' %}', '{% url 'station' '*' %}', '{% url 'station' '*' %}'][n].replace('*', text)
+                            }
+                            else if ($.inArray(text, [-1, -2]) > -1) {
+                                item.span = 'badge badge-pill badge-' + ['success', 'danger'][-1 - text];
+                                item.text = ['始发', '终到'][-1 - text];
+                                items.slice(-3 - text)[0].text = '-'
+                            }
+                            items.push(item)
+                        });
+                        table.push(items)
+                    });
+                    loading.hide();
+                    map(res.车站, res.车次.length);
+                    this.table = table
+                })
             },
             data: {
                 ths: ['车次', '始发', '终到', '到达', '出发', '停留'],
                 table: []
-            },
-            methods: {
-                get: function () {
-                    var self = this;
-                    $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, function (res) {
-                        loading.hide();
-                        map(res.车站, res.车次.length);
-                        $.each(res.车次, function () {
-                            var items = [];
-                            $.each(this, function (n, text) {
-                                var item = {'text': text};
-                                if (n < 3) {
-                                    item.href = ['{% url 'line' '*' %}', '{% url 'station' '*' %}', '{% url 'station' '*' %}'][n].replace('*', text)
-                                }
-                                else if ($.inArray(text, [-1, -2]) > -1) {
-                                    item.span = 'badge badge-pill badge-' + ['success', 'danger'][-1 - text];
-                                    item.text = ['始发', '终到'][-1 - text];
-                                    items.slice(-3 - text)[0].text = '-'
-                                }
-                                items.push(item)
-                            });
-                            self.table.push(items)
-                        })
-                    })
-                }
             }
         });
         function map(data, lines_num) {
-            var map_div = $('#map');
-            [center, zoom] = map_area(map_div, data);
-            var echarts_map = echarts.init(map_div.get(0));
-            var option = {
+            let map_div = $('#map');
+            let [center, zoom] = map_area(map_div, data);
+            console.log(center, zoom);
+            let echarts_map = echarts.init(map_div.get(0));
+            let option = {
                 title: {
                     text: '{{ station }}',
                     textStyle: {

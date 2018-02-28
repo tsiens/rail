@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 <html lang="en" style="height: 100%">
+<head>
 <title>Rail</title>
 <link rel="shortcut icon" type="image/x-icon" href="{% static 'image/favicon.ico' %}">
 <meta charset="utf-8">
@@ -74,10 +75,6 @@
         width: 100%;
     }
 </style>
-<script>
-    {#    console.log('{% static 'image/icon.svg' %}')#}
-    {#    $('link').attr('href','{% static 'image/icon.svg' %}')#}
-</script>
 {% block head %}
 {% endblock %}
 </head>
@@ -92,7 +89,7 @@
     <div id="header_ul" class="collapse navbar-collapse justify-content-end">
         <ul class="navbar-nav">
             <template v-for="item in items1">
-                <li class="nav-item"><a class="nav-link" :href="item.href"><i
+                <li class="nav-item"><a class="nav-link" :href="item.href" :class="{active:item.page==page}"><i
                         :class="item.fa"></i>&nbsp[[ item.text ]]</a>
                 </li>
             </template>
@@ -171,7 +168,49 @@
     Vue.mixin({
         delimiters: ['[[', ']]']
     });
-    var loading = new Vue({
+    let search = {
+        data: {
+            name: {'city': '城市', 'station': '车站', 'line': '车次'},
+            url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
+            input: '',
+            suggest: {}
+        },
+        methods: {
+            blur: function () {
+                let _this = this;
+                {#                setTimeout(function () {#}
+                {#                    _this.input = '';#}
+                {#                    _this.suggest = {}#}
+                {#                }, 200)#}
+            },
+            search: function () {
+                this.suggest = {};
+                if (this.input) {
+                    let _this = this;
+                    let suggest = {};
+                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
+                        $.each(res, function (k, v) {
+                            let name = _this.name[k];
+                            if (v.length > 0) {
+                                suggest[name] = [];
+                                $.each(v, function (n, text) {
+                                    suggest[name].push([_this.url[k].replace('*', text), text])
+                                });
+                            }
+                        });
+                        _this.suggest = suggest
+                    })
+                }
+            },
+            luck: function () {
+                let _this = this;
+                $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
+                    window.location.href = _this.url[data[0]].replace('*', data[1]);
+                })
+            }
+        }
+    };
+    let loading = new Vue({
         el: '#loading',
         data: {
             size: 16,
@@ -181,7 +220,7 @@
         },
         computed: {
             styles: function () {
-                var set = [
+                let set = [
                     [1, 0],
                     [1 + Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2],
                     [2, 1],
@@ -191,8 +230,8 @@
                     [0, 1],
                     [1 - Math.sqrt(2) / 2, 1 - Math.sqrt(2) / 2]
                 ];
-                var styles = [];
-                var _this = this;
+                let styles = [];
+                let _this = this;
                 $.each(set, function (k, v) {
                     styles.push({
                         'left': _this.radius * v[0] + 'px',
@@ -222,56 +261,15 @@
             }
         }
     });
-    var search = {
-        data: {
-            name: {'city': '城市', 'station': '车站', 'line': '车次'},
-            url: {'station': '{% url 'station' '*' %}', 'line': '{% url 'line' '*' %}', 'city': '{% url 'city' '*' %}'},
-            input: '',
-            suggest: {}
-        },
-        methods: {
-            blur: function () {
-                var _this = this;
-                {#                setTimeout(function () {#}
-                {#                    _this.input = '';#}
-                {#                    _this.suggest = {}#}
-                {#                }, 200)#}
-            },
-            search: function () {
-                this.suggest = {};
-                if (this.input) {
-                    var _this = this;
-                    var suggest = {};
-                    $.post('{% url 'data' %}', {'type': 'search', 'key': _this.input}, function (res) {
-                        $.each(res, function (k, v) {
-                            var name = _this.name[k];
-                            if (v.length > 0) {
-                                suggest[name] = [];
-                                $.each(v, function (n, text) {
-                                    suggest[name].push([_this.url[k].replace('*', text), text])
-                                });
-                            }
-                        });
-                        _this.suggest = suggest
-                    })
-                }
-            },
-            luck: function () {
-                var _this = this;
-                $.post('{% url 'data' %}', {'type': 'luck'}, function (data) {
-                    window.location.href = _this.url[data[0]].replace('*', data[1]);
-                })
-            }
-        }
-    };
-    var header = new Vue({
+    let header = new Vue({
         el: '#header',
         data: {
+            page: window.location.href.split('/')[3],
             items1: [
-                {'href': '/', 'fa': 'fa fa-home', 'text': '主页'},
-                {'href': '{% url 'station_index' %}', 'fa': 'fa fa-train', 'text': '车站'},
-                {'href': '{% url 'line_index' %}', 'fa': 'fa fa-list-alt', 'text': '车次'},
-                {'href': '{% url 'city_index' %}', 'fa': 'fa fa-map-o', 'text': '城市'}
+                {'href': '/', 'fa': 'fa fa-home', 'text': '主页', 'page': ''},
+                {'href': '{% url 'station_index' %}', 'fa': 'fa fa-train', 'text': '车站', 'page': 'station'},
+                {'href': '{% url 'line_index' %}', 'fa': 'fa fa-list-alt', 'text': '车次', 'page': 'line'},
+                {'href': '{% url 'city_index' %}', 'fa': 'fa fa-map-o', 'text': '城市', 'page': 'city'}
             ],
             items2: [
                 {'href': '#modal_wechat', 'fa': 'fa fa-wechat', 'text': '公众号'},
@@ -280,7 +278,7 @@
             ]
         }
     });
-    var modal = new Vue({
+    let modal = new Vue({
         el: '#modal',
         mixins: [search],
         data: {
@@ -307,24 +305,25 @@
     });
 
     function map_area(map_div, data) {
-        var map_hidden = 50;
-        var zoom = 8;
-        var center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
-        var height = $(window).height() / 2;
+        let map_hidden = 50;
+        let zoom = 8;
+        let center = [data[0][0], [data[0][1]] - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
+        let height = $(window).height() / 2;
         if (data.length > 1) {
-            var x_list = [];
-            var y_list = [];
+            let x_list = [];
+            let y_list = [];
             $.each(data, function () {
                 x_list.push(this[0]);
                 y_list.push(this[1]);
             });
-            var x_min = Math.min.apply(null, x_list);
-            var x_max = Math.max.apply(null, x_list);
-            var y_min = Math.min.apply(null, y_list);
-            var y_max = Math.max.apply(null, y_list);
+            let x_min = Math.min.apply(null, x_list);
+            let x_max = Math.max.apply(null, x_list);
+            let y_min = Math.min.apply(null, y_list);
+            let y_max = Math.max.apply(null, y_list);
             zoom = Math.log(2.048 / (x_max - x_min) * map_div.width()) / Math.log(2);
             center = [(x_min + x_max) / 2, (y_min + y_max) / 2 - 2.048 / Math.pow(2, zoom) * map_hidden / 2];
             height = (y_max - y_min) / (2.048 / Math.pow(2, Math.floor(zoom)));
+
             while (height > $(window).height() / 1.5) {
                 zoom = zoom - 1;
                 height = height / 2

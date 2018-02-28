@@ -35,18 +35,16 @@
 {% endblock %}
 <script>
     {% block script %}
-        $("a:contains('车站')").addClass('active');
-        $("title").text('车站');
         loading.hide();
+        $("title").text('车站');
         $('#index').css({'display': '', 'flex-direction': '', 'justify-content': ''});
-        var station_imgs = new Vue({
+        let station_imgs = new Vue({
             el: '#imgs',
-            mounted: function () {
-                var self = this;
-                $(window).scroll(function () {
-                    self.get($(document).height())
+            created: function () {
+                $(window).scroll(() => {
+                    this.get($(document).height())
                 });
-                setTimeout(self.get(0), 0);
+                this.get(0)
             },
             data: {
                 imgs_div: '#imgs',
@@ -58,7 +56,7 @@
             },
             computed: {
                 width: function () {
-                    var n = Math.round($(this.imgs_div).width() / 220);
+                    let n = Math.round($(this.imgs_div).width() / 220);
                     return $(this.imgs_div).width() / n - 18 + 'px'
                 }
             },
@@ -70,36 +68,34 @@
                     }
                 },
                 post: function () {
-                    var self = this;
-                    var $imgs = $(this.imgs_div);
-                    $imgs.masonry();
                     $.post('{% url 'data' %}', {
                         'type': 'station_index',
-                        'start': self.start,
-                        'end': self.start + self.num
-                    }, function (data) {
-                        $.each(data, function () {
-                            self.imgs.push({
+                        'start': this.start,
+                        'end': this.start + this.num
+                    }, (res) => {
+                        let imgs = [];
+                        $.each(res, function () {
+                            imgs.push({
                                 'href': '{% url 'station' '*' %}'.replace('*', this[0]),
                                 'src': '{{ qiniu }}' + this[0] + '{{ format }}',
                                 'text': this[0],
                                 'info': this[1] + ' ' + this[2] + ' ' + this[3]
                             });
-                            self.start = self.start + 1;
                         });
-                        setTimeout(
-                            function () {
-                                $.each($imgs.find('a').slice(0 - data.length), function () {
-                                    $imgs.masonry('appended', this)
-                                    }
-                                );
-                                $imgs.imagesLoaded(function () {
-                                    $imgs.masonry({itemSelector: 'a'});
-                                    self.ispost = false;
-                                    self.get($(document).height())
-                                })
-                            }, 0
-                        );
+                        this.imgs = this.imgs.concat(imgs);
+                        this.start = this.start + res.length;
+                        let $imgs = $(this.imgs_div);
+                        $imgs.masonry();
+                        setTimeout(() => {
+                            $.each($imgs.find('a').slice(0 - res.length), function () {
+                                $imgs.masonry('appended', this)
+                            });
+                            $imgs.imagesLoaded(() => {
+                                $imgs.masonry({itemSelector: 'a'});
+                                this.ispost = false;
+                                this.get($(document).height())
+                            })
+                        }, 0);
                     })
                 }
             }

@@ -10,10 +10,8 @@
 {% endblock %}
 <script>
     {% block script %}
-        $("a:contains('城市')").addClass('active');
         $("title").text('全国');
-        ids = [];
-        var treemap_header = new Vue({
+        let treemap_header = new Vue({
             el: '.breadcrumb',
             mounted: function () {
                 setTimeout(this.post, 0)
@@ -25,7 +23,7 @@
             },
             methods: {
                 post: function () {
-                    var _this = this;
+                    let _this = this;
                     $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
                         loading.hide();
                         creat_treemap($('#treemap'));
@@ -41,7 +39,7 @@
                     });
                 },
                 jump: function (n) {
-                    var _this = this;
+                    let _this = this;
                     _this.city = _this.city.slice(0, n + 1);
                     _this.data = _this.citys;
                     $.each(_this.city.slice(1), function (k, v) {
@@ -68,7 +66,7 @@
             });
         }
         function treemap() {
-            var option = {
+            let option = {
                 series: [{
                     name: '全国',
                     type: 'treemap',
@@ -92,9 +90,9 @@
             echarts_treemap.setOption(option);
         }
         function conversion(data_old, n) {
-            var data_new = [];
+            let data_new = [];
             $.each(data_old, function (k, v) {
-                var item = '';
+                let item = '';
                 if (n < 4 - treemap_header.city.length) {
                     item = {
                         id: Math.floor(Math.random() * 30),
