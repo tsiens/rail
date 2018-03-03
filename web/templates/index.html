@@ -1,47 +1,54 @@
-{% extends 'template.html' %}
+{% extends 'template.html' %}{% load staticfiles %}
+{% block head %}
+    <script src="{% static '/echarts/china.js' %}"></script>
+{% endblock %}
 {% block content %}
-    <div id="carousel" class="carousel slide" data-ride="carousel" style="height:50%">
-        <!-- 指示符 -->
-        <ul class="carousel-indicators">
-            <li v-for="item in items" data-target="#carousel" :data-slide-to="item.n"
-                :class="{ active: item.active}"></li>
-        </ul>
-        <!-- 轮播图片 -->
-        <div class="carousel-inner" style="height: 100%;">
-            <div v-for="item in items" class="carousel-item" :class="{ active: item.active}"
-                 style="overflow: auto;height:100%">
-                <a :href="item.href">
-                    <img :src="item.src" :alt="item.text" class="img-fluid img-thumbnail" style="height: 100%">
-                </a>
-                <div class="carousel-caption">
-                    <strong>[[ item.text ]]</strong>
+    <div id="china" style="width:100%;height: 100%">
+    </div>
+    <div id="carousel_search" style="position:absolute;width:40%">
+        <div id="carousel" class="carousel slide" data-ride="carousel" style="height:50%">
+            <!-- 指示符 -->
+            <ul class="carousel-indicators">
+                <li v-for="item in items" data-target="#carousel" :data-slide-to="item.n"
+                    :class="{ active: item.active}"></li>
+            </ul>
+            <!-- 轮播图片 -->
+            <div class="carousel-inner" style="height: 100%;">
+                <div v-for="item in items" class="carousel-item" :class="{ active: item.active}"
+                     style="overflow: auto;height:100%">
+                    <a :href="item.href">
+                        <img :src="item.src" :alt="item.text" class="img-fluid img-thumbnail" style="height: 100%">
+                    </a>
+                    <div class="carousel-caption">
+                        <strong>[[ item.text ]]</strong>
+                    </div>
                 </div>
             </div>
+            <!-- 左右切换按钮 -->
+            <a class="carousel-control-prev" href="#carousel" data-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </a>
+            <a class="carousel-control-next" href="#carousel" data-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </a>
         </div>
-        <!-- 左右切换按钮 -->
-        <a class="carousel-control-prev" href="#carousel" data-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-        </a>
-        <a class="carousel-control-next" href="#carousel" data-slide="next">
-            <span class="carousel-control-next-icon"></span>
-        </a>
-    </div>
-    <div id="search" class="search" style="position:relative;width: 100%;max-width: 500px">
-        <br/>
-        <input class="form-control" v-model="input" @input="search"
-               @blur="blur"
-               title="search">
-        <div style="position:absolute;z-index:10;word-wrap:break-word">
-            <template v-for="(vs, k, n) in suggest">
-                <div v-if="n>0" class="dropdown-divider"></div>
-                <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                <a v-for="v in vs" :href="v[0]">
-                    <span class="badge badge-light">[[ v[1] ]]</span>
-                </a>
-            </template>
+        <div id="search" class="search" style="position:relative;width:100%">
+            <br/>
+            <input class="form-control" v-model="input" @input="search"
+                   @blur="blur"
+                   title="search">
+            <div style="position:absolute;z-index:10;word-wrap:break-word">
+                <template v-for="(vs, k, n) in suggest">
+                    <div v-if="n>0" class="dropdown-divider"></div>
+                    <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                    <a v-for="v in vs" :href="v[0]">
+                        <span class="badge badge-light">[[ v[1] ]]</span>
+                    </a>
+                </template>
+            </div>
+            <br/>
+            <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
         </div>
-        <br/>
-        <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
     </div>
 {% endblock %}
 <script>
@@ -75,5 +82,55 @@
                 items: []
             }
         });
+        if ($(window).width() > 768) {
+            china($("#china"), $("#carousel_search"))
+        }
+        else if ($(window).width() < 500) {
+            $("#carousel_search").width($(window).width() - 10);
+            $('#search').width($(window).width() - 10);
+        }
+        function china(a, b) {
+            a.hover(function () {
+                b.animate({opacity: 0.02}, 1000);
+            }, function () {
+                b.animate({opacity: 1}, 1000);
+            });
+
+            let color = '#34383E';
+            $('body').css('background-color', color);
+            $.post('{% url 'data' %}', {'type': 'index_china'}, function (res) {
+                let lines = [];
+                for (n = 0; n < res.lines.length; n++) {
+                    lines.push([res.stations[res.lines[n][0]].slice(1),
+                        res.stations[res.lines[n][1]].slice(1)])
+                }
+                let option = {
+                    backgroundColor: color,
+                    geo: {
+                        map: 'china',
+                        zoom: 1.5,
+                        silent: true,
+                        itemStyle: {
+                            borderColor: color,
+                            color: color
+                        }
+                    },
+                    series: [{
+                        type: 'lines',
+                        coordinateSystem: 'geo',
+                        data: lines,
+                        large: true,
+                        lineStyle: {
+                            color: '#FFF',
+                            opacity: 0.1,
+                            width: 1,
+                            {#curveness: 0.1#}
+                        },
+                        blendMode: 'lighter'
+                    }]
+                };
+                echarts.init(a.get(0)).setOption(option)
+            });
+        }
     {% endblock %}
 </script>

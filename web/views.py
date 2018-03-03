@@ -164,10 +164,25 @@ def data(request):
     def err():
         return 'ERROR'
 
+    def index_china():
+        lines = list(
+            Line.objects.values('start', 'arrive').annotate(count=Count('line')).order_by('-count').values_list('start',
+                                                                                                                'arrive',
+                                                                                                                'count'))
+        cns = []
+        for line in lines:
+            cns += line[:2]
+        stations = list(Station.objects.filter(cn__in=set(cns)).values_list('cn', 'x', 'y'))
+        index = {}
+        for n in range(len(stations)):
+            index[stations[n][0]] = n
+        lines = [[index[line[0]], index[line[1]], line[2]] for line in lines]
+        return {'stations': stations, 'lines': lines}
     post = dict(request.POST.items())
     post.pop('csrfmiddlewaretoken')
     type = post.pop('type', '')
-    methods = {'log': log, 'station_index': station_index, 'line_index': line_index, 'city': city, 'station': station,
+    methods = {'log': log, 'index_china': index_china, 'station_index': station_index, 'line_index': line_index,
+               'city': city, 'station': station,
                'line': line, 'search': search, 'luck': luck}
     data = methods.get(type, err)(**post)
     return HttpResponse(json.dumps(data), content_type='application/json')

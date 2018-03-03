@@ -13,8 +13,21 @@
         $("title").text('全国');
         let treemap_header = new Vue({
             el: '.breadcrumb',
-            mounted: function () {
-                setTimeout(this.post, 0)
+            created: function () {
+                let _this = this;
+                $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
+                    loading.hide();
+                    creat_treemap($('#treemap'));
+                    _this.citys = res;
+                    _this.data = res;
+                    if ('{{ city }}' !== 'index') {
+                        _this.city = ['全国'].concat('{{ city }}'.split('-'));
+                    }
+                    else {
+                        _this.city = ['全国']
+                    }
+                    _this.jump(_this.city.length);
+                });
             },
             data: {
                 city: ['全国'],
@@ -22,22 +35,6 @@
                 data: {}
             },
             methods: {
-                post: function () {
-                    let _this = this;
-                    $.post('{% url 'data' %}', {'type': 'city'}, function (res) {
-                        loading.hide();
-                        creat_treemap($('#treemap'));
-                        _this.citys = res;
-                        _this.data = res;
-                        if ('{{ city }}' !== 'index') {
-                            _this.city = ['全国'].concat('{{ city }}'.split('-'));
-                        }
-                        else {
-                            _this.city = ['全国']
-                        }
-                        _this.jump(_this.city.length);
-                    });
-                },
                 jump: function (n) {
                     let _this = this;
                     _this.city = _this.city.slice(0, n + 1);

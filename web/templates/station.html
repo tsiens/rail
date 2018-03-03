@@ -1,4 +1,9 @@
-{% extends 'template.html' %}
+{% extends 'template.html' %}{% load staticfiles %}
+{% block head %}
+    <script src="//cdn.bootcss.com/echarts/4.0.4/extension/bmap.min.js"></script>
+    <script src="//api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
+    <script src="{% static '/echarts/mapStyle.js' %}"></script>
+{% endblock %}
 {% block content %}
     <div class="echarts" style="overflow:hidden">
         <div id="map"></div>
@@ -29,7 +34,7 @@
         $("title").text('{{ station }}');
         let line_table = new Vue({
             el: '#line_table',
-            mounted: function () {
+            created: function () {
                 $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, (res) => {
                     let table = [];
                     $.each(res.车次, function () {
@@ -61,7 +66,6 @@
         function map(data, lines_num) {
             let map_div = $('#map');
             let [center, zoom] = map_area(map_div, data);
-            console.log(center, zoom);
             let echarts_map = echarts.init(map_div.get(0));
             let option = {
                 title: {

@@ -1,4 +1,9 @@
-{% extends 'template.html' %}
+{% extends 'template.html' %}{% load staticfiles %}
+{% block head %}
+    <script src="//cdn.bootcss.com/echarts/4.0.4/extension/bmap.min.js"></script>
+    <script src="//api.map.baidu.com/api?v=2.0&ak={{ baidu_bak }}"></script>
+    <script src="{% static '/echarts/mapStyle.js' %}"></script>
+{% endblock %}
 {% block content %}
     <div class="echarts" style="overflow:hidden">
         <div id="map"></div>
