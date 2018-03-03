@@ -90,10 +90,10 @@
             $('#search').width($(window).width() - 10);
         }
         function china(a, b) {
-            a.hover(function () {
-                b.animate({opacity: 0.02}, 1000);
+            b.hover(function () {
+                b.animate({opacity: 1}, 500);
             }, function () {
-                b.animate({opacity: 1}, 1000);
+                b.animate({opacity: 0.02}, 500);
             });
 
             let color = '#34383E';
