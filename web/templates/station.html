@@ -37,7 +37,7 @@
             created: function () {
                 $.post('{% url 'data' %}', {'type': 'station', 'station': '{{ station }}'}, (res) => {
                     let table = [];
-                    $.each(res.车次, function () {
+                    $.each(res.lines, function () {
                         let items = [];
                         $.each(this, function (n, text) {
                             let item = {'text': text};
@@ -54,7 +54,7 @@
                         table.push(items)
                     });
                     loading.hide();
-                    map(res.车站, res.车次.length);
+                    map(res);
                     this.table = table
                 })
             },
@@ -63,9 +63,9 @@
                 table: []
             }
         });
-        function map(data, lines_num) {
+        function map(data) {
             let map_div = $('#map');
-            let [center, zoom] = map_area(map_div, data);
+            let [center, zoom] = map_area(map_div, data.stations);
             let echarts_map = echarts.init(map_div.get(0));
             let option = {
                 title: {
@@ -73,8 +73,8 @@
                     textStyle: {
                         color: 'white'
                     },
-                    subtext: '{{province}} {{city}} {{county}}',
-                    sublink: '{% url "city" "*" %}'.replace('*', '{{province}}-{{city}}-{{county}}'),
+                    subtext: data.info.join(' '),
+                    sublink: '{% url "city" "*" %}'.replace('*', data.info.join('-')),
                     subtarget: 'self',
                     left: 'center'
                 },
@@ -133,8 +133,8 @@
                         tooltip: {
                             formatter: function () {
                                 return '{{ station }}<br/>'
-                                    + '连通车站：' + (data.length - 1) + ' 座<br/>'
-                                    + '经过车次：' + lines_num + ' 次'
+                                    + '连通车站：' + (data.stations.length - 1) + ' 座<br/>'
+                                    + '经过车次：' + data.lines.length + ' 次'
                             }
                         }
                     },
@@ -146,7 +146,7 @@
                         symbolSize: function (val) {
                             return Math.sqrt(val[6]) + zoom;
                         },
-                        data: data.slice(1),
+                        data: data.stations.slice(1),
                         label: {
                             emphasis: {
                                 formatter: function (params) {

@@ -1,13 +1,34 @@
 import json
+import pickle
 from datetime import *
 
 from django.db.models import Count
 # Create your views here.
 from django.http import HttpResponse
 from django.shortcuts import render
+from redis import *
 
 import key
 from web.module import *
+
+r = Redis(host='47.74.157.1', password=key.redis_pwd, port=6379, db=0)
+
+
+def redis_data(func):
+    def wrapper(name, *args):
+        old = datetime.now().timestamp()
+        data = r.get(name)
+        if not data:
+            data = func(*args)
+            r.set(name, pickle.dumps(data))
+            tomorrow = (datetime.now() + timedelta(days=1))
+            r.expireat(name, int(datetime(tomorrow.year, tomorrow.month, tomorrow.day).timestamp() - 1))
+        else:
+            data = pickle.loads(data)
+        print(name, datetime.now().timestamp() - old)
+        return data
+
+    return wrapper
 
 
 def val(request):
@@ -18,24 +39,29 @@ def val(request):
 
 
 def index(request):
+    @redis_data
+    def image_stations():
+        line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
+        return list(Station.objects.filter(Q(cn__in=line_stations), ~Q(image=None)).values_list('cn', flat=True))
+
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
         datetime.now().date())
-    line_stations = list(Timetable.objects.values_list('station', flat=True).distinct())
-    image_stations = list(Station.objects.filter(Q(cn__in=line_stations), ~Q(image=None)).values_list('cn', flat=True))
-    stations = random.sample(image_stations, 10)
+    stations = random.sample(image_stations('image_stations'), 10)
     return render(request, 'index.html', locals())
 
 
 def station(request, station):
+    @redis_data
+    def get_count():
+        return Timetable.objects.values('station').distinct().count()
+
     if station == 'index':
         format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
             datetime.now().date())
-        count = Timetable.objects.values('station').distinct().count()
+        count = get_count('station_count')
         return render(request, 'station_index.html', locals())
     else:
         if Timetable.objects.filter(station=station):
-            station, province, city, county = \
-                Station.objects.filter(cn=station).values_list('cn', 'province', 'city', 'county')[0]
             return render(request, 'station.html', locals())
         else:
             err = '%s站不存在或暂未开通客运服务' % station
@@ -43,21 +69,16 @@ def station(request, station):
 
 
 def line(request, line):
-    if line == 'index':
+    @redis_data
+    def get_line_codes():
         line_codes = list(Line.objects.values_list('line', flat=True))
-        line_codes = sorted(list(set([line[0] for line in line_codes])))
+        return sorted(list(set([line[0] for line in line_codes])))
+
+    if line == 'index':
+        line_codes = get_line_codes('line_codes')
         return render(request, 'line_index.html', locals())
     else:
-        line = line.upper()
-        if Timetable.objects.filter(line__contains=line):
-            lines = list(Line.objects.filter(
-                Q(line=line) | Q(line__startswith=line + '/') | Q(line__endswith='/' + line) | Q(
-                    line__contains='/' + line + '/'), ~Q(runtime=None))[:1].values_list('line', 'arrive',
-                                                                                        'start')) + list(
-                Line.objects.filter(Q(line__contains=line), ~Q(runtime=None)).order_by('line')[:1].values_list('line',
-                                                                                                               'arrive',
-                                                                                                               'start'))
-            line, arrive, start = lines[0]
+        if Timetable.objects.filter(line=line.upper()):
             return render(request, 'line.html', locals())
         else:
             err = '%s次不存在或无详细时刻信息' % line
@@ -136,39 +157,36 @@ def data(request):
                         stations_data[cn][1] = runtime
                     stations_data[cn][0] += 1
         for item in Station.objects.filter(cn__in=[cn for cn in stations_data] + [station]).values_list('x', 'y',
-                                                                                                               'cn',
-                                                                                                               'province',
-                                                                                                               'city',
-                                                                                                               'county'):
+                                                                                                        'cn',
+                                                                                                        'province',
+                                                                                                        'city',
+                                                                                                        'county'):
             stations_locations[item[2]] = list(item)
         timetable = sorted([[k] + v[:-1] for k, v in timetable.items()], key=lambda x: x[-2])
         stations = [stations_locations[k] + v for k, v in stations_data.items()]
         stations.insert(0, stations_locations[station] + [0, 0])
-        data = {'车次': timetable, '车站': stations}
-        return data
+        return {'lines': timetable, 'stations': stations,
+                'info': Station.objects.filter(cn=station).values_list('province', 'city', 'county')[0]}
 
     def line(line):
-        data, stations = [], []
+        lines, stations = [], []
         for item in Timetable.objects.filter(line=line).order_by('order').values_list('order', 'station', 'arrivedate',
                                                                                       'arrivetime', 'leavedate',
                                                                                       'leavetime',
                                                                                       'staytime'):
             item, item[3], item[5] = list(item), str(item[3])[:-3], str(item[5])[:-3]
-            data.append(item)
+            lines.append(item)
             stations.append(item[1])
         for item in Station.objects.filter(cn__in=stations).values_list('cn', 'x', 'y', 'province', 'city', 'county'):
             n = stations.index(item[0])
-            data[n] = list(item[1:]) + data[n]
-        return data
+            lines[n] = list(item[1:]) + lines[n]
+        return {'lines': lines, 'info': list(Line.objects.filter(line=line).values_list('start', 'arrive'))[0]}
 
     def err():
         return 'ERROR'
 
     def index_china():
-        lines = list(
-            Line.objects.values('start', 'arrive').annotate(count=Count('line')).order_by('-count').values_list('start',
-                                                                                                                'arrive',
-                                                                                                                'count'))
+        lines = list(Line.objects.values('start', 'arrive').values_list('start', 'arrive').distinct())
         cns = []
         for line in lines:
             cns += line[:2]
@@ -176,15 +194,20 @@ def data(request):
         index = {}
         for n in range(len(stations)):
             index[stations[n][0]] = n
-        lines = [[index[line[0]], index[line[1]], line[2]] for line in lines]
-        return {'stations': stations, 'lines': lines}
+        lines = [[index[line[0]], index[line[1]]] for line in lines]
+        return {'stations': [station[1:] for station in stations], 'lines': lines}
+
+    @redis_data
+    def main(post):
+        type = post.pop('type', '')
+        methods = {'log': log, 'index_china': index_china, 'station_index': station_index, 'line_index': line_index,
+                   'city': city, 'station': station,
+                   'line': line, 'search': search, 'luck': luck}
+        return methods.get(type, err)(**post)
+
     post = dict(request.POST.items())
     post.pop('csrfmiddlewaretoken')
-    type = post.pop('type', '')
-    methods = {'log': log, 'index_china': index_china, 'station_index': station_index, 'line_index': line_index,
-               'city': city, 'station': station,
-               'line': line, 'search': search, 'luck': luck}
-    data = methods.get(type, err)(**post)
+    data = main('__'.join(sorted(post.values())), post)
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 

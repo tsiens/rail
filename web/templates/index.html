@@ -3,9 +3,9 @@
     <script src="{% static '/echarts/china.js' %}"></script>
 {% endblock %}
 {% block content %}
-    <div id="china" style="width:100%;height: 100%">
+    <div id="china" style="width:100%;height: 100%;opacity: 0">
     </div>
-    <div id="carousel_search" style="position:absolute;width:40%">
+    <div id="carousel_search" style="position:absolute;width:40%;">
         <div id="carousel" class="carousel slide" data-ride="carousel" style="height:50%">
             <!-- 指示符 -->
             <ul class="carousel-indicators">
@@ -90,29 +90,28 @@
             $('#search').width($(window).width() - 10);
         }
         function china(a, b) {
+            b.css({opacity: 0.02});
             b.hover(function () {
                 b.animate({opacity: 1}, 500);
             }, function () {
                 b.animate({opacity: 0.02}, 500);
             });
 
-            let color = '#34383E';
-            $('body').css('background-color', color);
+            $('body').css('background-color', '#34383E');
             $.post('{% url 'data' %}', {'type': 'index_china'}, function (res) {
                 let lines = [];
                 for (n = 0; n < res.lines.length; n++) {
-                    lines.push([res.stations[res.lines[n][0]].slice(1),
-                        res.stations[res.lines[n][1]].slice(1)])
+                    let start = res.stations[res.lines[n][0]];
+                    let arrive = res.stations[res.lines[n][1]];
+                    lines.push([start, arrive])
                 }
                 let option = {
-                    backgroundColor: color,
                     geo: {
                         map: 'china',
                         zoom: 1.5,
                         silent: true,
                         itemStyle: {
-                            borderColor: color,
-                            color: color
+                            opacity: 0
                         }
                     },
                     series: [{
@@ -124,12 +123,12 @@
                             color: '#FFF',
                             opacity: 0.1,
                             width: 1,
-                            {#curveness: 0.1#}
                         },
                         blendMode: 'lighter'
                     }]
                 };
-                echarts.init(a.get(0)).setOption(option)
+                echarts.init(a.get(0)).setOption(option);
+                a.animate({opacity: 1}, 2000);
             });
         }
     {% endblock %}
