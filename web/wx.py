@@ -11,14 +11,36 @@ from key import wx_token
 from web.module import *
 
 
-def img(cn):
+def img(cn, article):
     qiniu_img_url = 'http://qiniu.rail.qiangs.tech/station_img/%s.jpg?imageMogr2/auto-orient/thumbnail/!450x250r/gravity/Center/crop/x250/format/webp/blur/1x0/quality/75|imageslim&time=' + str(
         datetime.now().date())
     err_img_url = 'http://rail.qiangs.tech/static/image/favicon.ico'
     if Station.objects.filter(cn=cn).exclude(image=None):
-        return qiniu_img_url % cn
+        article['image'] = qiniu_img_url % cn
+    return article
+
+
+def wx_luck(txt):
+    k, v = luck()
+    if k == 'city':
+        articles = [{
+            'title': '推荐 %s' % v,
+            'url': 'http://rail.qiangs.tech/city/%s' % v
+        }]
+    elif k == 'station':
+        articles = [img(v, {
+            'title': '推荐 %s' % v,
+            'url': 'http://rail.qiangs.tech/station/%s' % v
+        })]
     else:
-        return err_img_url
+        start, arrive = Line.objects.filter(line=v).values_list('start', 'arrive')[0]
+        articles = [img(start, {
+            'title': '推荐 %s次 %s-%s' % (v, start, arrive),
+            'url': 'http://rail.qiangs.tech/line/%s' % v
+        })]
+    if txt != '推荐':
+        articles.append({'title': '小的不才，无法识别 “%s”' % txt})
+    return articles
 @csrf_exempt  # 去除csrf认证
 def wx(request):
     if request.method == 'GET':
@@ -47,18 +69,16 @@ def wx(request):
             elif n > 0:
                 articles = []
                 for station in data['station'][:5]:
-                    articles.append({
+                    articles.append(img(station, {
                         'title': '%s' % station,
-                        'image': img(station),
                         'url': 'http://rail.qiangs.tech/station/%s' % station
-                    })
+                    }))
                 for line in data['line'][:5 - len(articles) if len(articles) < 5 else 0]:
                     start, arrive = Line.objects.filter(line=line).values_list('start', 'arrive')[0]
-                    articles.append({
+                    articles.append(img(start, {
                         'title': '%s次 %s-%s' % (line, start, arrive),
-                        'image': img(start),
                         'url': 'http://rail.qiangs.tech/line/%s' % line
-                    })
+                    }))
                 for city in data['city'][:5 - len(articles) if len(articles) < 5 else 0]:
                     articles.append({
                         'title': '%s' % city,
@@ -66,31 +86,8 @@ def wx(request):
                     })
                 reply = ArticlesReply(message=msg, articles=articles)
             else:
-                k, v = luck()
-                if k == 'city':
-                    articles = [{
-                        'title': '推荐 %s' % v,
-                        'url': 'http://rail.qiangs.tech/city/%s' % v
-                    }]
-                elif k == 'station':
-                    articles = [{
-                        'title': '推荐 %s' % v,
-                        'image': img(v),
-                        'url': 'http://rail.qiangs.tech/station/%s' % v
-                    }]
-                else:
-                    start, arrive = Line.objects.filter(line=v).values_list('start', 'arrive')[0]
-                    articles = [{
-                        'title': '推荐 %s次 %s-%s' % (v, start, arrive),
-                        'image': img(start),
-                        'url': 'http://rail.qiangs.tech/line/%s' % v
-                    }]
-                if txt != '推荐':
-                    articles.append({'title': '小的不才，无法识别 “%s”' % txt})
-                reply = ArticlesReply(message=msg, articles=articles)
+                reply = ArticlesReply(message=msg, articles=wx_luck(txt))
         else:
-            types = {'image': '图片', 'voice': '语音', 'video': '视频', 'music': '音乐', 'shortvideo': '小视频', 'location': '位置',
-                     'link': '链接'}
-            reply = create_reply('小的不才，无法识别 “%s”\nヾ(×× ) ﾂ' % types.get(msg.type, '消息'), msg)
+            reply = ArticlesReply(message=msg, articles=wx_luck(msg.type))
         response = HttpResponse(reply.render(), content_type="application/xml")
     return response
