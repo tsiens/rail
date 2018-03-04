@@ -3,9 +3,7 @@
     <script src="{% static '/echarts/china.js' %}"></script>
 {% endblock %}
 {% block content %}
-    <div id="china" style="width:100%;height: 100%;opacity: 0">
-    </div>
-    <div id="carousel_search" style="position:absolute;width:40%;">
+    <div id="carousel_search" style="width:40%;">
         <div id="carousel" class="carousel slide" data-ride="carousel" style="height:50%">
             <!-- 指示符 -->
             <ul class="carousel-indicators">
@@ -54,6 +52,14 @@
 <script>
     {% block script %}
         loading.hide();
+        if ($(window).width() > 768) {
+            $('#background').css({opacity: 1});
+            $('.navbar').removeClass('bg-dark').css('background-color', 'rgba(0,0,0,0.1)');
+            china($("#background div"), $("#carousel_search"))
+        }
+        else if ($(window).width() < 500) {
+            $("#carousel_search,#search").width($(window).width() - 10);
+        }
         let index_search = new Vue({
             el: '#search',
             mixins: [search]
@@ -82,13 +88,6 @@
                 items: []
             }
         });
-        if ($(window).width() > 768) {
-            china($("#china"), $("#carousel_search"))
-        }
-        else if ($(window).width() < 500) {
-            $("#carousel_search").width($(window).width() - 10);
-            $('#search').width($(window).width() - 10);
-        }
         function china(a, b) {
             b.css({opacity: 0.02});
             b.hover(function () {
@@ -96,8 +95,6 @@
             }, function () {
                 b.animate({opacity: 0.02}, 500);
             });
-
-            $('body').css('background-color', '#34383E');
             $.post('{% url 'data' %}', {'type': 'index_china'}, function (res) {
                 let lines = [];
                 for (n = 0; n < res.lines.length; n++) {
@@ -128,7 +125,7 @@
                     }]
                 };
                 echarts.init(a.get(0)).setOption(option);
-                a.animate({opacity: 1}, 2000);
+                a.animate({opacity: 1}, 1000);
             });
         }
     {% endblock %}

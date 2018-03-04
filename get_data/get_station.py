@@ -158,4 +158,4 @@ if __name__ == '__main__':
     # get_location()
     # get_location_thread('昭通南')
     # get_img()
-    get_img_thread('重庆西')
+    get_img_thread('广元')

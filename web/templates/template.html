@@ -74,91 +74,97 @@
 {% endblock %}
 </head>
 <body style="background-color: #F0F0F0;height: 100%;display: flex;flex-direction: column">
-<nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
-    <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
-            class="fa fa-github"></i></a>
-    <a class="navbar-brand" href="/">Rail</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#header_ul">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div id="header_ul" class="collapse navbar-collapse justify-content-end">
-        <ul class="navbar-nav">
-            <template v-for="item in items1">
-                <li class="nav-item"><a class="nav-link" :href="item.href" :class="{active:item.page==page}"><i
-                        :class="item.fa"></i>&nbsp[[ item.text ]]</a>
-                </li>
-            </template>
-            <template v-for="item in items2">
-                <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal"
-                                        :data-target="item.href"><i
-                        :class="item.fa"></i>&nbsp[[ item.text ]]</a></li>
-            </template>
-        </ul>
-    </div>
-</nav>
-<div class="container" style="flex:1">
-    <div id="loading" style="height:100%;justify-content: center;align-items: center" :style="{display:display}">
-        <div style=";position: relative" :style="{width:radius*2+'px',height:radius*2+'px'}">
-            <span v-for="style in styles" :style="style"></span>
-        </div>
-    </div>
-    <div id="index"
-         style="height:100%;display:none;flex-direction: column;justify-content: center;align-items: center">
-        {% block content %}
-        {% endblock %}
+<div id="background" style="height:100%;background-color:#34383E;opacity: 0">
+    <div style="height:100%;opacity: 0">
     </div>
 </div>
-<nav id="modal">
-    <div v-for="item in items" class="modal fade" :id="item.id">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title"><i :class="item.fa"></i>[[ item.text ]]</h4>
-                    <button type="button" class="close" data-dismiss="modal">×</button>
-                </div>
-                <div class="modal-body">
-                    <img v-if="item.text!='搜索'" :src="item.src" alt="item.text">
-                    <div v-else class="search" style="text-align: center">
-                        <br/>
-                        <input class="form-control" v-model="input" @input="search"
-                               @blur="blur"
-                               title="search">
-                        <div style="word-wrap:break-word">
-                            <template v-for="(vs, k, n) in suggest">
-                                <div v-if="n>0" class="dropdown-divider"></div>
-                                <p v-if="vs" class="dropdown-header">[[ k ]]</p>
-                                <a v-for="v in vs" :href="v[0]">
-                                    <span class="badge badge-light">[[ v[1] ]]</span>
-                                </a>
-                            </template>
+<div style="height: 100%;width:100%;display: flex;flex-direction: column;position:absolute">
+    <nav id="header" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
+        <a class="navbar-brand" rel="nofollow" target="_blank" href="https://github.com/tsiens/rail"><i
+                class="fa fa-github"></i></a>
+        <a class="navbar-brand" href="/">Rail</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#header_ul">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="header_ul" class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <template v-for="item in items1">
+                    <li class="nav-item"><a class="nav-link" :href="item.href" :class="{active:item.page==page}"><i
+                            :class="item.fa"></i>&nbsp[[ item.text ]]</a>
+                    </li>
+                </template>
+                <template v-for="item in items2">
+                    <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal"
+                                            :data-target="item.href"><i
+                            :class="item.fa"></i>&nbsp[[ item.text ]]</a></li>
+                </template>
+            </ul>
+        </div>
+    </nav>
+    <div class="container" style="flex:1">
+        <div id="loading" style="height:100%;justify-content: center;align-items: center" :style="{display:display}">
+            <div style=";position: relative" :style="{width:radius*2+'px',height:radius*2+'px'}">
+                <span v-for="style in styles" :style="style"></span>
+            </div>
+        </div>
+        <div id="index"
+             style="height:100%;display:none;flex-direction: column;justify-content: center;align-items: center">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+    <nav id="modal">
+        <div v-for="item in items" class="modal fade" :id="item.id">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i :class="item.fa"></i>[[ item.text ]]</h4>
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <img v-if="item.text!='搜索'" :src="item.src" alt="item.text">
+                        <div v-else class="search" style="text-align: center">
+                            <br/>
+                            <input class="form-control" v-model="input" @input="search"
+                                   @blur="blur"
+                                   title="search">
+                            <div style="word-wrap:break-word">
+                                <template v-for="(vs, k, n) in suggest">
+                                    <div v-if="n>0" class="dropdown-divider"></div>
+                                    <p v-if="vs" class="dropdown-header">[[ k ]]</p>
+                                    <a v-for="v in vs" :href="v[0]">
+                                        <span class="badge badge-light">[[ v[1] ]]</span>
+                                    </a>
+                                </template>
+                            </div>
+                            <br/>
+                            <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
                         </div>
-                        <br/>
-                        <button type="button" class="btn btn-secondary" @click="luck">手气不错</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</nav>
-<nav id="footer" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footer_ul">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div id="footer_ul" class="collapse navbar-collapse justify-content-center">
-        <ul class="nav navbar-nav">
-            <li class="nav-item nav-link"><a href="/">潜者无疆</a> 版权所有</li>
-            <li class="nav-item nav-link">采用 <a rel="nofollow" target="_blank" href="https://v4.bootcss.com/">Bootstrap
-                4.0</a> & <a
-                    rel="nofollow" target="_blank" href="http://fontawesome.dashgame.com/">Font Awesome</a> 主题
-            </li>
-            <li class="nav-item nav-link">托管于 <a rel="nofollow" target="_blank"
-                                                 href="http://www.aliyun.com/">阿里云主机</a>
-                & <a rel="nofollow" target="_blank" href="https://www.qiniu.com/">七牛云存储</a></li>
-            <li class="nav-item nav-link"><a rel="nofollow" target="_blank" href="http://www.miitbeian.gov.cn/">浙ICP备17050848号</a>
-            </li>
-        </ul>
-    </div>
-</nav>
+    </nav>
+    <nav id="footer" style="flex:0 0 auto" class="navbar navbar-expand-md bg-dark navbar-dark">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footer_ul">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="footer_ul" class="collapse navbar-collapse justify-content-center">
+            <ul class="nav navbar-nav">
+                <li class="nav-item nav-link"><a href="/">潜者无疆</a> 版权所有</li>
+                <li class="nav-item nav-link">采用 <a rel="nofollow" target="_blank" href="https://v4.bootcss.com/">Bootstrap
+                    4.0</a> & <a
+                        rel="nofollow" target="_blank" href="http://fontawesome.dashgame.com/">Font Awesome</a> 主题
+                </li>
+                <li class="nav-item nav-link">托管于 <a rel="nofollow" target="_blank"
+                                                     href="http://www.aliyun.com/">阿里云主机</a>
+                    & <a rel="nofollow" target="_blank" href="https://www.qiniu.com/">七牛云存储</a></li>
+                <li class="nav-item nav-link"><a rel="nofollow" target="_blank" href="http://www.miitbeian.gov.cn/">浙ICP备17050848号</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>
 <script>
     Vue.mixin({
         delimiters: ['[[', ']]']
