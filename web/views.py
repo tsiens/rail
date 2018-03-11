@@ -1,4 +1,5 @@
 import json
+import pickle
 from datetime import *
 
 from django.db.models import Count
@@ -16,14 +17,14 @@ def redis_data(func):
     def wrapper(name, *args):
         data = r.get(name)
         if not data:
-            data = json.dumps(func(*args))
+            data = pickle.dumps(func(*args))
             if name != 'log':
                 expire = (datetime.strptime(str((datetime.now() + timedelta(days=1)).date()),
                                             '%Y-%m-%d') - datetime.now()).seconds
             else:
                 expire = 60
             r.set(name, data, ex=expire)
-        return data
+        return pickle.loads(data)
 
     return wrapper
 
@@ -43,7 +44,7 @@ def index(request):
 
     format = '.jpg?imageMogr2/auto-orient/thumbnail/x300/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
         datetime.now().date())
-    stations = random.sample(eval(image_stations('image_stations')), 10)
+    stations = random.sample(image_stations('image_stations'), 10)
     return render(request, 'index.html', locals())
 
 
@@ -55,7 +56,7 @@ def station(request, station):
     if station == 'index':
         format = '.jpg?imageMogr2/auto-orient/thumbnail/200x/interlace/1/blur/1x0/quality/75|imageslim&time=%s' % str(
             datetime.now().date())
-        count = eval(get_count('station_count'))
+        count = get_count('station_count')
         return render(request, 'station_index.html', locals())
     else:
         if Timetable.objects.filter(station=station):
@@ -72,7 +73,7 @@ def line(request, line):
         return sorted(list(set([line[0] for line in line_codes])))
 
     if line == 'index':
-        line_codes = eval(get_line_codes('line_codes'))
+        line_codes = get_line_codes('line_codes')
         return render(request, 'line_index.html', locals())
     else:
         if Timetable.objects.filter(line=line.upper()):
@@ -204,7 +205,8 @@ def data(request):
 
     post = dict(request.POST.items())
     post.pop('csrfmiddlewaretoken')
-    return HttpResponse(main('__'.join(sorted(post.values())), post), content_type='application/json')
+    data = main('__'.join(sorted(post.values())), post)
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 
 def log(request):
