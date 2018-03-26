@@ -6,6 +6,7 @@ from .wx import *
 urlpatterns = [
     path('', index, name='index'),
     path('log', log, name='log'),
+    path('china', china, name='china'),
     path('station', station, {'station': 'index'}, name='station_index'),
     path('station/<station>', station, name='station'),
     path('line', line, {'line': 'index'}, name='line_index'),

@@ -87,6 +87,9 @@ def city(request, city):
     return render(request, 'city.html', locals())
 
 
+def china(request):
+    return render(request, 'china.html')
+
 def data(request):
     def log():
         with open('get_data/data.log', 'r') as f:
@@ -183,7 +186,18 @@ def data(request):
     def err():
         return 'ERROR'
 
-    def index_china():
+    def china():
+        data = []
+        level = [0, 20, 100, 300, 10000]
+        for n in range(len(level) - 1):
+            data.append(list(Station.objects.filter(Q(cn__in=list(
+                Timetable.objects.values('station').annotate(count=Count('line')).filter(count__gt=level[n],
+                                                                                         count__lt=level[
+                                                                                             n + 1]).values_list(
+                    'station', flat=True))), ~Q(x=None)).values_list('cn', 'x', 'y')))
+        return data
+
+    def index():
         lines = list(Line.objects.values('start', 'arrive').values_list('start', 'arrive').distinct())
         cns = []
         for line in lines:
@@ -198,7 +212,7 @@ def data(request):
     @redis_data
     def main(post):
         type = post.pop('type', '')
-        methods = {'log': log, 'index_china': index_china, 'station_index': station_index, 'line_index': line_index,
+        methods = {'log': log, 'china': china, 'index': index, 'station_index': station_index, 'line_index': line_index,
                    'city': city, 'station': station,
                    'line': line, 'search': search, 'luck': luck}
         return methods.get(type, err)(**post)

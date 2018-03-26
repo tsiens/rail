@@ -1,0 +1,51 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <script src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script src="//webapi.amap.com/maps?v=1.4.5&key=bc58c6b5aa9beebe9136fb8d6b98b054"></script>
+    <script src="//webapi.amap.com/ui/1.0/main.js"></script>
+    <script>$.ajaxSetup({data: {csrfmiddlewaretoken: '{{ csrf_token }}'}})</script>
+    <title>全国</title>
+</head>
+
+<body>
+<div id="container" style="height:690px;width: 100%"></div>
+<script type="text/javascript">
+    let map = new AMap.Map('container', {
+        zoom: 5,
+        center: [110, 35],
+        mapStyle: 'amap://styles/1fdb43d692224ce958384678c66b3ada'
+    });
+    AMapUI.load(['ui/misc/PointSimplifier', 'lib/$'], function (PointSimplifier, $) {
+        function point(zIndex, map, content, fillStyle, size) {
+            return new PointSimplifier({
+                zIndex: zIndex,
+                autoSetFitView: false,
+                map: map,
+                getPosition: function (item) {
+                    return item.slice(1);
+                },
+                getHoverTitle: function (item) {
+                    return item[0];
+                },
+                renderOptions: {
+                    pointStyle: {
+                        content: content,
+                        fillStyle: fillStyle,
+                        width: size,
+                        height: size
+                    }
+                }
+            });
+        }
+
+        $.post('{% url 'data' %}', {'type': 'china'}, function (data) {
+            point(100, map, 'circle', 'green', 5).setData(data[0]);
+            point(101, map, 'circle', 'yellow', 8).setData(data[1]);
+            point(102, map, 'circle', 'orange', 10).setData(data[2]);
+            point(103, map, 'rect', 'red', 15).setData(data[3]);
+        })
+    })
+</script>
+</body>
+</html>
