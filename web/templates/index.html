@@ -95,7 +95,7 @@
             }, function () {
                 b.animate({opacity: 0.02}, 500);
             });
-            $.post('{% url 'data' %}', {'type': 'index_china'}, function (res) {
+            $.post('{% url 'data' %}', {'type': 'index'}, function (res) {
                 let lines = [];
                 for (n = 0; n < res.lines.length; n++) {
                     let start = res.stations[res.lines[n][0]];
