@@ -54,7 +54,7 @@ def get_timetable(old=[]):
     sqls = []
     stations_cn, stations_en, lines = stations_lines()
     lines_list = mysql.execute(
-        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date IS NULL" % line_table)
+        "SELECT line,start,arrive,code,start_en,arrive_en FROM %s WHERE date IS NULL AND start_en IS NOT NULL AND arrive_en IS NOT NULL" % line_table)
     lines_list = sorted(['-|-'.join(lines) for lines in lines_list])
     if lines_list != old:
         rs = threadpool.makeRequests(get_timetable_thread, lines_list)
