@@ -49,6 +49,7 @@ def index(request):
 
 
 def station(request, station):
+    station = station.split('&subscene=')[0]
     @redis_data
     def get_count():
         return Timetable.objects.values('station').distinct().count()
@@ -67,6 +68,7 @@ def station(request, station):
 
 
 def line(request, line):
+    line = line.split('&subscene=')[0]
     @redis_data
     def get_line_codes():
         line_codes = list(Line.objects.values_list('line', flat=True))
@@ -84,6 +86,7 @@ def line(request, line):
 
 
 def city(request, city):
+    city = city.split('&subscene=')[0]
     return render(request, 'city.html', locals())
 
 
