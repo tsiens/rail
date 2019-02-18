@@ -60,7 +60,6 @@ geogv_url1 = 'http://cnrail.geogv.org/api/v1/match_feature/%s?locale=zhcn&query-
 geogv_url2 = 'http://cnrail.geogv.org/api/v1/station/%s?locale=zhcn&query-over'
 railmap_url = 'http://www.railmap.cn/api/stationpos/%s/'
 amap_geocode_url = 'http://restapi.amap.com/v3/geocode/regeo?key=%s&location=%s,%s'
-wiki_url = 'https://zh.wikipedia.org'
 baike_url = 'https://wapbaike.baidu.com/item/%s站'
 
 

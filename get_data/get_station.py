@@ -149,19 +149,9 @@ def get_img():
 
 
 def get_img_thread(station):
-    try:
-        src = None
-        url = pq(requests.get(wiki_url + '/wiki/%s站' % station, headers=headers, timeout=5).text)(
-            '.vcard [colspan="2"] a')
-        if url and 'Missing' not in str(url) and 'No' not in str(url):
-            src = pq(requests.get(wiki_url + url.attr('href'), headers=headers, timeout=5).text)('.fullMedia a').attr(
-                'href')
-    except:
-        src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
-        if src:
-            src = re.findall(r'src=(.+)', src)[0]
+    src = pq(requests.get(baike_url % station, headers=headers).text)('#J-summary-img').attr('data-src')
     if src:
-        qiniuyun.fetch(src, 'station_img/%s.jpg' % station)
+        qiniuyun.fetch(re.findall(r'src=(.+)', src)[0], 'station_img/%s.jpg' % station)
         log('图片 %s 站' % station)
     else:
         src = None
@@ -172,6 +162,6 @@ def get_img_thread(station):
 
 if __name__ == '__main__':
     # get_station()
-    get_location()
+    # get_location()
     # get_location_thread('秋草地')
-    # get_img()
+    get_img()
